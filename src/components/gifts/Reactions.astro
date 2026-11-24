@@ -1,0 +1,66 @@
+---
+/**
+ * ❤️ "Like" and ✨ "I want it too" under a gift. `mode`:
+ *   react     signed-in visitor: toggles (src/scripts/reactions.ts)
+ *   login     guest: the buttons lead to the login page
+ *   readonly  the owner: counts only, shown when there are any
+ */
+import Icon from "@/components/Icon.astro";
+import { makeT, type Lang } from "@/lib/i18n";
+import gifts from "@/i18n/gifts";
+import type { ReactionSummary } from "@/lib/gifts";
+
+interface Props {
+  lang: Lang;
+  itemId: string;
+  summary?: ReactionSummary;
+  mode: "react" | "login" | "readonly";
+  loginHref?: string;
+  class?: string;
+}
+const { lang, itemId, mode, loginHref = "/login", class: cls } = Astro.props;
+const summary = Astro.props.summary ?? { heart: 0, want: 0, mine: [] };
+const t = makeT(lang, gifts);
+const kinds = [
+  { kind: "heart", icon: "heart", label: t("react.heart"), n: summary.heart },
+  { kind: "want", icon: "sparkle", label: t("react.want"), n: summary.want },
+] as const;
+const hidden = mode === "readonly" && !summary.heart && !summary.want;
+---
+
+{
+  !hidden && (
+    <div class:list={["flex flex-wrap items-center gap-1.5", cls]} data-reactions={itemId}>
+      {kinds.map(({ kind, icon, label, n }) => {
+        const on = summary.mine.includes(kind);
+        const inner = (
+          <>
+            <Icon name={icon} class="when-off h-4 w-4" />
+            <Icon name={icon} weight="fill" class="when-on h-4 w-4" />
+            {kind === "want" && <span class="text-xs">{label}</span>}
+            <span data-count class:list={["text-xs tabular-nums", !n && "hidden"]}>{n}</span>
+          </>
+        );
+        return mode === "react" ? (
+          <button type="button" class:list={["react-btn", `react-${kind}`]} data-react={kind} aria-pressed={on ? "true" : "false"} aria-label={label} title={label}>
+            {inner}
+          </button>
+        ) : mode === "login" ? (
+          <a href={loginHref} class:list={["react-btn", `react-${kind}`]} aria-label={t("react.login")} title={t("react.login")}>
+            {inner}
+          </a>
+        ) : (
+          n > 0 && (
+            <span class:list={["react-btn is-static", `react-${kind}`]} aria-pressed="true" title={label}>
+              {inner}
+            </span>
+          )
+        );
+      })}
+    </div>
+  )
+}
+
+<script>
+  import "@/scripts/reactions";
+</script>

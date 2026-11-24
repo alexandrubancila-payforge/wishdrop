@@ -418,3 +418,66 @@ main img[data-loaded] {
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Reactions under a gift (components/gifts/Reactions.astro). */
+@layer components {
+  .react-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 2rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    background: var(--color-sand);
+    color: var(--color-ink-soft);
+    font-weight: 700;
+    transition: background-color 0.15s, color 0.15s, transform 0.15s;
+  }
+  .react-btn:not(.is-static):hover {
+    color: var(--color-ink);
+    background: var(--color-line);
+  }
+  .react-btn[aria-pressed="true"] .when-off,
+  .react-btn:not([aria-pressed="true"]) .when-on {
+    display: none;
+  }
+  .react-heart[aria-pressed="true"] {
+    background: var(--color-accent-100);
+    color: var(--color-accent-600);
+  }
+  .react-want[aria-pressed="true"] {
+    background: var(--color-sun);
+    color: var(--color-sun-ink);
+  }
+  .react-btn.is-static {
+    cursor: default;
+  }
+  .react-pop {
+    animation: react-pop 0.35s ease-out;
+  }
+}
+@keyframes react-pop {
+  40% {
+    transform: scale(1.18);
+  }
+}
+
+/*
+ * Phones must not zoom in: iOS zooms into any field under 16px when it gets
+ * focus, and a quick double tap zooms the page. Fields stay at 16px on small
+ * screens (even with a text-sm utility) and taps don't wait for a double tap.
+ */
+html {
+  touch-action: manipulation;
+}
+@media (max-width: 1023px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+[data-owner="true"] [data-join-btn],
+[data-owner="true"] [data-leave-btn] {
+  display: none !important;
+}

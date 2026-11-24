@@ -1,0 +1,178 @@
+---
+/**
+ * The owner's dashboard: totals, the last 12 weeks, new accounts and the
+ * biggest lists. Only for the OWNER_EMAIL account; everyone else gets a 404.
+ */
+import Layout from "@/layouts/Layout.astro";
+import Icon from "@/components/Icon.astro";
+import Avatar from "@/components/Avatar.astro";
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import strings from "@/i18n/admin";
+import { isAdmin, siteStats } from "@/lib/admin";
+
+const { lang, user } = Astro.locals;
+if (!isAdmin(user)) return Astro.rewrite(localePath(lang, "/404"));
+
+const t = makeT(lang, common, strings);
+const { totals, weekly, recent, topLists } = await siteStats();
+const n = (k: string) => totals[k] ?? 0;
+const fmt = new Intl.NumberFormat(lang);
+const day = new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", timeZone: "UTC" });
+const dateTime = new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+
+const kpis = [
+  { key: "users", icon: "users", tint: "bg-accent-100 text-accent-600", total: n("users"), d7: n("users7"), d30: n("users30") },
+  { key: "lists", icon: "list-heart", tint: "bg-lav text-lav-ink", total: n("lists"), d7: n("lists7"), d30: n("lists30") },
+  { key: "gifts", icon: "gift", tint: "bg-sun text-sun-ink", total: n("gifts"), d7: n("gifts7"), d30: n("gifts30") },
+  { key: "reserved", icon: "hand-heart", tint: "bg-mint text-mint-ink", total: n("reserved"), d7: n("reserved7"), d30: n("reserved30") },
+  { key: "follows", icon: "user-plus", tint: "bg-accent-100 text-accent-600", total: n("follows"), d7: n("follows7"), d30: null },
+];
+const series = [
+  { key: "users", bar: "bg-accent-500" },
+  { key: "lists", bar: "bg-lav-ink" },
+  { key: "gifts", bar: "bg-sun-ink" },
+  { key: "reserved", bar: "bg-mint-ink" },
+] as const;
+const more = [
+  { key: "usersWithLists", icon: "list-heart" },
+  { key: "googleUsers", icon: "google-logo" },
+  { key: "pushUsers", icon: "device-mobile" },
+  { key: "reactions", icon: "heart" },
+  { key: "groupGifts", icon: "users-three" },
+  { key: "joins", icon: "hand-coins" },
+  { key: "received", icon: "package" },
+];
+const listName = (r: { owner_name: string | null; owner_username: string | null; owner_email: string }) =>
+  r.owner_name || (r.owner_username ? `@${r.owner_username}` : r.owner_email.split("@")[0]);
+---
+
+<Layout title={`${t("title")} — WishDrop`} noindex mainClass="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+  <h1 class="flex items-center gap-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
+    <span class="grid h-12 w-12 place-items-center rounded-2xl bg-accent-100 text-accent-600">
+      <Icon name="chart-line-up" class="h-6 w-6" />
+    </span>
+    {t("title")}
+  </h1>
+  <p class="mt-2 text-ink-soft">{t("subtitle")}</p>
+
+  <section class="mt-8 grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+    {
+      kpis.map((k) => (
+        <div class="card p-4 sm:p-5">
+          <div class="flex items-center gap-2">
+            <span class:list={["grid h-9 w-9 place-items-center rounded-xl", k.tint]}>
+              <Icon name={k.icon} class="h-5 w-5" />
+            </span>
+            <span class="text-sm font-bold text-ink-soft">{t(k.key)}</span>
+          </div>
+          <p class="mt-3 text-3xl font-extrabold tabular-nums tracking-tight">{fmt.format(k.total)}</p>
+          <p class:list={["mt-1 text-xs font-semibold", k.d7 ? "text-mint-ink" : "text-ink-soft"]}>{t("week", { n: fmt.format(k.d7) })}</p>
+          {k.d30 !== null && <p class="text-xs text-ink-soft">{t("month", { n: fmt.format(k.d30) })}</p>}
+        </div>
+      ))
+    }
+  </section>
+
+  <section class="mt-8">
+    <h2 class="text-lg font-extrabold tracking-tight">{t("weekly")}</h2>
+    <p class="text-sm text-ink-soft">{t("weeklyText")}</p>
+    <div class="mt-3 grid gap-3 sm:grid-cols-2 sm:gap-4">
+      {
+        series.map((s) => {
+          const values = weekly.map((w) => w[s.key]);
+          const max = Math.max(1, ...values);
+          const sum = values.reduce((a, b) => a + b, 0);
+          return (
+            <div class="card p-4 sm:p-5">
+              <div class="flex items-baseline justify-between gap-2">
+                <p class="font-bold">{t(`series.${s.key}`)}</p>
+                <p class="text-sm font-extrabold tabular-nums">{fmt.format(sum)}</p>
+              </div>
+              <div class="mt-4 flex h-32 items-end gap-1.5" role="img" aria-label={`${t(`series.${s.key}`)}: ${values.join(", ")}`}>
+                {weekly.map((w) => (
+                  <div class="group relative flex h-full flex-1 flex-col justify-end">
+                    <span class="pointer-events-none absolute -top-1 left-1/2 z-10 hidden -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-lg bg-ink px-2 py-1 text-xs font-bold text-white group-hover:block">
+                      {day.format(w.start)}: {w[s.key]}
+                    </span>
+                    <div
+                      class:list={["w-full rounded-t-md", w[s.key] ? s.bar : "bg-sand"]}
+                      style={`height:${w[s.key] ? Math.max(6, (w[s.key] / max) * 100) : 4}%`}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div class="mt-2 flex justify-between text-[11px] font-medium text-ink-soft">
+                <span>{day.format(weekly[0].start)}</span>
+                <span>{day.format(weekly[weekly.length - 1].start)}</span>
+              </div>
+            </div>
+          );
+        })
+      }
+    </div>
+  </section>
+
+  <section class="mt-8">
+    <h2 class="text-lg font-extrabold tracking-tight">{t("more")}</h2>
+    <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+      {
+        more.map((m) => (
+          <div class="card p-4">
+            <Icon name={m.icon} class="h-5 w-5 text-accent-500" />
+            <p class="mt-2 text-2xl font-extrabold tabular-nums">{fmt.format(n(m.key))}</p>
+            <p class="mt-0.5 text-xs leading-snug text-ink-soft">{t(m.key)}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <div class="mt-8 grid gap-6 lg:grid-cols-2">
+    <section>
+      <h2 class="text-lg font-extrabold tracking-tight">{t("recent")}</h2>
+      <ul class="card mt-3 divide-y divide-line px-4 sm:px-5">
+        {
+          recent.map((u) => (
+            <li class="flex items-center gap-3 py-3">
+              <Avatar user={u} size={40} class="h-10 w-10" />
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-bold">
+                  {u.username ? <a href={localePath(lang, `/@${u.username}`)} class="hover:text-accent-700">{u.name || `@${u.username}`}</a> : u.name || "—"}
+                  {!!u.google && <Icon name="google-logo" class="ml-1 inline h-3.5 w-3.5 text-ink-soft" />}
+                </p>
+                <p class="truncate text-xs text-ink-soft">{u.email}</p>
+              </div>
+              <div class="shrink-0 text-right text-xs text-ink-soft">
+                <p class="font-semibold text-ink">{t("listsShort", { n: u.lists })} · {t("giftsShort", { n: u.gifts })}</p>
+                <p>{dateTime.format(u.created_at)}</p>
+              </div>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+    <section>
+      <h2 class="text-lg font-extrabold tracking-tight">{t("topLists")}</h2>
+      <ul class="card mt-3 divide-y divide-line px-4 sm:px-5">
+        {
+          topLists.map((l) => (
+            <li class="flex items-center gap-3 py-3">
+              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-lav text-lav-ink">
+                <Icon name={l.visibility === "link" ? "link" : l.visibility === "followers" ? "users" : "globe"} class="h-5 w-5" />
+              </span>
+              <div class="min-w-0 flex-1">
+                <a href={`/w/${l.slug}`} class="block truncate text-sm font-bold hover:text-accent-700">{l.name}</a>
+                <p class="truncate text-xs text-ink-soft">{listName(l)}</p>
+              </div>
+              <p class="shrink-0 text-right text-xs text-ink-soft">
+                <span class="block font-semibold text-ink">{t("giftsShort", { n: l.gifts })}</span>
+                {t("reservedShort", { n: l.reserved ?? 0 })}
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </div>
+</Layout>

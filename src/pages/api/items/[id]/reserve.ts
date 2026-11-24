@@ -14,6 +14,7 @@ export const PATCH: APIRoute = async (ctx) => {
   if (!item) return fail(t("notFound"), 404);
   const user = ctx.locals.user;
   if (user && user.id === item.owner_id) return fail(t("ownList"), 403);
+  if (item.group_size) return fail(t("isGroupGift"), 409);
 
   const { reserved_by } = await readJson<{ reserved_by?: string | null }>(ctx.request);
   const name = typeof reserved_by === "string" ? reserved_by.trim().slice(0, 60) : "";
@@ -34,6 +35,7 @@ export const DELETE: APIRoute = async (ctx) => {
   const t = apiT(ctx);
   const item = ctx.params.id ? await getItemWithList(ctx.params.id) : null;
   if (!item) return fail(t("notFound"), 404);
+  if (item.group_size) return fail(t("isGroupGift"), 409);
   const { token } = await readJson<{ token?: string }>(ctx.request);
   const user = ctx.locals.user;
   const byToken = !!token && token === item.reserve_token;

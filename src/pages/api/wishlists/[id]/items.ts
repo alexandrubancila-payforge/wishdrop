@@ -2,8 +2,9 @@ import type { APIRoute } from "astro";
 import { db, getWishlist, newId, now } from "@/lib/db";
 import { apiT, fail, json, readJson, requireUser } from "@/lib/http";
 import { cleanItemFields } from "@/lib/items";
+import { notifyFollowers } from "@/lib/notifications";
 
-/** Add a gift: a photo (uploaded or scraped) and/or a product link, plus an optional price. */
+/** Add a gift: a photo (uploaded or scraped) and/or a product link, plus an optional price, priority and group size. */
 export const POST: APIRoute = async (ctx) => {
   const user = requireUser(ctx);
   if (user instanceof Response) return user;
@@ -18,8 +19,11 @@ export const POST: APIRoute = async (ctx) => {
 
   const id = newId();
   await db()
-    .prepare("INSERT INTO items (id, wishlist_id, image_key, product_url, price, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-    .bind(id, list.id, fields.image_key ?? "", fields.product_url ?? null, fields.price ?? null, now())
+    .prepare(
+      "INSERT INTO items (id, wishlist_id, image_key, product_url, price, priority, group_size, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    )
+    .bind(id, list.id, fields.image_key ?? "", fields.product_url ?? null, fields.price ?? null, fields.priority ?? 0, fields.group_size ?? null, now())
     .run();
+  await notifyFollowers(user.id, "new_item", list.id, id);
   return json({ id }, 201);
 };

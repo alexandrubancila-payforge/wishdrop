@@ -8,8 +8,8 @@
 //   background so the next visit gets the new one.
 //
 // Bump CACHE when an update must reach everyone at once (activate deletes the
-// old caches). v2: the Pastel redesign replaced every icon.
-const CACHE = "wishdrop-static-v2";
+// old caches). v2: the Pastel redesign replaced every icon. v3: push.
+const CACHE = "wishdrop-static-v3";
 
 self.addEventListener("install", () => self.skipWaiting());
 
@@ -47,6 +47,40 @@ self.addEventListener("fetch", (event) => {
         return cached;
       }
       return fresh;
+    }),
+  );
+});
+
+// Phone notifications (Web Push, sent by src/lib/push.ts): { title, body, url, tag }.
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title || "WishDrop", {
+      body: data.body || "",
+      icon: "/icon-192.png?v=2",
+      tag: data.tag,
+      data: { url: data.url || "/notifications" },
+    }),
+  );
+});
+
+// Tapping it opens the page (reusing an open WishDrop tab when there is one).
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = new URL(event.notification.data?.url || "/", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((tabs) => {
+      for (const tab of tabs) {
+        if (new URL(tab.url).origin === self.location.origin && "navigate" in tab) {
+          return tab.focus().then(() => tab.navigate(url));
+        }
+      }
+      return self.clients.openWindow(url);
     }),
   );
 });

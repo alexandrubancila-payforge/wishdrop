@@ -75,10 +75,17 @@ const domain = (url: string | null) => {
                 </p>
                 {item.price && <p class="mt-1.5 truncate text-lg font-extrabold leading-tight tracking-tight">{item.price}</p>}
                 <p class="mt-1.5">
-                  <span class="chip bg-mint text-mint-ink">
-                    <Icon name="check" weight="bold" class="h-3.5 w-3.5" />
-                    {t("reservedByYou")}
-                  </span>
+                  {item.group_count != null ? (
+                    <span class="chip bg-lav text-lav-ink">
+                      <Icon name="users-three" weight="bold" class="h-3.5 w-3.5" />
+                      {t("groupJoined", { n: item.group_count, size: item.group_size ?? item.group_count })}
+                    </span>
+                  ) : (
+                    <span class="chip bg-mint text-mint-ink">
+                      <Icon name="check" weight="bold" class="h-3.5 w-3.5" />
+                      {t("reservedByYou")}
+                    </span>
+                  )}
                 </p>
                 <div class="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 pt-3">
                   <a href={`/w/${item.wishlist_slug}`} class="btn btn-soft !px-4 !py-2 text-xs">

@@ -22,6 +22,8 @@ const ICONS = [
   "clock", "map-pin", "globe-hemisphere-east", "storefront", "smiley", "hand-waving", "chat-circle-dots",
   "shield-check", "key", "palette", "moon", "sun", "snowflake", "egg", "tree-evergreen", "balloon",
   "lightning", "rocket-launch", "seal-check", "tray", "clipboard-text", "scroll", "image-square",
+  "lightbulb", "fire", "package", "arrow-counter-clockwise", "chart-bar", "device-mobile", "bell-ringing",
+  "bell-slash", "users-four", "hand-coins", "chart-line-up",
 ];
 const WEIGHTS = ["duotone", "regular", "fill", "bold"];
 

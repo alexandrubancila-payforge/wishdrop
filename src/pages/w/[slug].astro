@@ -6,6 +6,10 @@
  *   reservations are hidden from them until they press "Reveal".
  * - Whoever reserved a gift can cancel it: by the token kept on their device
  *   (localStorage "wd_resv"), or by account when signed in.
+ * - Group gifts (items.group_size): people join instead of reserving; the
+ *   join token is kept in localStorage "wd_join".
+ * - Signed-in visitors react to gifts (❤️ / "I want it too").
+ * - Gifts the owner ticked as received are not shown.
  * - The site header is hidden here, as on the live site: the list is the page.
  */
 import Layout from "@/layouts/Layout.astro";
@@ -14,22 +18,30 @@ import GuestCta from "@/components/list/GuestCta.astro";
 import SeasonGreeting from "@/components/list/SeasonGreeting.astro";
 import Avatar from "@/components/Avatar.astro";
 import Icon from "@/components/Icon.astro";
+import Reactions from "@/components/gifts/Reactions.astro";
 import { localePath, makeT, pick } from "@/lib/i18n";
 import { getItems, getUserById, getWishlistBySlug } from "@/lib/db";
+import { contributorsFor, reactionsFor } from "@/lib/gifts";
 import { imageUrl } from "@/lib/storage";
 import common from "@/i18n/common";
 import publiclist from "@/i18n/publiclist";
 import social from "@/i18n/social";
+import gifts from "@/i18n/gifts";
 
 const { lang, user } = Astro.locals;
-const t = makeT(lang, common, publiclist, social);
+const t = makeT(lang, common, publiclist, social, gifts);
 
 const list = await getWishlistBySlug(Astro.params.slug ?? "");
 if (!list) Astro.response.status = 404;
 
 const owner = list ? await getUserById(list.user_id) : null;
-const items = list ? await getItems(list.id) : [];
+const items = list ? (await getItems(list.id)).filter((i) => !i.received_at) : [];
 const isOwner = !!user && !!list && user.id === list.user_id;
+const [contributors, reactions] = list
+  ? await Promise.all([contributorsFor(list.id), reactionsFor(items.map((i) => i.id), user?.id ?? null)])
+  : [new Map(), new Map()];
+const reactMode = isOwner ? "readonly" : user ? "react" : "login";
+const loginHref = list ? `${localePath(lang, "/login")}?next=${encodeURIComponent(`/w/${list.slug}`)}` : "/login";
 const surprise = isOwner && !!list?.hide_reservations;
 const available = items.filter((i) => !i.reserved_at).length;
 
@@ -51,6 +63,15 @@ const RM = {
     fail: "js.fail",
     err: "js.err",
     cancelFail: "js.cancelFail",
+    title: "modal.title",
+    text: "modal.text",
+    nameQuestion: "modal.nameQuestion",
+    joinTitle: "group.joinTitle",
+    joinText: "group.joinText",
+    joinNameQuestion: "group.nameQuestion",
+    joinConfirm: "group.confirm",
+    progress: "group.progress",
+    leaveFail: "group.leaveFail",
   }),
   isLoggedIn: !!user,
   /** Prefill for "show my name": the signed-in user's profile name. */
@@ -167,6 +188,8 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
           >
             {items.map((item) => {
               const reserved = !!item.reserved_at;
+              const group = contributors.get(item.id) ?? [];
+              const named = group.filter((c) => c.name).map((c) => c.name!);
               const mine = !!user && !!item.reserver_user_id && item.reserver_user_id === user.id;
               const img = imageUrl(item.image_key);
               const site = host(item.product_url);
@@ -183,6 +206,8 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                   data-price={item.price ?? ""}
                   data-product-url={item.product_url ?? ""}
                   data-image-url={img}
+                  data-group-size={item.group_size ?? ""}
+                  data-my-join={group.some((c) => user && c.user_id === user.id) ? "true" : "false"}
                 >
                   <Wrapper class="relative block aspect-square overflow-hidden rounded-2xl bg-sand" {...wrapperProps}>
                     {img ? (
@@ -201,9 +226,25 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                         <Icon name="gift" class="h-12 w-12" />
                       </div>
                     )}
+                    {(item.priority < 0 || item.group_size) && (
+                      <span class="absolute left-2 top-2 flex flex-col items-start gap-1">
+                        {item.group_size && (
+                          <span class="chip bg-white/95 text-mint-ink shadow-soft">
+                            <Icon name="users-three" weight="bold" class="h-3.5 w-3.5" />
+                            {t("group.badge")}
+                          </span>
+                        )}
+                        {item.priority < 0 && (
+                          <span class="chip bg-white/95 text-sun-ink shadow-soft">
+                            <Icon name="lightbulb" weight="bold" class="h-3.5 w-3.5" />
+                            {t("prio.short.-1")}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </Wrapper>
                   {/* "Most wanted" star — kept OUTSIDE the image link so tapping it never navigates. Indicator for visitors. */}
-                  {item.priority ? (
+                  {item.priority > 0 ? (
                     <span
                       class="absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-white text-accent-500 shadow-soft"
                       title={t("list.mostWanted")}
@@ -222,7 +263,32 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                         site && <p class="truncate text-sm font-semibold text-ink-soft">{site}</p>
                       )}
                     </div>
+                    <Reactions lang={lang} itemId={item.id} summary={reactions.get(item.id)} mode={reactMode} loginHref={loginHref} class="mt-2.5" />
                     <div class="mt-auto pt-3">
+                      {item.group_size ? (
+                        <div data-group>
+                          <div data-reserved-overlay>
+                            <div class="h-2 overflow-hidden rounded-full bg-sand">
+                              <div data-group-bar class="h-full rounded-full bg-mint-ink transition-all" style={`width:${Math.min(100, (group.length / item.group_size) * 100)}%`} />
+                            </div>
+                            <p class="mt-1.5 text-xs font-semibold text-ink-soft" data-group-text>
+                              {t("group.progress", { n: group.length, size: item.group_size })}
+                            </p>
+                            {named.length > 0 && <p class="mt-0.5 truncate text-xs text-ink-soft" title={named.join(", ")}>{named.join(", ")}</p>}
+                          </div>
+                          <button data-join-btn class:list={["btn btn-soft mt-2.5 w-full !py-3 text-sm", { hidden: reserved }]}>
+                            <Icon name="users-three" weight="bold" class="h-4 w-4" />
+                            {t("group.join")}
+                          </button>
+                          <p data-group-full class:list={["mt-2.5 flex min-h-11 items-center justify-center rounded-2xl bg-mint px-3 py-2 text-sm font-bold text-mint-ink", { hidden: !reserved }]} data-reserved-overlay>
+                            {t("group.full")}
+                          </p>
+                          <button data-leave-btn class="mt-1.5 hidden w-full text-center text-xs font-semibold text-ink-soft transition hover:text-rose-600">
+                            {t("group.leave")}
+                          </button>
+                        </div>
+                      ) : (
+                        <>
                       <button data-reserve-btn class:list={["btn btn-soft w-full !py-3 text-sm", { hidden: reserved }]}>
                         {t("list.reserve")}
                       </button>
@@ -245,6 +311,8 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                           {t("list.cancelReservation")}
                         </button>
                       </div>
+                        </>
+                      )}
                       {item.product_url && (
                         <a
                           href={item.product_url}
@@ -273,8 +341,8 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
             <Icon name="hand-heart" class="h-6 w-6" />
           </span>
           <h2 id="reserve-modal-title" class="mt-4 text-2xl font-extrabold tracking-tight">{t("modal.title")}</h2>
-          <p class="mt-1 text-sm text-ink-soft">{t("modal.text")}</p>
-          <p class="mt-5 text-sm font-semibold text-ink">{t("modal.nameQuestion")}</p>
+          <p class="mt-1 text-sm text-ink-soft" id="reserve-modal-text">{t("modal.text")}</p>
+          <p class="mt-5 text-sm font-semibold text-ink" id="reserve-name-question">{t("modal.nameQuestion")}</p>
           <div class="mt-2 grid grid-cols-2 gap-2.5">
             <button type="button" data-choice="named" class="reserve-choice">{t("modal.named")}</button>
             <button type="button" data-choice="anon" class="reserve-choice">{t("modal.anon")}</button>
@@ -380,7 +448,11 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
         const ctaLoginBtn = document.getElementById("reserve-cta-login");
 
         let activeCard = null;
+        let mode = "reserve"; // or "join" (group gift)
         let choice = null;
+        const modalTitle = document.getElementById("reserve-modal-title");
+        const modalText = document.getElementById("reserve-modal-text");
+        const nameQuestion = document.getElementById("reserve-name-question");
         let busy = false;
 
         function updateConfirm() {
@@ -415,14 +487,19 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
           }
         }
 
-        function openModal(card) {
+        function openModal(card, nextMode = "reserve") {
           activeCard = card;
+          mode = nextMode;
+          const join = mode === "join";
+          modalTitle.textContent = join ? RM.joinTitle : RM.title;
+          modalText.textContent = join ? RM.joinText : RM.text;
+          nameQuestion.textContent = join ? RM.joinNameQuestion : RM.nameQuestion;
           choice = null;
           busy = false;
           nameInput.value = suggestedName();
           nameField.classList.add("hidden");
           choiceBtns.forEach((b) => b.classList.remove("is-selected"));
-          confirmLabel.textContent = RM.confirm;
+          confirmLabel.textContent = join ? RM.joinConfirm : RM.confirm;
           confirmBtn.disabled = true;
           modalError.classList.add("hidden");
           step1.classList.remove("hidden");
@@ -489,6 +566,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
           const name = choice === "named" ? nameInput.value.trim() : "";
           modalError.classList.add("hidden");
           setLoading(true);
+          if (mode === "join") return confirmJoin(itemId, name);
           try {
             const res = await fetch(`/api/items/${itemId}/reserve`, {
               method: "PATCH",
@@ -584,6 +662,90 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
               markAvailable(card);
             } catch {
               alert(RM.cancelFail);
+              btn.disabled = false;
+            }
+          });
+        });
+
+        // --- Group gifts: join / leave (token in localStorage "wd_join") ---
+        const JOIN_KEY = "wd_join";
+        function getJoins() {
+          try {
+            return JSON.parse(localStorage.getItem(JOIN_KEY) || "{}");
+          } catch {
+            return {};
+          }
+        }
+        function setJoin(id, token) {
+          const j = getJoins();
+          if (token) j[id] = token;
+          else delete j[id];
+          try {
+            localStorage.setItem(JOIN_KEY, JSON.stringify(j));
+          } catch {}
+        }
+        function paintGroup(card, count, size, mine) {
+          const full = count >= size;
+          card.dataset.reserved = full ? "true" : "false";
+          card.querySelector("[data-group-bar]").style.width = Math.min(100, (count / size) * 100) + "%";
+          card.querySelector("[data-group-text]").textContent = RM.progress.replace("{n}", count).replace("{size}", size);
+          card.querySelector("[data-join-btn]").classList.toggle("hidden", full || mine);
+          card.querySelector("[data-group-full]").classList.toggle("hidden", !full);
+          card.querySelector("[data-leave-btn]").classList.toggle("hidden", !mine);
+          card.querySelector("[data-card-img]")?.classList.toggle("opacity-50", full);
+          card.querySelector("[data-card-img]")?.classList.toggle("grayscale", full);
+        }
+        const groupCount = (card) => parseInt(card.querySelector("[data-group-text]").textContent, 10) || 0;
+
+        async function confirmJoin(itemId, name) {
+          try {
+            const res = await fetch(`/api/items/${itemId}/join`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ name: name || null }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || RM.fail);
+            setJoin(itemId, data.token);
+            if (name && !RM.myName) {
+              try {
+                localStorage.setItem(NAME_KEY, name);
+              } catch {}
+            }
+            paintGroup(activeCard, data.count, data.size, true);
+            fireConfetti();
+            if (RM.isLoggedIn) closeModal();
+            else showCTA();
+          } catch (err) {
+            modalError.textContent = err instanceof Error ? err.message : RM.err;
+            modalError.classList.remove("hidden");
+            setLoading(false);
+          }
+        }
+
+        const myJoins = getJoins();
+        document.querySelectorAll("[data-group]").forEach((box) => {
+          const card = box.closest("[data-item-id]");
+          const mine = !!myJoins[card.dataset.itemId] || card.dataset.myJoin === "true";
+          if (mine) paintGroup(card, groupCount(card), Number(card.dataset.groupSize), true);
+          box.querySelector("[data-join-btn]").addEventListener("click", () => openModal(card, "join"));
+          box.querySelector("[data-leave-btn]").addEventListener("click", async (e) => {
+            const btn = e.currentTarget;
+            btn.disabled = true;
+            try {
+              const res = await fetch(`/api/items/${card.dataset.itemId}/join`, {
+                method: "DELETE",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ token: getJoins()[card.dataset.itemId] || "" }),
+              });
+              const data = await res.json();
+              if (!res.ok) throw new Error();
+              setJoin(card.dataset.itemId, null);
+              card.dataset.myJoin = "false";
+              paintGroup(card, data.count, data.size, false);
+            } catch {
+              alert(RM.leaveFail);
+            } finally {
               btn.disabled = false;
             }
           });

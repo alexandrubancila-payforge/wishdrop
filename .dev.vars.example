@@ -6,3 +6,6 @@ GOOGLE_CLIENT_SECRET=
 CF_EMAIL_TOKEN=
 # Where the contact form goes (a secret in production).
 OWNER_EMAIL=you@example.com
+# Web Push keys (node scripts/vapid-keys.mjs). The public key is also a var in wrangler.jsonc.
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_JWK=

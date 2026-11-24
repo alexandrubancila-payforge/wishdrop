@@ -98,8 +98,8 @@ export async function profileLists(owner: User, rel: Relation) {
   const { results } = await db()
     .prepare(
       `SELECT w.*,
-              (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id) AS item_count,
-              (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id AND i.reserved_at IS NULL) AS available_count
+              (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id AND i.received_at IS NULL) AS item_count,
+              (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id AND i.received_at IS NULL AND i.reserved_at IS NULL) AS available_count
          FROM wishlists w
         WHERE w.user_id = ? AND w.visibility IN (${shown.map(() => "?").join(",")})
         ORDER BY w.created_at DESC`,
@@ -109,7 +109,7 @@ export async function profileLists(owner: User, rel: Relation) {
   const covers = await db()
     .prepare(
       `SELECT wishlist_id, image_key FROM items
-        WHERE image_key <> '' AND wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)
+        WHERE image_key <> '' AND received_at IS NULL AND wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)
         ORDER BY priority DESC, created_at DESC`,
     )
     .bind(owner.id)

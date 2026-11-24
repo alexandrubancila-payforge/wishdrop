@@ -49,6 +49,10 @@ export interface Item {
   priority: number;
   reserve_token: string | null;
   reserver_user_id: string | null;
+  /** Ticked by the owner as received: hidden from the public list. */
+  received_at: number | null;
+  /** NULL = normal gift; N = a group gift N people chip in for. */
+  group_size: number | null;
 }
 
 export const db = () => env.DB;
@@ -127,8 +131,8 @@ export async function getUserWishlists(userId: string) {
   const { results } = await db()
     .prepare(
       `SELECT w.*,
-              (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id) AS item_count,
-              (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id AND i.reserved_at IS NOT NULL) AS reserved_count
+              (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id AND i.received_at IS NULL) AS item_count,
+              (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id AND i.received_at IS NULL AND i.reserved_at IS NOT NULL) AS reserved_count
          FROM wishlists w WHERE w.user_id = ? ORDER BY w.created_at DESC`,
     )
     .bind(userId)
@@ -136,7 +140,7 @@ export async function getUserWishlists(userId: string) {
   const covers = await db()
     .prepare(
       `SELECT wishlist_id, image_key FROM items
-        WHERE image_key <> '' AND wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)
+        WHERE image_key <> '' AND received_at IS NULL AND wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)
         ORDER BY priority DESC, created_at DESC`,
     )
     .bind(userId)
@@ -195,19 +199,36 @@ export const getItemWithList = (id: string) =>
     .bind(id)
     .first<Item & { owner_id: string; wishlist_slug: string }>();
 
-/** Gifts the user reserved on other people's lists. */
+/** Gifts the user reserved on other people's lists, and group gifts they joined (`group_count` set). */
 export async function getReservationsOf(userId: string) {
+  const cols = `i.*, w.name AS wishlist_name, w.slug AS wishlist_slug,
+                u.name AS owner_name, u.email AS owner_email, u.avatar_url AS owner_avatar`;
   const { results } = await db()
     .prepare(
-      `SELECT i.*, w.name AS wishlist_name, w.slug AS wishlist_slug,
-              u.name AS owner_name, u.email AS owner_email, u.avatar_url AS owner_avatar
+      `SELECT ${cols}, NULL AS group_count, i.reserved_at AS since
          FROM items i
          JOIN wishlists w ON w.id = i.wishlist_id
          JOIN users u ON u.id = w.user_id
-        WHERE i.reserver_user_id = ?
-        ORDER BY i.reserved_at DESC`,
+        WHERE i.reserver_user_id = ?1
+       UNION ALL
+       SELECT ${cols}, (SELECT COUNT(*) FROM item_contributors c2 WHERE c2.item_id = i.id) AS group_count, c.created_at AS since
+         FROM item_contributors c
+         JOIN items i ON i.id = c.item_id
+         JOIN wishlists w ON w.id = i.wishlist_id
+         JOIN users u ON u.id = w.user_id
+        WHERE c.user_id = ?1
+        ORDER BY since DESC`,
     )
     .bind(userId)
-    .all<Item & { wishlist_name: string; wishlist_slug: string; owner_name: string | null; owner_email: string; owner_avatar: string | null }>();
+    .all<
+      Item & {
+        wishlist_name: string;
+        wishlist_slug: string;
+        owner_name: string | null;
+        owner_email: string;
+        owner_avatar: string | null;
+        group_count: number | null;
+      }
+    >();
   return results;
 }

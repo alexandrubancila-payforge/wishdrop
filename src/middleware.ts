@@ -11,7 +11,7 @@ import { splitLang, localePath, isLang, LANG_COOKIE } from "./lib/i18n";
 import { sessionUserId } from "./lib/auth";
 import { getUserById } from "./lib/db";
 
-const PROTECTED = /^\/(dashboard|settings|requests|feed|notifications)(\/|$)/;
+const PROTECTED = /^\/(dashboard|settings|requests|feed|notifications|admin)(\/|$)/;
 const isPage = (path: string) => !path.startsWith("/api/") && !path.startsWith("/_") && !/\.[a-z0-9]+$/i.test(path);
 
 export const onRequest = defineMiddleware(async (ctx, next) => {

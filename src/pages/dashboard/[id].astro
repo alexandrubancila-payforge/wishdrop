@@ -1,26 +1,35 @@
 ---
 /**
  * The list editor (owner only): rename, share link, surprise mode, add a gift
- * (auto-fill from a product link or photo upload), and the gift grid with
- * "most wanted" star, edit and delete.
+ * (auto-fill from a product link or photo upload) with priority and group
+ * gift, the gift grid with "most wanted" star, reactions, received, edit and
+ * delete, and the received gifts underneath.
  */
 import Layout from "@/layouts/Layout.astro";
 import { makeT, localePath } from "@/lib/i18n";
 import common from "@/i18n/common";
 import strings from "@/i18n/editor";
 import social from "@/i18n/social";
+import gifts from "@/i18n/gifts";
 import { getItems, getWishlist } from "@/lib/db";
+import { contributorsFor, reactionsFor } from "@/lib/gifts";
 import { imageUrl } from "@/lib/storage";
 import Icon from "@/components/Icon.astro";
+import PriorityPicker from "@/components/gifts/PriorityPicker.astro";
+import GroupFields from "@/components/gifts/GroupFields.astro";
+import Reactions from "@/components/gifts/Reactions.astro";
 
 const { lang } = Astro.locals;
 const user = Astro.locals.user!;
-const t = makeT(lang, common, strings, social);
+const t = makeT(lang, common, strings, social, gifts);
 
 const list = Astro.params.id ? await getWishlist(Astro.params.id) : null;
 if (!list || list.user_id !== user.id) return Astro.redirect(localePath(lang, "/dashboard"));
 
-const items = await getItems(list.id);
+const all = await getItems(list.id);
+const items = all.filter((i) => !i.received_at);
+const received = all.filter((i) => i.received_at).sort((a, b) => b.received_at! - a.received_at!);
+const [contributors, reactions] = await Promise.all([contributorsFor(list.id), reactionsFor(items.map((i) => i.id), null)]);
 const surprise = !!list.hide_reservations;
 const shareUrl = `${Astro.url.origin}/w/${list.slug}`;
 const domain = (url: string | null) => {
@@ -267,6 +276,9 @@ const wishlistId = list.id;
           </div>
         </div>
 
+        <PriorityPicker lang={lang} name="priority" />
+        <GroupFields lang={lang} id="add-group" />
+
         <p id="add-item-error" class="mt-3 hidden text-sm font-medium text-rose-600"></p>
         <div class="mt-5">
           <button type="submit" id="add-item-submit" class="btn btn-primary w-full !py-3.5">
@@ -288,6 +300,8 @@ const wishlistId = list.id;
         const submitBtn = document.getElementById("add-item-submit");
         const submitLabel = form.querySelector("[data-submit-label]");
         const errorEl = document.getElementById("add-item-error");
+        const groupToggle = document.querySelector("#add-group [data-group-toggle]");
+        const groupSize = document.querySelector("#add-group [data-group-size]");
         const MAX_BYTES = 15 * 1024 * 1024;
 
         let scrapedImageKey = null;
@@ -438,6 +452,8 @@ const wishlistId = list.id;
                 image_key: imageKey || "",
                 price: priceInput.value.trim() || null,
                 product_url: productUrl || null,
+                priority: Number(form.querySelector('input[name="priority"]:checked')?.value || 0),
+                group_size: groupToggle.checked ? Number(groupSize.value) : null,
               }),
             });
             const data = await res.json();
@@ -484,6 +500,8 @@ const wishlistId = list.id;
                   data-price={item.price ?? ""}
                   data-product-url={item.product_url ?? ""}
                   data-image-url={img}
+                  data-priority={item.priority}
+                  data-group-size={item.group_size ?? ""}
                 >
                   <a
                     class="relative block aspect-square overflow-hidden rounded-2xl bg-accent-50"
@@ -531,6 +549,23 @@ const wishlistId = list.id;
                         </p>
                       </div>
                     </div>
+                    {(item.priority < 0 || item.group_size) && (
+                      <span class="absolute left-2 top-2 flex flex-col items-start gap-1">
+                        {item.group_size && (
+                          <span class="chip bg-white/95 text-mint-ink shadow-soft">
+                            <Icon name="users-three" weight="bold" class="h-3.5 w-3.5" />
+                            <span data-reserved-overlay>{contributors.get(item.id)?.length ?? 0}/</span>
+                            {t("group.size", { size: item.group_size })}
+                          </span>
+                        )}
+                        {item.priority < 0 && (
+                          <span class="chip bg-white/95 text-sun-ink shadow-soft">
+                            <Icon name="lightbulb" weight="bold" class="h-3.5 w-3.5" />
+                            {t("prio.short.-1")}
+                          </span>
+                        )}
+                      </span>
+                    )}
                   </a>
                   {/* "Most wanted" star — kept OUTSIDE the image link so tapping it never
                       navigates. Toggle for the owner, indicator for visitors. */}
@@ -540,7 +575,7 @@ const wishlistId = list.id;
                     title={t("favourite")}
                     class:list={[
                       "priority-star absolute right-4 top-4 z-10 grid h-8 w-8 place-items-center rounded-full transition sm:right-5 sm:top-5",
-                      item.priority && "is-priority",
+                      item.priority > 0 && "is-priority",
                     ]}
                   >
                     <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]">
@@ -558,6 +593,7 @@ const wishlistId = list.id;
                         host && <p class="truncate text-sm font-semibold text-ink-soft">{host}</p>
                       )}
                     </div>
+                    <Reactions lang={lang} itemId={item.id} summary={reactions.get(item.id)} mode="readonly" />
                     <div class="mt-auto flex items-center justify-end gap-1.5 pt-1">
                       {href && (
                         <a
@@ -571,6 +607,14 @@ const wishlistId = list.id;
                           <Icon name="arrow-square-out" class="h-[18px] w-[18px]" />
                         </a>
                       )}
+                      <button
+                        data-received-btn
+                        aria-label={t("received.mark")}
+                        title={t("received.mark")}
+                        class="grid h-9 w-9 place-items-center rounded-full bg-sand text-ink-soft transition hover:bg-mint hover:text-mint-ink"
+                      >
+                        <Icon name="check-circle" class="h-[18px] w-[18px]" />
+                      </button>
                       <button
                         data-edit-btn
                         aria-label={t("edit")}
@@ -595,12 +639,48 @@ const wishlistId = list.id;
           </div>
         )
       }
+
+      {
+        received.length > 0 && (
+          <details class="card mt-6 p-4 sm:p-5" open={items.length === 0}>
+            <summary class="flex cursor-pointer list-none items-center gap-2 font-extrabold tracking-tight">
+              <span class="grid h-9 w-9 place-items-center rounded-xl bg-mint text-mint-ink">
+                <Icon name="package" class="h-5 w-5" />
+              </span>
+              <span class="flex-1">{t("received.title", { n: received.length })}</span>
+              <Icon name="caret-down" weight="bold" class="h-4 w-4 text-ink-soft" />
+            </summary>
+            <p class="mt-2 text-xs text-ink-soft">{t("received.text")}</p>
+            <ul class="mt-3 grid gap-2 sm:grid-cols-2">
+              {received.map((item) => {
+                const img = imageUrl(item.image_key);
+                return (
+                  <li class="flex items-center gap-3 rounded-2xl bg-sand/60 p-2" data-item-id={item.id}>
+                    {img ? (
+                      <img src={img} alt="" loading="lazy" class="h-14 w-14 shrink-0 rounded-xl object-cover" />
+                    ) : (
+                      <span class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-accent-50 text-accent-500">
+                        <Icon name="gift" class="h-6 w-6" />
+                      </span>
+                    )}
+                    <span class="min-w-0 flex-1 truncate text-sm font-bold">{item.price || domain(item.product_url) || t("giftAlt")}</span>
+                    <button type="button" data-unreceive-btn class="btn btn-ghost shrink-0 !px-3 !py-2 text-xs">
+                      <Icon name="arrow-counter-clockwise" weight="bold" class="h-3.5 w-3.5" />
+                      {t("received.undo")}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </details>
+        )
+      }
     </div>
   </div>
 
   <!-- Edit item modal -->
   <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
-    <div class="card w-full max-w-md !rounded-3xl p-6 shadow-lift">
+    <div class="card max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto !rounded-3xl p-6 shadow-lift">
       <h2 class="flex items-center gap-2 text-xl font-extrabold tracking-tight">
         <Icon name="pencil-simple" class="h-5 w-5 text-accent-500" />
         {t("edit")}
@@ -635,6 +715,8 @@ const wishlistId = list.id;
         <label for="edit-url" class="block text-sm font-semibold text-ink">{t("productLink")}</label>
         <input id="edit-url" type="url" placeholder="https://..." class="field mt-1" />
       </div>
+      <PriorityPicker lang={lang} name="edit-priority" />
+      <GroupFields lang={lang} id="edit-group" />
       <p id="edit-error" class="mt-3 hidden text-sm font-medium text-rose-600"></p>
       <div class="mt-6 flex justify-end gap-2">
         <button id="edit-cancel" class="btn btn-ghost !px-5 !py-2.5 text-sm">{t("cancel")}</button>
@@ -764,9 +846,30 @@ const wishlistId = list.id;
           });
           if (!res.ok) throw new Error();
           b.classList.toggle("is-priority", on);
+          card.dataset.priority = on ? "1" : "0";
         } catch {
           alert(M.saveFail);
         } finally {
+          b.disabled = false;
+        }
+      });
+    });
+
+    // Received: the gift leaves the public list (and comes back with "Put back").
+    document.querySelectorAll("[data-received-btn], [data-unreceive-btn]").forEach((b) => {
+      b.addEventListener("click", async () => {
+        const card = b.closest("[data-item-id]");
+        b.disabled = true;
+        try {
+          const res = await fetch(`/api/items/${card.dataset.itemId}`, {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ received: b.hasAttribute("data-received-btn") }),
+          });
+          if (!res.ok) throw new Error();
+          window.location.reload();
+        } catch {
+          alert(M.saveFail);
           b.disabled = false;
         }
       });
@@ -784,6 +887,8 @@ const wishlistId = list.id;
     const editSave = document.getElementById("edit-save");
     const editSaveLabel = editModal.querySelector("[data-save-label]");
     const editCancel = document.getElementById("edit-cancel");
+    const editGroupToggle = document.querySelector("#edit-group [data-group-toggle]");
+    const editGroupSize = document.querySelector("#edit-group [data-group-size]");
 
     let editItemId = null;
     let editNewFile = null;
@@ -816,6 +921,12 @@ const wishlistId = list.id;
         editImageRemoved = false;
         editImage.value = "";
         editError.classList.add("hidden");
+        const prio = card.dataset.priority || "0";
+        editModal.querySelectorAll('input[name="edit-priority"]').forEach((r) => (r.checked = r.value === prio));
+        const size = card.dataset.groupSize || "";
+        editGroupToggle.checked = !!size;
+        editGroupSize.value = size || "4";
+        document.querySelector("#edit-group [data-group-row]").classList.toggle("hidden", !size);
         const imgUrl = card.dataset.imageUrl || "";
         if (imgUrl) showEditPreview(imgUrl);
         else hideEditPreview();
@@ -858,6 +969,8 @@ const wishlistId = list.id;
         const body = {
           price: editPrice.value.trim() || null,
           product_url: editUrl.value.trim() || null,
+          priority: Number(editModal.querySelector('input[name="edit-priority"]:checked')?.value || 0),
+          group_size: editGroupToggle.checked ? Number(editGroupSize.value) : null,
         };
         if (editNewFile) {
           const fd = new FormData();

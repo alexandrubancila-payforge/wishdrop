@@ -83,11 +83,12 @@ const M = {
       // Reservations made as a guest on this device become the account's.
       try {
         const tokens = JSON.parse(localStorage.getItem("wd_resv") || "{}");
-        if (Object.keys(tokens).length > 0) {
+        const joins = JSON.parse(localStorage.getItem("wd_join") || "{}");
+        if (Object.keys(tokens).length + Object.keys(joins).length > 0) {
           await fetch("/api/account/link-reservations", {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ tokens }),
+            body: JSON.stringify({ tokens, joins }),
           });
         }
       } catch {}

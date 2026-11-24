@@ -11,6 +11,7 @@ export default {
     emptyText: "Când rezervi un cadou din lista cuiva fiind autentificat, îl găsești aici.",
     emptyCta: "Caută prieteni",
     reservedByYou: "Rezervat de tine",
+    groupJoined: "Cadou de grup · {n} din {size}",
   },
   en: {
     title: "My reservations — WishDrop",
@@ -21,6 +22,7 @@ export default {
     emptyText: "When you reserve a gift from someone's list while logged in, you'll find it here.",
     emptyCta: "Find friends",
     reservedByYou: "Reserved by you",
+    groupJoined: "Group gift · {n} of {size}",
   },
   de: {
     title: "Meine Reservierungen — WishDrop",
@@ -31,6 +33,7 @@ export default {
     emptyText: "Wenn du angemeldet ein Geschenk aus jemandes Liste reservierst, findest du es hier.",
     emptyCta: "Freunde finden",
     reservedByYou: "Von dir reserviert",
+    groupJoined: "Gruppengeschenk · {n} von {size}",
   },
   ru: {
     title: "Мои брони — WishDrop",
@@ -41,5 +44,6 @@ export default {
     emptyText: "Когда вы бронируете подарок из чужого списка, войдя в аккаунт, он появится здесь.",
     emptyCta: "Найти друзей",
     reservedByYou: "Забронировано вами",
+    groupJoined: "Групповой подарок · {n} из {size}",
   },
 } satisfies Bundle;

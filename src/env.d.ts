@@ -26,5 +26,8 @@ declare namespace Cloudflare {
     GOOGLE_CLIENT_ID: string;
     GOOGLE_CLIENT_SECRET: string;
     CF_EMAIL_TOKEN?: string;
+    /** Web Push (lib/push.ts): base64url public key (var) and the private key as JWK (secret). */
+    VAPID_PUBLIC_KEY?: string;
+    VAPID_PRIVATE_JWK?: string;
   }
 }

@@ -1,8 +1,9 @@
 ---
 /**
- * The bell's page: who followed you, asked to follow you, or accepted your
- * request. Opening it marks everything read (the new ones stay highlighted
- * for this visit).
+ * The bell's page: follows and follow requests, new lists and gifts from
+ * people you follow, and reactions to your gifts. Opening it marks
+ * everything read (the new ones stay highlighted for this visit). The card at
+ * the top turns phone notifications (Web Push) on for this device.
  */
 import Layout from "@/layouts/Layout.astro";
 import Icon from "@/components/Icon.astro";
@@ -11,7 +12,9 @@ import FollowButton from "@/components/social/FollowButton.astro";
 import { localePath, makeT } from "@/lib/i18n";
 import common from "@/i18n/common";
 import strings from "@/i18n/notifications";
-import { listNotifications, markAllRead, type NotificationRow } from "@/lib/notifications";
+import { actorName, listNotifications, markAllRead, notificationUrl, sentenceTemplate, type NotificationRow } from "@/lib/notifications";
+import { imageUrl } from "@/lib/storage";
+import { env } from "cloudflare:workers";
 
 const { lang } = Astro.locals;
 const user = Astro.locals.user!;
@@ -33,13 +36,20 @@ function ago(ms: number) {
   for (const [u, sz] of steps) if (-s >= sz) [unit, size] = [u, sz];
   return rtf.format(Math.round(s / size), unit);
 }
-const nameOf = (n: NotificationRow) => n.name || (n.username ? `@${n.username}` : n.email.split("@")[0]);
+const nameOf = (n: NotificationRow) => actorName(n);
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
-const sentence = (n: NotificationRow) => escape(t(n.type)).replace("{name}", `<b class="font-bold text-ink">${escape(nameOf(n))}</b>`);
+const sentence = (n: NotificationRow) =>
+  escape(sentenceTemplate(t, lang, n)).replace("{name}", `<b class="font-bold text-ink">${escape(nameOf(n))}</b>`);
+const aboutGift = (n: NotificationRow) => n.type === "new_list" || n.type === "new_item" || n.type.startsWith("reaction_");
+const vapidKey = env.VAPID_PUBLIC_KEY ?? "";
 const ICON: Record<string, { name: string; tint: string }> = {
   follow: { name: "user-plus", tint: "bg-accent-500 text-white" },
   follow_request: { name: "lock", tint: "bg-lav-ink text-white" },
   follow_accepted: { name: "check", tint: "bg-mint-ink text-white" },
+  new_list: { name: "list-heart", tint: "bg-lav-ink text-white" },
+  new_item: { name: "gift", tint: "bg-accent-500 text-white" },
+  reaction_heart: { name: "heart", tint: "bg-accent-500 text-white" },
+  reaction_want: { name: "sparkle", tint: "bg-sun-ink text-white" },
 };
 const sections = [
   { title: t("new"), rows: fresh },
@@ -54,6 +64,25 @@ const sections = [
     </span>
     {t("title")}
   </h1>
+
+  {
+    vapidKey && (
+      <section id="push-card" class="card mt-6 hidden items-center gap-3 p-4" data-key={vapidKey} data-lang={lang} data-l-enable={t("push.enable")} data-l-disable={t("push.disable")} data-l-fail={t("push.fail")}>
+        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-mint text-mint-ink">
+          <Icon name="device-mobile" class="h-5 w-5" />
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="font-bold leading-tight">{t("push.title")}</p>
+          <p class="mt-1 text-xs leading-snug text-ink-soft" data-push-text>{t("push.text")}</p>
+          <p class="mt-1 hidden text-xs font-semibold text-mint-ink" data-push-on>
+            <Icon name="check-circle" weight="bold" class="inline h-3.5 w-3.5" /> {t("push.on")}
+          </p>
+          <p class="mt-1 hidden text-xs font-medium text-sun-ink" data-push-note data-denied={t("push.denied")} data-unsupported={t("push.unsupported")} data-ios={t("push.ios")}></p>
+        </div>
+        <button type="button" class="btn btn-primary shrink-0 !px-4 !py-2.5 text-sm" data-push-btn>{t("push.enable")}</button>
+      </section>
+    )
+  }
 
   {
     items.length === 0 ? (
@@ -74,7 +103,7 @@ const sections = [
           <h2 class="px-1 text-sm font-extrabold uppercase tracking-wide text-ink-soft">{section.title}</h2>
           <ul class="card mt-3 divide-y divide-line px-4 sm:px-5" data-notifications>
             {section.rows.map((n) => {
-              const profile = n.username ? href(`/@${n.username}`) : null;
+              const profile = aboutGift(n) ? notificationUrl(lang, n) : n.username ? href(`/@${n.username}`) : null;
               const icon = ICON[n.type] ?? ICON.follow;
               return (
                 <li class:list={["flex items-center gap-3 py-3.5", !n.read_at && "-mx-4 bg-accent-50 px-4 sm:-mx-5 sm:px-5"]} data-notification={n.id}>
@@ -93,7 +122,17 @@ const sections = [
                     <span class="ml-1 whitespace-nowrap text-xs text-ink-soft/80">{ago(n.created_at)}</span>
                   </p>
                   <div class="flex shrink-0 items-center gap-2">
-                    {n.type === "follow_request" && n.request_pending ? (
+                    {aboutGift(n) ? (
+                      <a href={notificationUrl(lang, n)} class="relative block h-12 w-12 overflow-hidden rounded-xl bg-accent-50">
+                        {n.item_image ? (
+                          <img src={imageUrl(n.item_image)} alt="" loading="lazy" class="h-full w-full object-cover" />
+                        ) : (
+                          <span class="grid h-full w-full place-items-center text-accent-500">
+                            <Icon name="gift" class="h-6 w-6" />
+                          </span>
+                        )}
+                      </a>
+                    ) : n.type === "follow_request" && n.request_pending ? (
                       <div class="flex gap-2" data-request={n.actor_id} data-l-accepted={t("accepted")} data-l-declined={t("declined")}>
                         <button type="button" data-action="accept" class="btn btn-primary !px-3.5 !py-2 text-xs">{t("accept")}</button>
                         <button type="button" data-action="decline" class="btn btn-ghost !px-3.5 !py-2 text-xs">{t("decline")}</button>
@@ -112,6 +151,10 @@ const sections = [
       ))
     )
   }
+
+  <script>
+    import "@/scripts/push";
+  </script>
 
   <script>
     // Accept / decline right from the notification (same API as /requests).

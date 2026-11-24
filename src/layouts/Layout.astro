@@ -3,6 +3,7 @@
  * Every page: <head> (SEO, hreflang, PWA, fonts), header with the language and
  * account menus, footer, mobile tab bar, and the shared donate/confirm modals.
  */
+import { isAdmin } from "@/lib/admin";
 import "@/styles/global.css";
 import { LANGS, LANG_NAMES, OG_LOCALE, localePath, makeT, DEFAULT_LANG } from "@/lib/i18n";
 import common from "@/i18n/common";
@@ -74,7 +75,8 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
 <html lang={lang}>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- maximum-scale=1: no auto-zoom when a field gets focus on iPhone (pinch-zoom still works there). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <meta name="description" content={description} />
     <link rel="canonical" href={abs(lang)} />
     {LANGS.map((l) => <link rel="alternate" hreflang={l} href={abs(l)} />)}
@@ -247,6 +249,11 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
                       <a href={href("/settings")} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
                         <Icon name="gear" class="h-5 w-5 text-accent-500" /> {t("nav.settings")}
                       </a>
+                      {isAdmin(user) && (
+                        <a href={href("/admin")} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
+                          <Icon name="chart-line-up" class="h-5 w-5 text-accent-500" /> Admin
+                        </a>
+                      )}
                       <div class="my-1.5 h-px bg-line" />
                       <button id="logout-btn" type="button" class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-accent-700 transition hover:bg-accent-50">
                         <Icon name="sign-out" class="h-5 w-5" /> {t("nav.logout")}

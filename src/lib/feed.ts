@@ -24,7 +24,7 @@ export async function friendsActivity(userId: string, limit = 30) {
          FROM follows f
          JOIN users u ON u.id = f.followee_id
          JOIN wishlists w ON w.user_id = u.id AND w.visibility IN ('public', 'followers')
-         JOIN items i ON i.wishlist_id = w.id
+         JOIN items i ON i.wishlist_id = w.id AND i.received_at IS NULL
         WHERE f.follower_id = ? AND f.status = 'accepted'
         ORDER BY i.created_at DESC
         LIMIT ?`,

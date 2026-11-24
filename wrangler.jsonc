@@ -17,7 +17,9 @@
     "APP_URL": "https://wishdrop.site",
     "CF_ACCOUNT_ID": "302e8d2b3de7b2c06581cf32860e4c53",
     "MAIL_FROM": "WishDrop <noreply@wishdrop.site>",
-    "REQUIRE_EMAIL_VERIFICATION": "false"
+    "REQUIRE_EMAIL_VERIFICATION": "false",
+    // Web Push public key (lib/push.ts); the private one is the VAPID_PRIVATE_JWK secret.
+    "VAPID_PUBLIC_KEY": "BEMBwAoECfR3VvS_xpu6ZaWpqAdYJ_9y0I6pljmA0EZvpNIgx94briSNOJc3AdsQOSUhtOaHVVuBCxeB8GtUzxM"
   },
   // Astro sessions (kept from the old project).
   "kv_namespaces": [{ "binding": "SESSION", "id": "6057ce6d44d24ea4bf62e3837a8c986a" }],
@@ -31,5 +33,5 @@
   ],
   "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "wishdrop-images" }]
   // Secrets (wrangler secret put …): JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, CF_EMAIL_TOKEN,
-  // OWNER_EMAIL (where the contact form is delivered)
+  // OWNER_EMAIL (where the contact form is delivered; also the /admin account), VAPID_PRIVATE_JWK
 }

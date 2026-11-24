@@ -20,6 +20,8 @@ import { unreadCount } from "@/lib/notifications";
 import notifStrings from "@/i18n/notifications";
 import { plural } from "@/components/dashboard/plural";
 import type { FeedEntry } from "@/lib/feed";
+import Reactions from "@/components/gifts/Reactions.astro";
+import { reactionsFor } from "@/lib/gifts";
 
 const { lang } = Astro.locals;
 const user = Astro.locals.user!;
@@ -34,6 +36,7 @@ const [birthdays, activity, counts, suggestions, myLists, unread] = await Promis
   db().prepare("SELECT COUNT(*) AS n FROM wishlists WHERE user_id = ?").bind(user.id).first<{ n: number }>(),
   unreadCount(user.id),
 ]);
+const reactions = await reactionsFor(activity.map((a) => a.id), user.id);
 const notifLabel = makeT(lang, notifStrings)("title");
 const profileHref = user.username ? href(`/@${user.username}`) : href("/settings") + "#public-profile";
 const displayName = user.name || (user.username ? `@${user.username}` : user.email.split("@")[0]);
@@ -250,7 +253,7 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
                         <span class="min-w-0">
                           <span class="block truncate font-bold sm:text-lg">{domain(it.product_url) || it.list_name}</span>
                           <span class="mt-1.5 flex flex-wrap gap-1.5">
-                            {!!it.priority && <span class="chip bg-accent-100 text-accent-700">★ {t("mostWanted")}</span>}
+                            {it.priority > 0 && <span class="chip bg-accent-100 text-accent-700">★ {t("mostWanted")}</span>}
                             {it.reserved_at && <span class="chip bg-mint text-mint-ink">✓ {t("reserved")}</span>}
                           </span>
                           {it.price && <span class="mt-2 block text-lg font-extrabold sm:text-2xl">{it.price}</span>}
@@ -284,6 +287,7 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
                         </span>
                       </a>
                     )}
+                    {group.length === 1 && <Reactions lang={lang} itemId={it.id} summary={reactions.get(it.id)} mode="react" class="mt-3 px-1" />}
                   </li>
                 );
               })}

@@ -1,0 +1,38 @@
+---
+/** Three-way "how much do you want it" radio group (items.priority: 1 / 0 / -1). */
+import Icon from "@/components/Icon.astro";
+import { makeT, type Lang } from "@/lib/i18n";
+import gifts from "@/i18n/gifts";
+
+interface Props {
+  lang: Lang;
+  name: string;
+  value?: number;
+}
+const { lang, name, value = 0 } = Astro.props;
+const t = makeT(lang, gifts);
+const options = [
+  { v: 1, icon: "fire", tint: "bg-accent-100 text-accent-600" },
+  { v: 0, icon: "heart", tint: "bg-lav text-lav-ink" },
+  { v: -1, icon: "lightbulb", tint: "bg-sun text-sun-ink" },
+];
+---
+
+<fieldset class="mt-4">
+  <legend class="block text-sm font-semibold text-ink">{t("prio.title")}</legend>
+  <div class="mt-1.5 grid grid-cols-3 gap-2">
+    {
+      options.map((o) => (
+        <label class="cursor-pointer">
+          <input type="radio" name={name} value={o.v} checked={o.v === value} class="peer sr-only" />
+          <span class="flex h-full flex-col items-center gap-1.5 rounded-2xl border-[1.5px] border-line bg-white px-1.5 py-2.5 text-center transition hover:border-accent-300 peer-checked:border-accent-500 peer-checked:bg-accent-50 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20">
+            <span class:list={["grid h-8 w-8 place-items-center rounded-xl", o.tint]}>
+              <Icon name={o.icon} class="h-[18px] w-[18px]" />
+            </span>
+            <span class="text-xs font-bold leading-tight text-ink">{t(`prio.${o.v}`)}</span>
+          </span>
+        </label>
+      ))
+    }
+  </div>
+</fieldset>
