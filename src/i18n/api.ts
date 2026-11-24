@@ -35,6 +35,10 @@ export default {
     signInToReact: "Intră în cont ca să reacționezi.",
     ownGift: "E cadoul tău.",
     pushNotConfigured: "Notificările pe telefon nu sunt configurate.",
+    tooMany: "Prea multe încercări. Așteaptă un minut și încearcă din nou.",
+    blocked: "Nu poți face asta.",
+    messageShort: "Scrie câteva cuvinte despre ce s-a întâmplat.",
+    suspended: "Acest cont a fost suspendat. Scrie-ne din pagina de contact dacă crezi că e o greșeală.",
   },
   en: {
     usernameInvalid: "Username: 3–24 characters, only lowercase letters, digits, dot and _.",
@@ -69,6 +73,10 @@ export default {
     signInToReact: "Log in to react.",
     ownGift: "It's your gift.",
     pushNotConfigured: "Phone notifications aren't set up.",
+    tooMany: "Too many attempts. Wait a minute and try again.",
+    blocked: "You can't do that.",
+    messageShort: "Write a few words about what happened.",
+    suspended: "This account has been suspended. Write to us from the contact page if you think it's a mistake.",
   },
   de: {
     usernameInvalid: "Benutzername: 3–24 Zeichen, nur Kleinbuchstaben, Ziffern, Punkt und _.",
@@ -103,6 +111,10 @@ export default {
     signInToReact: "Melde dich an, um zu reagieren.",
     ownGift: "Das ist dein Geschenk.",
     pushNotConfigured: "Handy-Benachrichtigungen sind nicht eingerichtet.",
+    tooMany: "Zu viele Versuche. Warte eine Minute und versuch es noch einmal.",
+    blocked: "Das geht nicht.",
+    messageShort: "Schreib ein paar Worte dazu, was passiert ist.",
+    suspended: "Dieses Konto wurde gesperrt. Schreib uns über die Kontaktseite, wenn du das für einen Fehler hältst.",
   },
   ru: {
     usernameInvalid: "Имя пользователя: 3–24 символа, только строчные латинские буквы, цифры, точка и _.",
@@ -137,5 +149,9 @@ export default {
     signInToReact: "Войдите, чтобы реагировать.",
     ownGift: "Это ваш подарок.",
     pushNotConfigured: "Уведомления на телефоне не настроены.",
+    tooMany: "Слишком много попыток. Подождите минуту и попробуйте снова.",
+    blocked: "Это действие недоступно.",
+    messageShort: "Напишите пару слов о том, что случилось.",
+    suspended: "Этот аккаунт заблокирован. Напишите нам через страницу контактов, если считаете это ошибкой.",
   },
 } satisfies Bundle;

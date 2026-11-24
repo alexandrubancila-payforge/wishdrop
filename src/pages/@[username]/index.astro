@@ -13,6 +13,7 @@ import { localePath, makeT } from "@/lib/i18n";
 import common from "@/i18n/common";
 import social from "@/i18n/social";
 import { canSeeProfile, displayName, followCounts, getUserByUsername, profileLists, relation } from "@/lib/social";
+import { isBlocked } from "@/lib/blocks";
 
 const { lang, user } = Astro.locals;
 const t = makeT(lang, common, social);
@@ -20,8 +21,12 @@ const t = makeT(lang, common, social);
 const owner = await getUserByUsername(Astro.params.username ?? "");
 if (!owner || !owner.username) return Astro.rewrite("/404");
 
+// Blocked by the owner: the profile doesn't exist for you. Blocked by you: a card to unblock.
+if (user && user.id !== owner.id && (await isBlocked(owner.id, user.id))) return Astro.rewrite("/404");
+const iBlocked = !!user && user.id !== owner.id && (await isBlocked(user.id, owner.id));
+
 const rel = await relation(user, owner);
-const visible = canSeeProfile(owner, rel);
+const visible = canSeeProfile(owner, rel) && !iBlocked;
 const [lists, counts] = await Promise.all([profileLists(owner, rel), followCounts(owner.id)]);
 const name = displayName(owner);
 const href = (p: string) => localePath(lang, p);
@@ -60,6 +65,39 @@ const stats = [
       <Icon name="share-network" class="h-5 w-5" />
     </button>
 
+    {
+      rel !== "self" && (
+        <details class="absolute left-4 top-4 z-20 text-left" id="profile-menu">
+          <summary
+            aria-label={t("profile.more")}
+            title={t("profile.more")}
+            class="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-full bg-white text-ink shadow-soft ring-1 ring-line transition hover:text-accent-700 [&::-webkit-details-marker]:hidden"
+          >
+            <Icon name="dots-three" weight="bold" class="h-5 w-5" />
+          </summary>
+          <div class="absolute left-0 mt-2 w-56 rounded-2xl bg-white p-1.5 shadow-lift ring-1 ring-line">
+            <a href={`${href("/report")}?type=user&id=${owner.id}`} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
+              <Icon name="flag" class="h-5 w-5 text-accent-500" />
+              {t("profile.report")}
+            </a>
+            {user && (
+              <button
+                type="button"
+                data-block-btn
+                data-username={owner.username}
+                data-blocked={iBlocked ? "true" : "false"}
+                data-confirm={t("profile.blockConfirm")}
+                class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-rose-600 transition hover:bg-accent-50"
+              >
+                <Icon name="prohibit" class="h-5 w-5" />
+                {iBlocked ? t("profile.unblock") : t("profile.block")}
+              </button>
+            )}
+          </div>
+        </details>
+      )
+    }
+
     <div class="mx-auto w-fit rounded-full shadow-[0_0_0_10px_var(--color-accent-100)] ring-4 ring-white">
       <Avatar user={owner} size={96} class="h-24 w-24" alt={name} />
     </div>
@@ -91,7 +129,7 @@ const stats = [
             <Icon name="pencil-simple" class="h-4 w-4" />
             {t("profile.edit")}
           </a>
-        ) : (
+        ) : iBlocked ? null : (
           <FollowButton username={owner.username} relation={rel} isPrivate={!!owner.is_private} reload />
         )
       }
@@ -114,7 +152,15 @@ const stats = [
 
   <!-- Lists -->
   {
-    !visible ? (
+    iBlocked ? (
+      <div class="card mt-6 flex flex-col items-center px-6 py-10 text-center">
+        <span class="grid h-16 w-16 place-items-center rounded-3xl bg-sand text-ink-soft">
+          <Icon name="prohibit" class="h-8 w-8" />
+        </span>
+        <h2 class="mt-4 text-lg font-extrabold tracking-tight">{t("profile.blockedTitle")}</h2>
+        <p class="mx-auto mt-1 max-w-sm text-sm text-ink-soft">{t("profile.blockedText")}</p>
+      </div>
+    ) : !visible ? (
       <div class="card mt-6 flex flex-col items-center px-6 py-10 text-center">
         <span class="grid h-16 w-16 place-items-center rounded-3xl bg-lav text-lav-ink">
           <Icon name="lock" class="h-8 w-8" />
@@ -140,6 +186,30 @@ const stats = [
   }
 
   <script>
+    // Block / unblock from the "…" menu.
+    const blockBtn = document.querySelector<HTMLButtonElement>("[data-block-btn]");
+    blockBtn?.addEventListener("click", async () => {
+      const blocking = blockBtn.dataset.blocked !== "true";
+      if (blocking) {
+        const ask = (window as any).wdConfirm as ((m: string) => Promise<boolean>) | undefined;
+        const ok = ask ? await ask(blockBtn.dataset.confirm!) : confirm(blockBtn.dataset.confirm!);
+        if (!ok) return;
+      }
+      blockBtn.disabled = true;
+      const res = await fetch("/api/blocks", {
+        method: blocking ? "POST" : "DELETE",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ username: blockBtn.dataset.username }),
+      });
+      if (res.ok) location.reload();
+      else blockBtn.disabled = false;
+    });
+    // Close the menu when tapping elsewhere.
+    document.addEventListener("click", (e) => {
+      const menu = document.getElementById("profile-menu") as HTMLDetailsElement | null;
+      if (menu?.open && !menu.contains(e.target as Node)) menu.open = false;
+    });
+
     const btn = document.getElementById("share-profile");
     btn?.addEventListener("click", async () => {
       const url = btn.dataset.url!;

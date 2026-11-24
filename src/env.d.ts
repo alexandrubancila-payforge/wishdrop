@@ -29,5 +29,9 @@ declare namespace Cloudflare {
     /** Web Push (lib/push.ts): base64url public key (var) and the private key as JWK (secret). */
     VAPID_PUBLIC_KEY?: string;
     VAPID_PRIVATE_JWK?: string;
+    /** Broad request limit (lib/limits.ts). */
+    WRITE_LIMIT?: RateLimit;
+    /** Weekly copy of the photos (src/worker.ts). */
+    BACKUP_BUCKET?: R2Bucket;
   }
 }

@@ -4,7 +4,8 @@
   // Bindings are the same Cloudflare resources the old Pages project used, so
   // every user, list, gift and photo stays where it is.
   "name": "wishdrop",
-  "main": "@astrojs/cloudflare/entrypoints/server",
+  // src/worker.ts = Astro's handler + the daily cron (photo backup).
+  "main": "./src/worker.ts",
   "compatibility_date": "2026-06-24",
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "./dist", "binding": "ASSETS" },
@@ -17,7 +18,7 @@
     "APP_URL": "https://wishdrop.site",
     "CF_ACCOUNT_ID": "302e8d2b3de7b2c06581cf32860e4c53",
     "MAIL_FROM": "WishDrop <noreply@wishdrop.site>",
-    "REQUIRE_EMAIL_VERIFICATION": "false",
+    "REQUIRE_EMAIL_VERIFICATION": "true",
     // Web Push public key (lib/push.ts); the private one is the VAPID_PRIVATE_JWK secret.
     "VAPID_PUBLIC_KEY": "BEMBwAoECfR3VvS_xpu6ZaWpqAdYJ_9y0I6pljmA0EZvpNIgx94briSNOJc3AdsQOSUhtOaHVVuBCxeB8GtUzxM"
   },
@@ -31,7 +32,16 @@
       "migrations_dir": "migrations"
     }
   ],
-  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "wishdrop-images" }]
+  "r2_buckets": [
+    { "binding": "BUCKET", "bucket_name": "wishdrop-images" },
+    // Daily copy of the photos (lib/backup.ts).
+    { "binding": "BACKUP_BUCKET", "bucket_name": "wishdrop-images-backup" }
+  ],
+  // Every day at 03:00 UTC: photo backup + old notifications cleanup (src/worker.ts).
+  "triggers": { "crons": ["0 3 * * *"] },
+  // Broad per-minute brake on API writes (lib/limits.ts; the strict limits count in D1).
+  // namespace_id is any number unique to this account.
+  "ratelimits": [{ "name": "WRITE_LIMIT", "namespace_id": "4104", "simple": { "limit": 120, "period": 60 } }]
   // Secrets (wrangler secret put …): JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, CF_EMAIL_TOKEN,
   // OWNER_EMAIL (where the contact form is delivered; also the /admin account), VAPID_PRIVATE_JWK
 }

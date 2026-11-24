@@ -24,6 +24,8 @@ export interface User {
   bio: string | null;
   /** 1 = following needs approval. New accounts start public (0). */
   is_private: number;
+  /** Set by the owner in /admin: can't sign in, hidden everywhere. */
+  suspended_at: number | null;
 }
 
 export interface Wishlist {
@@ -35,6 +37,8 @@ export interface Wishlist {
   hide_reservations: number;
   /** Where the list appears: 'public' | 'followers' | 'link' (see lib/social.ts). */
   visibility: "public" | "followers" | "link";
+  /** Hidden by the owner in /admin: the list answers 404. */
+  hidden_at: number | null;
 }
 
 export interface Item {

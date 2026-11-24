@@ -89,3 +89,50 @@ export async function siteStats(weeks = 12) {
 
   return { totals: totals ?? {}, weekly, recent: recent.results, topLists: topLists.results };
 }
+
+export interface ReportRow {
+  id: string;
+  kind: "bug" | "user" | "list";
+  target_id: string | null;
+  reason: string | null;
+  message: string | null;
+  email: string | null;
+  page_url: string | null;
+  user_agent: string | null;
+  image_key: string | null;
+  status: "open" | "done";
+  created_at: number;
+  reporter_name: string | null;
+  reporter_username: string | null;
+  target_username: string | null;
+  target_name: string | null;
+  target_suspended: number | null;
+  list_name: string | null;
+  list_slug: string | null;
+  list_hidden: number | null;
+  /** How many reports this target has in total. */
+  same_target: number;
+}
+
+/** Open reports first (oldest first, so nothing waits forever), then the last 20 handled. */
+export async function adminReports() {
+  const query = (where: string, order: string, limit: number) =>
+    db()
+      .prepare(
+        `SELECT r.*, ru.name AS reporter_name, ru.username AS reporter_username,
+                tu.username AS target_username, tu.name AS target_name, tu.suspended_at AS target_suspended,
+                tl.name AS list_name, tl.slug AS list_slug, tl.hidden_at AS list_hidden,
+                (SELECT COUNT(*) FROM reports r2 WHERE r2.target_id = r.target_id AND r2.kind = r.kind) AS same_target
+           FROM reports r
+           LEFT JOIN users ru ON ru.id = r.reporter_id
+           LEFT JOIN users tu ON r.kind = 'user' AND tu.id = r.target_id
+           LEFT JOIN wishlists tl ON r.kind = 'list' AND tl.id = r.target_id
+          WHERE ${where} ORDER BY ${order} LIMIT ${limit}`,
+      )
+      .all<ReportRow>();
+  const [open, done] = await Promise.all([
+    query("r.status = 'open'", "r.created_at ASC", 200),
+    query("r.status = 'done'", "r.created_at DESC", 20),
+  ]);
+  return { open: open.results, done: done.results };
+}

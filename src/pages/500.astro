@@ -1,0 +1,44 @@
+---
+/**
+ * Shown when a page fails on the server. Deliberately standalone (no Layout,
+ * no database), so it still works when the error came from those. The owner
+ * gets an email from the middleware (lib/alerts.ts).
+ */
+import "@/styles/global.css";
+import Icon from "@/components/Icon.astro";
+import { localePath, makeT, splitLang } from "@/lib/i18n";
+import common from "@/i18n/common";
+
+const lang = Astro.locals.lang ?? splitLang(Astro.url.pathname).lang;
+const t = makeT(lang, common);
+---
+
+<html lang={lang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>{t("error.title")} — WishDrop</title>
+    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
+  </head>
+  <body class="grid min-h-screen place-items-center bg-paper px-4 font-sans text-ink">
+    <main class="card flex w-full max-w-md flex-col items-center p-8 text-center">
+      <span class="grid h-16 w-16 place-items-center rounded-3xl bg-sun text-sun-ink">
+        <Icon name="warning" class="h-8 w-8" />
+      </span>
+      <h1 class="mt-4 text-2xl font-extrabold tracking-tight">{t("error.title")}</h1>
+      <p class="mt-2 text-sm text-ink-soft">{t("error.text")}</p>
+      <div class="mt-6 flex w-full flex-col gap-2.5">
+        <button type="button" onclick="location.reload()" class="btn btn-primary w-full !py-3.5">
+          <Icon name="arrow-clockwise" weight="bold" class="h-4 w-4" />
+          {t("error.retry")}
+        </button>
+        <a href={localePath(lang, "/")} class="btn btn-ghost w-full !py-3">{t("error.home")}</a>
+        <a href={`${localePath(lang, "/report")}?type=bug`} class="mt-1 inline-flex items-center justify-center gap-1.5 text-xs font-semibold text-ink-soft hover:text-ink">
+          <Icon name="bug" class="h-3.5 w-3.5" />
+          {t("footer.report")}
+        </a>
+      </div>
+    </main>
+  </body>
+</html>

@@ -8,6 +8,7 @@
  *   followers only, 'link' nowhere. The /w/<slug> link works in every case.
  */
 import { db, now, type User, type Wishlist } from "./db";
+import { findableSql } from "./blocks";
 import { forgetFollow, notify } from "./notifications";
 
 export type Visibility = "link" | "followers" | "public";
@@ -69,8 +70,9 @@ export async function suggestUsername(name: string | null | undefined, email: st
   return `user${Date.now().toString(36)}`;
 }
 
+/** A profile by username (suspended accounts don't exist for anyone). */
 export const getUserByUsername = (username: string) =>
-  db().prepare("SELECT * FROM users WHERE username = ?").bind(normalizeUsername(username)).first<User>();
+  db().prepare("SELECT * FROM users WHERE username = ? AND suspended_at IS NULL").bind(normalizeUsername(username)).first<User>();
 
 export const displayName = (u: Pick<User, "name" | "email" | "username">) =>
   u.name || (u.username ? `@${u.username}` : u.email.split("@")[0]);
@@ -101,7 +103,7 @@ export async function profileLists(owner: User, rel: Relation) {
               (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id AND i.received_at IS NULL) AS item_count,
               (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id AND i.received_at IS NULL AND i.reserved_at IS NULL) AS available_count
          FROM wishlists w
-        WHERE w.user_id = ? AND w.visibility IN (${shown.map(() => "?").join(",")})
+        WHERE w.user_id = ? AND w.hidden_at IS NULL AND w.visibility IN (${shown.map(() => "?").join(",")})
         ORDER BY w.created_at DESC`,
     )
     .bind(owner.id, ...shown)
@@ -162,8 +164,8 @@ export async function followingOf(userId: string) {
   return results;
 }
 
-/** Only people who picked a username can be found. Exact and prefix matches first. */
-export async function searchUsers(q: string) {
+/** Only people who picked a username (and pass findableSql) can be found. Exact and prefix matches first. */
+export async function searchUsers(q: string, viewerId: string | null = null) {
   const term = q.trim().replace(/^@+/, "").toLowerCase().slice(0, 50);
   if (term.length < 2) return [];
   const like = term.replace(/[%_\\]/g, (c) => "\\" + c);
@@ -172,12 +174,12 @@ export async function searchUsers(q: string) {
       `SELECT ${PERSON}, u.created_at,
               (SELECT COUNT(*) FROM follows f WHERE f.followee_id = u.id AND f.status = 'accepted') AS followers
          FROM users u
-        WHERE u.username IS NOT NULL
+        WHERE u.username IS NOT NULL AND ${findableSql("?3")}
           AND (u.username LIKE ?1 || '%' ESCAPE '\\' OR lower(u.name) LIKE '%' || ?1 || '%' ESCAPE '\\')
         ORDER BY (u.username = ?2) DESC, (u.username LIKE ?1 || '%' ESCAPE '\\') DESC, followers DESC
         LIMIT 30`,
     )
-    .bind(like, term)
+    .bind(like, term, viewerId ?? "")
     .all<PersonRow & { followers: number }>();
   return results;
 }

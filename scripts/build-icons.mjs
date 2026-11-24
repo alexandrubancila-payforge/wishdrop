@@ -23,7 +23,8 @@ const ICONS = [
   "shield-check", "key", "palette", "moon", "sun", "snowflake", "egg", "tree-evergreen", "balloon",
   "lightning", "rocket-launch", "seal-check", "tray", "clipboard-text", "scroll", "image-square",
   "lightbulb", "fire", "package", "arrow-counter-clockwise", "chart-bar", "device-mobile", "bell-ringing",
-  "bell-slash", "users-four", "hand-coins", "chart-line-up",
+  "bell-slash", "users-four", "hand-coins", "chart-line-up", "flag", "prohibit", "bug", "download-simple",
+  "arrow-clockwise", "envelope-open", "eye-closed",
 ];
 const WEIGHTS = ["duotone", "regular", "fill", "bold"];
 

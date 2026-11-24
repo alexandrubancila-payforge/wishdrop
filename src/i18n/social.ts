@@ -97,6 +97,13 @@ export default {
     "onboard.find": "Caută prieteni",
 
     "list.ownerProfile": "Profil: @{username} →",
+    "profile.more": "Mai multe",
+    "profile.report": "Raportează profilul",
+    "profile.block": "Blochează",
+    "profile.unblock": "Deblochează",
+    "profile.blockConfirm": "Blochezi acest cont? Nu te va mai putea urmări și nu-ți va mai vedea profilul. Urmăririle dintre voi se șterg.",
+    "profile.blockedTitle": "Ai blocat acest cont",
+    "profile.blockedText": "Nu vă mai vedeți profilurile și nu vă puteți urmări. Îl poți debloca oricând.",
   },
   en: {
     "nav.search": "Search",
@@ -191,6 +198,13 @@ export default {
     "onboard.find": "Find friends",
 
     "list.ownerProfile": "Profile: @{username} →",
+    "profile.more": "More",
+    "profile.report": "Report profile",
+    "profile.block": "Block",
+    "profile.unblock": "Unblock",
+    "profile.blockConfirm": "Block this account? They won't be able to follow you or see your profile. Follows between you are removed.",
+    "profile.blockedTitle": "You blocked this account",
+    "profile.blockedText": "You can't see each other's profiles or follow each other. You can unblock any time.",
   },
   de: {
     "nav.search": "Suchen",
@@ -285,6 +299,13 @@ export default {
     "onboard.find": "Freunde finden",
 
     "list.ownerProfile": "Profil: @{username} →",
+    "profile.more": "Mehr",
+    "profile.report": "Profil melden",
+    "profile.block": "Blockieren",
+    "profile.unblock": "Blockierung aufheben",
+    "profile.blockConfirm": "Dieses Konto blockieren? Es kann dir nicht mehr folgen und dein Profil nicht mehr sehen. Follows zwischen euch werden entfernt.",
+    "profile.blockedTitle": "Du hast dieses Konto blockiert",
+    "profile.blockedText": "Ihr seht eure Profile nicht mehr und könnt euch nicht folgen. Du kannst die Blockierung jederzeit aufheben.",
   },
   ru: {
     "nav.search": "Поиск",
@@ -383,5 +404,12 @@ export default {
     "onboard.find": "Найти друзей",
 
     "list.ownerProfile": "Профиль: @{username} →",
+    "profile.more": "Ещё",
+    "profile.report": "Пожаловаться на профиль",
+    "profile.block": "Заблокировать",
+    "profile.unblock": "Разблокировать",
+    "profile.blockConfirm": "Заблокировать этот аккаунт? Он не сможет подписаться на вас и видеть ваш профиль. Подписки между вами удалятся.",
+    "profile.blockedTitle": "Вы заблокировали этот аккаунт",
+    "profile.blockedText": "Вы не видите профили друг друга и не можете подписаться. Разблокировать можно в любой момент.",
   },
 } satisfies Bundle;

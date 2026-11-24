@@ -3,6 +3,7 @@ import { db, getItemWithList, now } from "@/lib/db";
 import { apiT, fail, json, readJson } from "@/lib/http";
 import { isReactionKind, reactionsFor } from "@/lib/gifts";
 import { forgetReaction, notify } from "@/lib/notifications";
+import { blockedEitherWay } from "@/lib/blocks";
 
 /** ❤️ or "I want this too" on someone's gift: `{ kind: "heart" | "want", on: boolean }`. Signed-in only. */
 export const POST: APIRoute = async (ctx) => {
@@ -12,6 +13,7 @@ export const POST: APIRoute = async (ctx) => {
   const item = ctx.params.id ? await getItemWithList(ctx.params.id) : null;
   if (!item) return fail(t("notFound"), 404);
   if (item.owner_id === user.id) return fail(t("ownGift"), 403);
+  if (await blockedEitherWay(item.owner_id, user.id)) return fail(t("blocked"), 403);
 
   const { kind, on } = await readJson<{ kind?: string; on?: boolean }>(ctx.request);
   if (!isReactionKind(kind) || typeof on !== "boolean") return fail(t("error"));

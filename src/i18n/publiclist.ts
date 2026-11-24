@@ -60,6 +60,8 @@ export default {
     "season.birthday": "🎂 Ziua de naștere: {date}",
     "season.birthdayToday": "🎂 Azi e ziua de naștere!",
     "list.back": "Înapoi",
+    "list.report": "Raportează lista",
+    "list.hiddenByAdmin": "Lista a fost ascunsă de echipa WishDrop după o raportare și nu mai poate fi deschisă de alții.",
   },
   en: {
     "list.description": "Create beautiful wishlists and share them with your loved ones.",
@@ -119,6 +121,8 @@ export default {
     "season.birthday": "🎂 Birthday: {date}",
     "season.birthdayToday": "🎂 Birthday today!",
     "list.back": "Back",
+    "list.report": "Report this list",
+    "list.hiddenByAdmin": "The WishDrop team hid this list after a report; others can no longer open it.",
   },
   de: {
     "list.description": "Erstelle schöne Wunschlisten und teile sie mit deinen Liebsten.",
@@ -178,6 +182,8 @@ export default {
     "season.birthday": "🎂 Geburtstag: {date}",
     "season.birthdayToday": "🎂 Heute ist Geburtstag!",
     "list.back": "Zurück",
+    "list.report": "Liste melden",
+    "list.hiddenByAdmin": "Das WishDrop-Team hat diese Liste nach einer Meldung ausgeblendet; andere können sie nicht mehr öffnen.",
   },
   ru: {
     "list.description": "Создавайте красивые вишлисты и делитесь ими с близкими.",
@@ -237,5 +243,7 @@ export default {
     "season.birthday": "🎂 День рождения: {date}",
     "season.birthdayToday": "🎂 Сегодня день рождения!",
     "list.back": "Назад",
+    "list.report": "Пожаловаться на список",
+    "list.hiddenByAdmin": "Команда WishDrop скрыла этот список после жалобы; другие больше не могут его открыть.",
   },
 } satisfies Bundle;

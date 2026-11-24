@@ -9,7 +9,9 @@ import { localePath } from "@/lib/i18n";
 export const POST: APIRoute = async (ctx) => {
   const { email = "" } = await readJson<{ email?: string }>(ctx.request);
   const user = await getUserByEmail(String(email));
-  if (user) {
+  // One email per account every 2 minutes (a reset link lives 60 minutes).
+  const recent = !!user?.reset_expires && user.reset_expires - 60 * 60 * 1000 > Date.now() - 2 * 60 * 1000;
+  if (user && !recent) {
     const token = randomToken();
     await updateUser(user.id, { reset_token: token, reset_expires: Date.now() + 60 * 60 * 1000 });
     const lang = requestLang(ctx);

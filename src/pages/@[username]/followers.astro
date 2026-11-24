@@ -3,10 +3,12 @@
 import PeoplePage from "@/components/social/PeoplePage.astro";
 import { localePath } from "@/lib/i18n";
 import { canSeeProfile, getUserByUsername, relation } from "@/lib/social";
+import { blockedEitherWay } from "@/lib/blocks";
 
 const { lang, user } = Astro.locals;
 const owner = await getUserByUsername(Astro.params.username ?? "");
 if (!owner || !owner.username) return Astro.rewrite("/404");
+if (user && user.id !== owner.id && (await blockedEitherWay(owner.id, user.id))) return Astro.redirect(localePath(lang, `/@${owner.username}`));
 const rel = await relation(user, owner);
 if (!canSeeProfile(owner, rel)) return Astro.redirect(localePath(lang, `/@${owner.username}`));
 ---

@@ -31,6 +31,8 @@ interface Props {
 }
 
 const { lang, path, user } = Astro.locals;
+/** "Report a problem" remembers the page it was opened from. */
+const reportHref = `${localePath(lang, "/report")}?type=bug&from=${encodeURIComponent(path)}`;
 const t = makeT(lang, common, social);
 const [requests, unread] = user ? await Promise.all([pendingCount(user.id), unreadCount(user.id)]) : [0, 0];
 const bellLabel = makeT(lang, notifStrings)("bell");
@@ -254,6 +256,9 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
                           <Icon name="chart-line-up" class="h-5 w-5 text-accent-500" /> Admin
                         </a>
                       )}
+                      <a href={reportHref} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
+                        <Icon name="bug" class="h-5 w-5 text-accent-500" /> {t("footer.report")}
+                      </a>
                       <div class="my-1.5 h-px bg-line" />
                       <button id="logout-btn" type="button" class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-accent-700 transition hover:bg-accent-50">
                         <Icon name="sign-out" class="h-5 w-5" /> {t("nav.logout")}
@@ -313,6 +318,10 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
                 <a href={href("/privacy")} class="hover:text-ink">{t("footer.privacy")}</a>
                 <a href={href("/terms")} class="hover:text-ink">{t("footer.terms")}</a>
                 <a href={href("/contact")} class="hover:text-ink">{t("footer.contact")}</a>
+                <a href={reportHref} class="inline-flex items-center gap-1 hover:text-ink">
+                  <Icon name="bug" class="h-4 w-4" />
+                  {t("footer.report")}
+                </a>
               </nav>
               <p class="text-sm text-ink-soft">
                 {t("footer.madeBy", { year })}{" "}
@@ -367,6 +376,8 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
 
     <script>
       // Header menus (language + account), logout, and remembering the chosen language.
+      // Only one menu is open at a time: opening one closes the others.
+      const closers: (() => void)[] = [];
       function dropdown(rootId: string, btnId: string, panelId: string) {
         const root = document.getElementById(rootId);
         const btn = document.getElementById(btnId);
@@ -375,10 +386,15 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
           panel?.classList.add("hidden");
           btn?.setAttribute("aria-expanded", "false");
         };
+        closers.push(close);
         btn?.addEventListener("click", (e) => {
           e.stopPropagation();
-          const open = panel?.classList.toggle("hidden") === false;
-          btn.setAttribute("aria-expanded", open ? "true" : "false");
+          const opening = !!panel?.classList.contains("hidden");
+          closers.forEach((c) => c());
+          if (opening) {
+            panel?.classList.remove("hidden");
+            btn.setAttribute("aria-expanded", "true");
+          }
         });
         document.addEventListener("click", (e) => {
           if (root && !root.contains(e.target as Node)) close();

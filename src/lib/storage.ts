@@ -27,8 +27,9 @@ export function keyFromUrl(url: string | null | undefined) {
   return m ? m[1] : null;
 }
 
-export async function putImage(body: ArrayBuffer | ReadableStream, contentType: string) {
-  const key = `items/${crypto.randomUUID()}.${EXT[contentType] ?? "jpg"}`;
+/** Store a photo. `folder` "reports" keeps problem-report screenshots apart (only the admin can open them). */
+export async function putImage(body: ArrayBuffer | ReadableStream, contentType: string, folder: "items" | "reports" = "items") {
+  const key = `${folder}/${crypto.randomUUID()}.${EXT[contentType] ?? "jpg"}`;
   await env.BUCKET.put(key, body, { httpMetadata: { contentType } });
   return key;
 }

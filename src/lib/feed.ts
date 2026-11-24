@@ -4,6 +4,7 @@
  * same rule as their profile page uses for an accepted follower.
  */
 import { db, type Item } from "./db";
+import { findableSql } from "./blocks";
 
 export interface FeedEntry extends Item {
   owner_id: string;
@@ -22,8 +23,8 @@ export async function friendsActivity(userId: string, limit = 30) {
       `SELECT i.*, u.id AS owner_id, u.username AS owner_username, u.name AS owner_name, u.email AS owner_email,
               u.avatar_url AS owner_avatar, w.name AS list_name, w.slug AS list_slug
          FROM follows f
-         JOIN users u ON u.id = f.followee_id
-         JOIN wishlists w ON w.user_id = u.id AND w.visibility IN ('public', 'followers')
+         JOIN users u ON u.id = f.followee_id AND u.suspended_at IS NULL
+         JOIN wishlists w ON w.user_id = u.id AND w.visibility IN ('public', 'followers') AND w.hidden_at IS NULL
          JOIN items i ON i.wishlist_id = w.id AND i.received_at IS NULL
         WHERE f.follower_id = ? AND f.status = 'accepted'
         ORDER BY i.created_at DESC
@@ -77,7 +78,7 @@ export async function suggestedPeople(userId: string, limit = 6) {
               (SELECT COUNT(*) FROM follows f WHERE f.followee_id = u.id AND f.status = 'accepted') AS followers,
               (SELECT COUNT(*) FROM wishlists w WHERE w.user_id = u.id AND w.visibility = 'public') AS lists
          FROM users u
-        WHERE u.id <> ?1 AND u.username IS NOT NULL
+        WHERE u.id <> ?1 AND u.username IS NOT NULL AND ${findableSql("?1")}
           AND u.id NOT IN (SELECT followee_id FROM follows WHERE follower_id = ?1)
         ORDER BY followers DESC, lists DESC, u.created_at DESC
         LIMIT ?2`,

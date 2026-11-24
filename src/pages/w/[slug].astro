@@ -31,10 +31,14 @@ import gifts from "@/i18n/gifts";
 const { lang, user } = Astro.locals;
 const t = makeT(lang, common, publiclist, social, gifts);
 
-const list = await getWishlistBySlug(Astro.params.slug ?? "");
+const found = await getWishlistBySlug(Astro.params.slug ?? "");
+const foundOwner = found ? await getUserById(found.user_id) : null;
+// A list hidden in /admin, or of a suspended account, is "not found" for everyone but its owner.
+const gone = !!found && user?.id !== found.user_id && (!!found.hidden_at || !!foundOwner?.suspended_at);
+const list = gone ? null : found;
 if (!list) Astro.response.status = 404;
 
-const owner = list ? await getUserById(list.user_id) : null;
+const owner = list ? foundOwner : null;
 const items = list ? (await getItems(list.id)).filter((i) => !i.received_at) : [];
 const isOwner = !!user && !!list && user.id === list.user_id;
 const [contributors, reactions] = list
@@ -161,6 +165,12 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
             }
           </div>
           <p class="mt-4 max-w-md text-ink-soft">{isOwner ? t("list.ownerSubtitle") : t("list.subtitle")}</p>
+          {isOwner && list.hidden_at && (
+            <p class="mt-3 flex max-w-md items-start gap-2 rounded-2xl bg-sun px-3 py-2 text-sm font-medium text-sun-ink">
+              <Icon name="eye-slash" class="mt-0.5 h-4 w-4 shrink-0" />
+              {t("list.hiddenByAdmin")}
+            </p>
+          )}
           {
             isOwner && (
               <div class="mt-5 flex flex-wrap items-center gap-2.5">
@@ -341,6 +351,17 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
               );
             })}
           </div>
+        )
+      }
+
+      {
+        !isOwner && (
+          <p class="mt-8 text-center">
+            <a href={`${localePath(lang, "/report")}?type=list&id=${list.id}`} class="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-soft transition hover:text-rose-600">
+              <Icon name="flag" class="h-3.5 w-3.5" />
+              {t("list.report")}
+            </a>
+          </p>
         )
       }
 

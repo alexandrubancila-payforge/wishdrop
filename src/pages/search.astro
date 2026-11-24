@@ -14,7 +14,7 @@ import { plural } from "@/components/dashboard/plural";
 const { lang, user } = Astro.locals;
 const t = makeT(lang, common, social);
 const q = (Astro.url.searchParams.get("q") ?? "").trim();
-const results = q.length >= 2 ? await searchUsers(q) : [];
+const results = q.length >= 2 ? await searchUsers(q, Astro.locals.user?.id ?? null) : [];
 
 const mine = new Map<string, Relation>();
 if (user && results.length) {

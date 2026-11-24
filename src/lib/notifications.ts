@@ -143,7 +143,7 @@ export const requestBecameFollow = (followeeId: string, followerId: string) =>
  */
 const VISIBLE = `n.user_id = ?1 AND n.created_at >= ?2 AND (
     n.type NOT IN ('new_list', 'new_item')
-    OR EXISTS (SELECT 1 FROM wishlists wv WHERE wv.id = n.wishlist_id AND (
+    OR EXISTS (SELECT 1 FROM wishlists wv WHERE wv.id = n.wishlist_id AND wv.hidden_at IS NULL AND (
          wv.visibility = 'public'
          OR (wv.visibility = 'followers' AND EXISTS (SELECT 1 FROM follows fv
                WHERE fv.follower_id = ?1 AND fv.followee_id = wv.user_id AND fv.status = 'accepted')))))`;
