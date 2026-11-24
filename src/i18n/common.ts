@@ -46,6 +46,7 @@ export default {
     "error.text": "A apărut o eroare la noi, nu la tine. Am fost anunțați automat și ne uităm. Încearcă din nou peste câteva secunde.",
     "error.retry": "Încearcă din nou",
     "error.home": "Pagina principală",
+    "footer.ideas": "Idei de cadouri",
   },
   en: {
     "nav.profileShort": "Profile",
@@ -91,6 +92,7 @@ export default {
     "error.text": "The error is on our side, not yours. We've been notified automatically and are looking into it. Try again in a few seconds.",
     "error.retry": "Try again",
     "error.home": "Home page",
+    "footer.ideas": "Gift ideas",
   },
   de: {
     "nav.profileShort": "Profil",
@@ -136,6 +138,7 @@ export default {
     "error.text": "Der Fehler liegt bei uns, nicht bei dir. Wir wurden automatisch benachrichtigt und kümmern uns darum. Versuch es in ein paar Sekunden noch einmal.",
     "error.retry": "Noch einmal versuchen",
     "error.home": "Startseite",
+    "footer.ideas": "Geschenkideen",
   },
   ru: {
     "nav.profileShort": "Профиль",
@@ -181,5 +184,6 @@ export default {
     "error.text": "Ошибка на нашей стороне, не на вашей. Мы уже получили уведомление и разбираемся. Попробуйте ещё раз через несколько секунд.",
     "error.retry": "Попробовать снова",
     "error.home": "На главную",
+    "footer.ideas": "Идеи подарков",
   },
 } satisfies Bundle;

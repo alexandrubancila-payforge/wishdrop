@@ -22,6 +22,7 @@ import Reactions from "@/components/gifts/Reactions.astro";
 import { localePath, makeT, pick } from "@/lib/i18n";
 import { getItems, getUserById, getWishlistBySlug } from "@/lib/db";
 import { contributorsFor, reactionsFor } from "@/lib/gifts";
+import { plural } from "@/components/dashboard/plural";
 import { imageUrl } from "@/lib/storage";
 import common from "@/i18n/common";
 import publiclist from "@/i18n/publiclist";
@@ -83,6 +84,17 @@ const RM = {
   registerUrl: localePath(lang, "/register"),
   loginUrl: localePath(lang, "/login"),
 };
+
+// Countdown to the list's event (hidden once it's past).
+const eventDays = list?.event_date
+  ? Math.round((Date.parse(list.event_date + "T00:00:00Z") - Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())) / 86_400_000)
+  : null;
+const eventLabel =
+  eventDays === null || eventDays < 0
+    ? null
+    : `${new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(list!.event_date + "T00:00:00Z"))} · ${
+        eventDays === 0 ? t("event.today") : eventDays === 1 ? t("event.tomorrow") : plural(t, lang, "event.in", eventDays)
+      }`;
 
 const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` : "") : "";
 ---
@@ -154,6 +166,14 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                   {ownerName}
                 </span>
               ))
+            }
+            {
+              eventLabel && (
+                <span class:list={["chip !py-1.5", eventDays === 0 ? "bg-accent-500 text-white" : "bg-lav text-lav-ink"]}>
+                  <Icon name="calendar-blank" weight="bold" class="h-3.5 w-3.5" />
+                  {eventLabel}
+                </span>
+              )
             }
             {
               items.length > 0 && !surprise && (

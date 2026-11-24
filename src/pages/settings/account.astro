@@ -55,6 +55,23 @@ const R = { resend: t("js.resend"), sending: t("js.sending"), sent: t("js.sent")
     </div>
   </section>
 
+  <!-- Reminder emails (lib/reminders.ts) -->
+  <section class="card mt-6 flex items-center justify-between gap-3 p-5 sm:p-6">
+    <div class="flex min-w-0 items-center gap-3">
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sun text-sun-ink">
+        <Icon name="cake" class="h-5 w-5" />
+      </span>
+      <div class="min-w-0">
+        <p class="font-bold leading-tight">{t("remindersTitle")}</p>
+        <p class="mt-1 text-xs leading-snug text-ink-soft">{t("remindersText")}</p>
+      </div>
+    </div>
+    <label class="inline-flex shrink-0 cursor-pointer items-center">
+      <input type="checkbox" id="reminders-toggle" class="peer sr-only" checked={!!user.reminder_emails} />
+      <span class="relative h-6 w-11 rounded-full bg-ink-soft/30 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-soft after:transition peer-checked:bg-accent-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20"></span>
+    </label>
+  </section>
+
   <!-- Blocked accounts -->
   <section class="card mt-6 p-5 sm:p-6">
     <h2 class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
@@ -104,6 +121,18 @@ const R = { resend: t("js.resend"), sending: t("js.sending"), sent: t("js.sent")
   </section>
 
   <script>
+    const reminders = document.getElementById("reminders-toggle") as HTMLInputElement;
+    reminders.addEventListener("change", async () => {
+      reminders.disabled = true;
+      const res = await fetch("/api/account/profile", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ reminder_emails: reminders.checked }),
+      }).catch(() => null);
+      if (!res?.ok) reminders.checked = !reminders.checked;
+      reminders.disabled = false;
+    });
+
     document.querySelectorAll<HTMLButtonElement>("[data-unblock]").forEach((b) => {
       b.addEventListener("click", async () => {
         b.disabled = true;

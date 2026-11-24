@@ -56,7 +56,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       },
       {
         "h": "Cookie-uri",
-        "p": "Folosim doar cookie-uri esențiale: unul pentru sesiunea ta de autentificare și unul pentru a reține limba aleasă. Nu folosim cookie-uri de publicitate."
+        "p": "Folosim doar cookie-uri esențiale: unul pentru sesiunea ta de autentificare și unul pentru a reține limba aleasă. Nu folosim cookie-uri de publicitate. Pentru statistici de vizite folosim Cloudflare Web Analytics, care nu folosește cookie-uri și nu te urmărește de la un site la altul."
       },
       {
         "h": "Cât timp păstrăm datele",
@@ -120,7 +120,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       },
       {
         "h": "Cookies",
-        "p": "We use only essential cookies: one for your login session and one to remember your chosen language. We do not use advertising cookies."
+        "p": "We use only essential cookies: one for your login session and one to remember your chosen language. We do not use advertising cookies. For visit statistics we use Cloudflare Web Analytics, which uses no cookies and doesn't track you across sites."
       },
       {
         "h": "How long we keep data",
@@ -184,7 +184,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       },
       {
         "h": "Cookies",
-        "p": "Wir verwenden nur essenzielle Cookies: eines für deine Anmeldesitzung und eines, um deine Sprache zu merken. Keine Werbe-Cookies."
+        "p": "Wir verwenden nur essenzielle Cookies: eines für deine Anmeldesitzung und eines, um deine Sprache zu merken. Keine Werbe-Cookies. Für Besuchsstatistiken nutzen wir Cloudflare Web Analytics, das keine Cookies setzt und dich nicht seitenübergreifend verfolgt."
       },
       {
         "h": "Wie lange wir Daten speichern",
@@ -248,7 +248,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       },
       {
         "h": "Cookie-файлы",
-        "p": "Мы используем только необходимые cookie: для вашей сессии входа и для запоминания выбранного языка. Рекламных cookie нет."
+        "p": "Мы используем только необходимые cookie: для вашей сессии входа и для запоминания выбранного языка. Рекламных cookie нет. Для статистики посещений мы используем Cloudflare Web Analytics — без cookie и без отслеживания между сайтами."
       },
       {
         "h": "Сколько мы храним данные",

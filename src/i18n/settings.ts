@@ -62,6 +62,8 @@ export default {
     exportTitle: "Datele tale",
     exportText: "Descarcă tot ce păstrăm despre tine: profilul, listele, cadourile, rezervările, urmăririle și notificările (fișier JSON).",
     exportBtn: "Descarcă datele mele",
+    remindersTitle: "Reminder-e pe email",
+    remindersText: "Cu 7 zile înainte de ziua unui prieten sau de evenimentul unei liste pe care o urmărești.",
   },
   en: {
     titleProfile: "Profile — WishDrop",
@@ -120,6 +122,8 @@ export default {
     exportTitle: "Your data",
     exportText: "Download everything we keep about you: profile, lists, gifts, reservations, follows and notifications (JSON file).",
     exportBtn: "Download my data",
+    remindersTitle: "Reminder emails",
+    remindersText: "7 days before a friend's birthday or the event of a list you follow.",
   },
   de: {
     titleProfile: "Profil — WishDrop",
@@ -178,6 +182,8 @@ export default {
     exportTitle: "Deine Daten",
     exportText: "Lade alles herunter, was wir über dich speichern: Profil, Listen, Geschenke, Reservierungen, Follows und Benachrichtigungen (JSON-Datei).",
     exportBtn: "Meine Daten herunterladen",
+    remindersTitle: "Erinnerungen per E-Mail",
+    remindersText: "7 Tage vor dem Geburtstag eines Freundes oder dem Anlass einer Liste, der du folgst.",
   },
   ru: {
     titleProfile: "Профиль — WishDrop",
@@ -240,5 +246,7 @@ export default {
     exportTitle: "Ваши данные",
     exportText: "Скачайте всё, что мы храним о вас: профиль, списки, подарки, брони, подписки и уведомления (файл JSON).",
     exportBtn: "Скачать мои данные",
+    remindersTitle: "Напоминания на email",
+    remindersText: "За 7 дней до дня рождения друга или события в списке, на который вы подписаны.",
   },
 } satisfies Bundle;

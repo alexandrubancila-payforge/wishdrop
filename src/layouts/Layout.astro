@@ -4,6 +4,7 @@
  * account menus, footer, mobile tab bar, and the shared donate/confirm modals.
  */
 import { isAdmin } from "@/lib/admin";
+import { hubPath } from "@/lib/guides";
 import "@/styles/global.css";
 import { LANGS, LANG_NAMES, OG_LOCALE, localePath, makeT, DEFAULT_LANG } from "@/lib/i18n";
 import common from "@/i18n/common";
@@ -28,6 +29,10 @@ interface Props {
   footer?: boolean;
   /** The site header; the public list page has its own hero instead. */
   header?: boolean;
+  /** This page's path in each language when the slugs differ (guides); defaults to the same path. */
+  alternates?: Partial<Record<(typeof LANGS)[number], string>>;
+  /** Structured data (JSON-LD) for search engines. */
+  jsonLd?: object;
 }
 
 const { lang, path, user } = Astro.locals;
@@ -45,11 +50,14 @@ const {
   tabbar = true,
   footer = true,
   header = true,
+  alternates,
+  jsonLd,
 } = Astro.props;
 
 const site = import.meta.env.SITE ?? "https://wishdrop.site";
 const href = (p: string) => localePath(lang, p);
-const abs = (l: typeof lang) => new URL(localePath(l, path), site).href;
+const abs = (l: typeof lang) => new URL(localePath(l, alternates?.[l] ?? path), site).href;
+const altLangs = alternates ? LANGS.filter((l) => alternates[l]) : LANGS;
 const displayName = user ? user.name || user.email.split("@")[0] : "";
 const tabActive = (p: string) => path === p;
 const onProfile = !!user?.username && (path === `/@${user.username}` || path.startsWith(`/@${user.username}/`));
@@ -81,9 +89,10 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <meta name="description" content={description} />
     <link rel="canonical" href={abs(lang)} />
-    {LANGS.map((l) => <link rel="alternate" hreflang={l} href={abs(l)} />)}
+    {altLangs.map((l) => <link rel="alternate" hreflang={l} href={abs(l)} />)}
     <link rel="alternate" hreflang="x-default" href={abs(DEFAULT_LANG)} />
     <meta name="robots" content={noindex ? "noindex, follow" : "index, follow"} />
+    {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, "\\u003c")} />}
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="WishDrop" />
@@ -315,6 +324,7 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
                 <span>Wish<span class="text-accent-600">Drop</span></span>
               </a>
               <nav class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-sm font-semibold text-ink-soft">
+                <a href={href(hubPath(lang))} class="hover:text-ink">{t("footer.ideas")}</a>
                 <a href={href("/privacy")} class="hover:text-ink">{t("footer.privacy")}</a>
                 <a href={href("/terms")} class="hover:text-ink">{t("footer.terms")}</a>
                 <a href={href("/contact")} class="hover:text-ink">{t("footer.contact")}</a>

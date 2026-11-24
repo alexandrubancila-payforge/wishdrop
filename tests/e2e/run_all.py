@@ -9,7 +9,7 @@ base = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:4400"
 here = os.path.dirname(os.path.abspath(__file__))
 photo = os.path.join(here, "..", "..", "public", "demo", "watch.jpg")
 failed = False
-for suite in ["core", "social", "notif", "gifts", "safety"]:
+for suite in ["core", "social", "notif", "gifts", "safety", "growth"]:
     args = [sys.executable, "-I", os.path.join(here, f"{suite}.py"), base] + ([photo] if suite == "core" else [])
     out = subprocess.run(args, capture_output=True, text=True)
     text = out.stdout + out.stderr

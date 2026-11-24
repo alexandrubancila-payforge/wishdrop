@@ -9,14 +9,14 @@ async function ownList(id: string | undefined, userId: string) {
   return list && list.user_id === userId ? list : null;
 }
 
-/** Rename, switch surprise mode (hide who reserved what from the owner), or change where the list appears. */
+/** Rename, switch surprise mode (hide who reserved what from the owner), change where the list appears, or set the event date. */
 export const PATCH: APIRoute = async (ctx) => {
   const user = requireUser(ctx);
   if (user instanceof Response) return user;
   const t = apiT(ctx);
   const list = await ownList(ctx.params.id, user.id);
   if (!list) return fail(t("notFound"), 404);
-  const body = await readJson<{ name?: string; hide_reservations?: boolean; visibility?: string }>(ctx.request);
+  const body = await readJson<{ name?: string; hide_reservations?: boolean; visibility?: string; event_date?: string | null }>(ctx.request);
 
   if (typeof body.name === "string") {
     const name = body.name.trim();
@@ -30,6 +30,13 @@ export const PATCH: APIRoute = async (ctx) => {
   if (body.visibility !== undefined) {
     if (!isVisibility(body.visibility)) return fail(t("error"));
     await db().prepare("UPDATE wishlists SET visibility = ? WHERE id = ?").bind(body.visibility, list.id).run();
+  }
+  if (body.event_date !== undefined) {
+    // 'YYYY-MM-DD' (a real date, not more than 3 years ahead) or empty to remove it.
+    const d = body.event_date ? String(body.event_date) : "";
+    const ok = !d || (/^\d{4}-\d{2}-\d{2}$/.test(d) && !isNaN(Date.parse(d + "T00:00:00Z")) && Date.parse(d) < Date.now() + 3 * 366 * 86_400_000);
+    if (!ok) return fail(t("error"));
+    await db().prepare("UPDATE wishlists SET event_date = ? WHERE id = ?").bind(d || null, list.id).run();
   }
   return json({ ok: true });
 };

@@ -37,8 +37,8 @@
     // Daily copy of the photos (lib/backup.ts).
     { "binding": "BACKUP_BUCKET", "bucket_name": "wishdrop-images-backup" }
   ],
-  // Every day at 03:00 UTC: photo backup + old notifications cleanup (src/worker.ts).
-  "triggers": { "crons": ["0 3 * * *"] },
+  // Every day at 07:00 UTC (morning in Europe): reminder emails, photo backup, cleanups (src/worker.ts).
+  "triggers": { "crons": ["0 7 * * *"] },
   // Broad per-minute brake on API writes (lib/limits.ts; the strict limits count in D1).
   // namespace_id is any number unique to this account.
   "ratelimits": [{ "name": "WRITE_LIMIT", "namespace_id": "4104", "simple": { "limit": 120, "period": 60 } }]

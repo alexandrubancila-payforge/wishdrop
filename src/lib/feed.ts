@@ -87,3 +87,30 @@ export async function suggestedPeople(userId: string, limit = 6) {
     .all<{ id: string; username: string; name: string | null; email: string; avatar_url: string | null; is_private: number; followers: number; lists: number }>();
   return results;
 }
+
+export interface UpcomingEvent extends Omit<Birthday, "birthday"> {
+  list_name: string;
+  list_slug: string;
+}
+
+/** Events (wishlists.event_date) on visible lists of people I follow, in the next `days` days. */
+export async function upcomingEvents(userId: string, days = 60, now = new Date()): Promise<UpcomingEvent[]> {
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  const iso = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  const { results } = await db()
+    .prepare(
+      `SELECT u.id, u.username, u.name, u.email, u.avatar_url, w.name AS list_name, w.slug AS list_slug, w.event_date
+         FROM follows f
+         JOIN users u ON u.id = f.followee_id AND u.suspended_at IS NULL
+         JOIN wishlists w ON w.user_id = u.id AND w.visibility IN ('public', 'followers') AND w.hidden_at IS NULL
+        WHERE f.follower_id = ? AND f.status = 'accepted' AND w.event_date BETWEEN ? AND ?`,
+    )
+    .bind(userId, iso(today), iso(today + days * 86_400_000))
+    .all<Omit<UpcomingEvent, "inDays" | "next"> & { event_date: string }>();
+  return results
+    .map(({ event_date, ...e }) => {
+      const next = Date.parse(event_date + "T00:00:00Z");
+      return { ...e, inDays: Math.round((next - today) / 86_400_000), next: new Date(next) };
+    })
+    .sort((a, b) => a.inDays - b.inDays);
+}

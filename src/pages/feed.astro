@@ -12,7 +12,7 @@ import { localePath, makeT } from "@/lib/i18n";
 import common from "@/i18n/common";
 import feed from "@/i18n/feed";
 import social from "@/i18n/social";
-import { friendsActivity, suggestedPeople, upcomingBirthdays } from "@/lib/feed";
+import { friendsActivity, suggestedPeople, upcomingBirthdays, upcomingEvents } from "@/lib/feed";
 import { followCounts } from "@/lib/social";
 import { imageUrl } from "@/lib/storage";
 import { db } from "@/lib/db";
@@ -28,14 +28,20 @@ const user = Astro.locals.user!;
 const t = makeT(lang, common, social, feed);
 const href = (p: string) => localePath(lang, p);
 
-const [birthdays, activity, counts, suggestions, myLists, unread] = await Promise.all([
+const [bdays, events, activity, counts, suggestions, myLists, unread] = await Promise.all([
   upcomingBirthdays(user.id),
+  upcomingEvents(user.id),
   friendsActivity(user.id),
   followCounts(user.id),
   suggestedPeople(user.id, 5),
   db().prepare("SELECT COUNT(*) AS n FROM wishlists WHERE user_id = ?").bind(user.id).first<{ n: number }>(),
   unreadCount(user.id),
 ]);
+// "Coming up": friends' birthdays and the events their lists are for, soonest first.
+const birthdays = [
+  ...bdays.map((b) => ({ ...b, kind: "bday" as const, title: b.name || `@${b.username}`, link: b.username ? href(`/@${b.username}`) : "#" })),
+  ...events.map((e) => ({ ...e, kind: "event" as const, title: e.list_name, link: href(`/w/${e.list_slug}`) })),
+].sort((a, b) => a.inDays - b.inDays);
 const reactions = await reactionsFor(activity.map((a) => a.id), user.id);
 const notifLabel = makeT(lang, notifStrings)("title");
 const profileHref = user.username ? href(`/@${user.username}`) : href("/settings") + "#public-profile";
@@ -173,7 +179,7 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
               {birthdays.map((b, i) => (
                 <li class="shrink-0">
                   <a
-                    href={b.username ? href(`/@${b.username}`) : "#"}
+                    href={b.link}
                     class="card flex w-56 items-stretch overflow-hidden !rounded-2xl transition hover:-translate-y-0.5 hover:shadow-lift"
                   >
                     <span class:list={["grid w-14 shrink-0 place-content-center text-center leading-none", DATE_TINTS[i % DATE_TINTS.length]]}>
@@ -183,7 +189,7 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
                     <span class="flex min-w-0 items-center gap-2.5 p-3">
                       <Avatar user={b} size={36} class="h-9 w-9" />
                       <span class="min-w-0">
-                        <span class="block truncate text-sm font-bold">{b.name || `@${b.username}`}</span>
+                        <span class="block truncate text-sm font-bold">{b.kind === "event" && <Icon name="confetti" class="mr-1 inline h-3.5 w-3.5 text-accent-500" />}{b.title}</span>
                         <span class:list={["block text-xs", b.inDays === 0 ? "font-bold text-accent-700" : "text-ink-soft"]}>{when(b.inDays)}</span>
                       </span>
                     </span>
@@ -337,13 +343,13 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
               <ul class="mt-3 space-y-2">
                 {birthdays.slice(0, 5).map((b, i) => (
                   <li>
-                    <a href={b.username ? href(`/@${b.username}`) : "#"} class="flex items-center gap-3 rounded-2xl p-1.5 transition hover:bg-sand">
+                    <a href={b.link} class="flex items-center gap-3 rounded-2xl p-1.5 transition hover:bg-sand">
                       <span class:list={["grid h-11 w-11 shrink-0 place-content-center rounded-xl text-center leading-none", DATE_TINTS[i % DATE_TINTS.length]]}>
                         <span class="text-base font-extrabold">{day.format(b.next)}</span>
                         <span class="text-[9px] font-semibold uppercase">{month.format(b.next).replace(".", "")}</span>
                       </span>
                       <span class="min-w-0 flex-1">
-                        <span class="block truncate text-sm font-bold">{b.name || `@${b.username}`}</span>
+                        <span class="block truncate text-sm font-bold">{b.kind === "event" && <Icon name="confetti" class="mr-1 inline h-3.5 w-3.5 text-accent-500" />}{b.title}</span>
                         <span class:list={["block text-xs", b.inDays === 0 ? "font-bold text-accent-700" : "text-ink-soft"]}>{when(b.inDays)}</span>
                       </span>
                       <Avatar user={b} size={32} class="h-8 w-8" />

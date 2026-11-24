@@ -72,6 +72,18 @@ const pageStrings = {
   err: t("js.err"),
 };
 const wishlistId = list.id;
+// For the story image and QR card (src/scripts/share-image.ts).
+const shareInfo = {
+  url: shareUrl,
+  title: list.name,
+  owner: user.name || (user.username ? `@${user.username}` : ""),
+  event: list.event_date
+    ? `🎉 ${new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(list.event_date + "T00:00:00Z"))}`
+    : "",
+  photos: items.filter((i) => i.image_key).slice(0, 4).map((i) => imageUrl(i.image_key)),
+  labels: { myList: t("share.myList"), scan: t("share.scan"), by: t("share.by") },
+  slug: list.slug,
+};
 ---
 
 <Layout title={`${list.name} — WishDrop`} noindex mainClass="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
@@ -109,6 +121,10 @@ const wishlistId = list.id;
       </div>
       <button id="copy-share" class="btn btn-soft shrink-0 !px-4 !py-3 text-sm">
         {t("copyLink")}
+      </button>
+      <button type="button" id="open-share" class="btn btn-ghost shrink-0 !px-4 !py-3 text-sm" aria-label={t("share.title")}>
+        <Icon name="qr-code" class="h-4 w-4" />
+        <span class="hidden sm:inline">{t("share.btn")}</span>
       </button>
       <a
         href={`/w/${list.slug}`}
@@ -187,6 +203,54 @@ const wishlistId = list.id;
       )
     }
   </div>
+
+  <!-- Event date: countdown on the list, reminders for friends 7 days before. -->
+  <div class="card mt-3 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5" id="event-box" data-wishlist-id={list.id} data-saved={t("event.saved")} data-fail={t("event.fail")}>
+    <div class="flex min-w-0 items-center gap-3">
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sun text-sun-ink">
+        <Icon name="calendar-blank" class="h-5 w-5" />
+      </span>
+      <div class="min-w-0">
+        <p class="font-bold leading-tight">{t("event.title")}</p>
+        <p class="mt-1 text-xs leading-snug text-ink-soft">{t("event.text")}</p>
+      </div>
+    </div>
+    <div class="flex shrink-0 items-center gap-2">
+      <input type="date" id="event-date" value={list.event_date ?? ""} class="field !w-auto !py-2.5" aria-label={t("event.title")} />
+      <button type="button" id="event-clear" class:list={["text-xs font-semibold text-ink-soft hover:text-rose-600", !list.event_date && "hidden"]}>{t("event.clear")}</button>
+      <span id="event-status" class="hidden text-xs font-medium"></span>
+    </div>
+  </div>
+
+  <script>
+    // Save the event date when it changes (empty = no date).
+    const eventBox = document.getElementById("event-box")!;
+    const eventInput = document.getElementById("event-date") as HTMLInputElement;
+    const eventClear = document.getElementById("event-clear")!;
+    const eventStatus = document.getElementById("event-status")!;
+    async function saveEvent(value: string) {
+      try {
+        const res = await fetch(`/api/wishlists/${eventBox.dataset.wishlistId}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ event_date: value || null }),
+        });
+        if (!res.ok) throw new Error();
+        eventStatus.textContent = eventBox.dataset.saved!;
+        eventStatus.className = "text-xs font-medium text-mint-ink";
+        eventClear.classList.toggle("hidden", !value);
+      } catch {
+        eventStatus.textContent = eventBox.dataset.fail!;
+        eventStatus.className = "text-xs font-medium text-rose-600";
+      }
+      setTimeout(() => eventStatus.classList.add("hidden"), 2000);
+    }
+    eventInput.addEventListener("change", () => saveEvent(eventInput.value));
+    eventClear.addEventListener("click", () => {
+      eventInput.value = "";
+      saveEvent("");
+    });
+  </script>
 
   <script>
     // Save the visibility as soon as an option is picked.
@@ -677,6 +741,85 @@ const wishlistId = list.id;
       }
     </div>
   </div>
+
+  <!-- Share modal: story image + QR card -->
+  <div id="share-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="share-title">
+    <div class="card max-h-[calc(100dvh-2rem)] w-full max-w-3xl overflow-y-auto !rounded-3xl p-5 shadow-lift sm:p-6">
+      <div class="flex items-center justify-between gap-3">
+        <h2 id="share-title" class="flex items-center gap-2 text-xl font-extrabold tracking-tight">
+          <Icon name="share-network" class="h-5 w-5 text-accent-500" />
+          {t("share.title")}
+        </h2>
+        <button type="button" data-share-close class="grid h-9 w-9 place-items-center rounded-full bg-sand text-ink-soft hover:text-ink" aria-label={t("share.close")}>
+          <Icon name="x" weight="bold" class="h-4 w-4" />
+        </button>
+      </div>
+      <div class="mt-5 grid gap-5 sm:grid-cols-2">
+        <section class="flex flex-col">
+          <p class="font-bold">{t("share.story")}</p>
+          <p class="mt-1 text-xs text-ink-soft">{t("share.storyHint")}</p>
+          <div class="skeleton mx-auto mt-3 aspect-[9/16] w-full max-w-[240px] overflow-hidden !rounded-2xl">
+            <img id="story-preview" alt="" class="hidden h-full w-full object-cover" />
+          </div>
+          <div class="mt-3 flex gap-2">
+            <button type="button" id="story-share" class="btn btn-primary flex-1 !py-2.5 text-sm" disabled>
+              <Icon name="share-network" class="h-4 w-4" /> {t("share.share")}
+            </button>
+            <button type="button" id="story-download" class="btn btn-ghost !px-4 !py-2.5 text-sm" disabled aria-label={t("share.download")} title={t("share.download")}>
+              <Icon name="download-simple" class="h-4 w-4" />
+            </button>
+          </div>
+        </section>
+        <section class="flex flex-col">
+          <p class="font-bold">{t("share.qr")}</p>
+          <p class="mt-1 text-xs text-ink-soft">{t("share.qrHint")}</p>
+          <div class="skeleton mx-auto mt-3 aspect-[4/5] w-full max-w-[240px] overflow-hidden !rounded-2xl">
+            <img id="qr-preview" alt="" class="hidden h-full w-full object-cover" />
+          </div>
+          <button type="button" id="qr-download" class="btn btn-ghost mt-3 !py-2.5 text-sm" disabled>
+            <Icon name="download-simple" class="h-4 w-4" /> {t("share.download")}
+          </button>
+        </section>
+      </div>
+    </div>
+  </div>
+  <div id="share-info" data-info={JSON.stringify(shareInfo)} hidden></div>
+
+  <script>
+    import { download, qrCard, shareOrDownload, storyImage, type ShareInfo } from "@/scripts/share-image";
+
+    const modal = document.getElementById("share-modal")!;
+    const info = JSON.parse(document.getElementById("share-info")!.dataset.info!) as ShareInfo & { slug: string };
+    let story: Blob | null = null;
+    let qr: Blob | null = null;
+
+    async function render() {
+      if (story && qr) return;
+      [story, qr] = await Promise.all([storyImage(info), qrCard(info)]);
+      for (const [id, blob] of [["story-preview", story], ["qr-preview", qr]] as const) {
+        const img = document.getElementById(id) as HTMLImageElement;
+        img.src = URL.createObjectURL(blob);
+        img.classList.remove("hidden");
+        img.parentElement!.classList.remove("skeleton");
+      }
+      modal.querySelectorAll<HTMLButtonElement>("button[disabled]").forEach((b) => (b.disabled = false));
+    }
+    const close = () => {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    };
+    document.getElementById("open-share")!.addEventListener("click", () => {
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      render().catch(() => {});
+    });
+    modal.querySelector("[data-share-close]")!.addEventListener("click", close);
+    modal.addEventListener("click", (e) => e.target === modal && close());
+    document.addEventListener("keydown", (e) => e.key === "Escape" && close());
+    document.getElementById("story-share")!.addEventListener("click", () => story && shareOrDownload(story, `wishdrop-${info.slug}-story.png`, info.title));
+    document.getElementById("story-download")!.addEventListener("click", () => story && download(story, `wishdrop-${info.slug}-story.png`));
+    document.getElementById("qr-download")!.addEventListener("click", () => qr && download(qr, `wishdrop-${info.slug}-qr.png`));
+  </script>
 
   <!-- Edit item modal -->
   <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">

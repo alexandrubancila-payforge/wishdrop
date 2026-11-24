@@ -26,6 +26,10 @@ export interface User {
   is_private: number;
   /** Set by the owner in /admin: can't sign in, hidden everywhere. */
   suspended_at: number | null;
+  /** 1 = reminder emails about friends' birthdays and list events. */
+  reminder_emails: number;
+  /** Last language used on the site (for emails). */
+  lang: string | null;
 }
 
 export interface Wishlist {
@@ -39,6 +43,8 @@ export interface Wishlist {
   visibility: "public" | "followers" | "link";
   /** Hidden by the owner in /admin: the list answers 404. */
   hidden_at: number | null;
+  /** 'YYYY-MM-DD' of the event the list is for, or null. */
+  event_date: string | null;
 }
 
 export interface Item {
@@ -111,7 +117,7 @@ export async function createUser(u: {
 const USER_COLUMNS = new Set([
   "password_hash", "google_id", "name", "avatar_url", "email_verified", "verify_token",
   "verify_expires", "reset_token", "reset_expires", "birthday", "disable_seasons",
-  "username", "bio", "is_private",
+  "username", "bio", "is_private", "reminder_emails", "lang",
 ]);
 
 export async function updateUser(id: string, fields: Partial<User>) {

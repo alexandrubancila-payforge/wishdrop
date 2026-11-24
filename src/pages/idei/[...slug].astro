@@ -1,0 +1,13 @@
+---
+/** Gift guides — see lib/guides.ts and components/guides/GuideRoute.astro. */
+import GuideRoute from "@/components/guides/GuideRoute.astro";
+import { resolveGuide } from "@/lib/guides";
+import { localePath } from "@/lib/i18n";
+
+const { lang } = Astro.locals;
+const res = resolveGuide(lang, "idei", Astro.params.slug || undefined);
+if (res.kind === "redirect") return Astro.redirect(localePath(lang, res.to), 301);
+if (res.kind === "missing") return Astro.rewrite("/404");
+---
+
+<GuideRoute guide={res.kind === "guide" ? res.guide : null} />

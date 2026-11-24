@@ -13,7 +13,7 @@
 import { defineMiddleware } from "astro:middleware";
 import { splitLang, localePath, isLang, LANG_COOKIE } from "./lib/i18n";
 import { sessionUserId } from "./lib/auth";
-import { getUserById } from "./lib/db";
+import { getUserById, updateUser } from "./lib/db";
 import { withinLimits } from "./lib/limits";
 import { alertOwner } from "./lib/alerts";
 import { apiT, fail } from "./lib/http";
@@ -62,6 +62,11 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
     if (PROTECTED.test(path) && !ctx.locals.user) {
       return withHeaders(ctx.redirect(`${localePath(lang, "/login")}?next=${encodeURIComponent(path + search)}`));
     }
+  }
+
+  // Remember the language for emails (reminders) when it changes (after the language redirect).
+  if (ctx.locals.user && isPage(path) && ctx.locals.user.lang !== lang) {
+    await updateUser(ctx.locals.user.id, { lang }).catch(() => {});
   }
 
   if (path.startsWith("/api/") && ctx.request.method !== "GET" && !(await withinLimits(ctx, path))) {
