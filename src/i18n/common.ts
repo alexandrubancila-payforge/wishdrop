@@ -3,6 +3,11 @@ import type { Bundle } from "@/lib/i18n";
 /** Header, footer, mobile tab bar and the shared modals. */
 export default {
   ro: {
+    "nav.profileShort": "Profil",
+    "nav.listsShort": "Liste",
+    "nav.example": "Exemplu",
+    "nav.searchShort": "Caută",
+    "nav.feed": "Acasă",
     "footer.wantList": "Vrei și tu o listă de cadouri?",
     "footer.createFree": "Creează una gratis →",
     "meta.title": "WishDrop — Liste de cadouri pe care le împarți cu drag",
@@ -38,6 +43,11 @@ export default {
     "donate.close": "Închide",
   },
   en: {
+    "nav.profileShort": "Profile",
+    "nav.listsShort": "Lists",
+    "nav.example": "Example",
+    "nav.searchShort": "Search",
+    "nav.feed": "Home",
     "footer.wantList": "Want your own gift list?",
     "footer.createFree": "Create one for free →",
     "meta.title": "WishDrop — Beautiful gift lists you love to share",
@@ -73,6 +83,11 @@ export default {
     "donate.close": "Close",
   },
   de: {
+    "nav.profileShort": "Profil",
+    "nav.listsShort": "Listen",
+    "nav.example": "Beispiel",
+    "nav.searchShort": "Suchen",
+    "nav.feed": "Start",
     "footer.wantList": "Möchtest du auch eine Geschenkliste?",
     "footer.createFree": "Erstelle eine kostenlos →",
     "meta.title": "WishDrop — Schöne Geschenklisten zum Teilen",
@@ -108,6 +123,11 @@ export default {
     "donate.close": "Schließen",
   },
   ru: {
+    "nav.profileShort": "Профиль",
+    "nav.listsShort": "Списки",
+    "nav.example": "Пример",
+    "nav.searchShort": "Поиск",
+    "nav.feed": "Главная",
     "footer.wantList": "Хотите свой список подарков?",
     "footer.createFree": "Создайте бесплатно →",
     "meta.title": "WishDrop — Красивые списки подарков, которыми приятно делиться",

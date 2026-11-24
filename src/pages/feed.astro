@@ -1,0 +1,243 @@
+---
+/**
+ * Home for signed-in users (/ shows this page to them): upcoming birthdays of
+ * the people you follow and the gifts they recently added to visible lists.
+ */
+import Layout from "@/layouts/Layout.astro";
+import Icon from "@/components/Icon.astro";
+import Avatar from "@/components/Avatar.astro";
+import PersonRow from "@/components/social/PersonRow.astro";
+import FollowButton from "@/components/social/FollowButton.astro";
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import feed from "@/i18n/feed";
+import { friendsActivity, suggestedPeople, upcomingBirthdays } from "@/lib/feed";
+import { followCounts } from "@/lib/social";
+import { imageUrl } from "@/lib/storage";
+import { plural } from "@/components/dashboard/plural";
+import type { FeedEntry } from "@/lib/feed";
+
+const { lang } = Astro.locals;
+const user = Astro.locals.user!;
+const t = makeT(lang, common, feed);
+const href = (p: string) => localePath(lang, p);
+
+const [birthdays, activity, counts] = await Promise.all([
+  upcomingBirthdays(user.id),
+  friendsActivity(user.id),
+  followCounts(user.id),
+]);
+const suggestions = activity.length < 4 ? await suggestedPeople(user.id) : [];
+
+const firstName = (user.name || user.username || user.email.split("@")[0]).trim().split(/\s+/)[0];
+const day = new Intl.DateTimeFormat(lang, { day: "2-digit", timeZone: "UTC" });
+const month = new Intl.DateTimeFormat(lang, { month: "short", timeZone: "UTC" });
+const rtf = new Intl.RelativeTimeFormat(lang, { numeric: "auto" });
+function ago(ms: number) {
+  const s = (ms - Date.now()) / 1000;
+  const steps: [Intl.RelativeTimeFormatUnit, number][] = [["minute", 60], ["hour", 3600], ["day", 86400], ["week", 604800]];
+  if (-s < 60) return rtf.format(0, "minute");
+  let unit: Intl.RelativeTimeFormatUnit = "minute";
+  let size = 60;
+  for (const [u, sz] of steps) if (-s >= sz) [unit, size] = [u, sz];
+  return rtf.format(Math.round(s / size), unit);
+}
+const when = (n: number) => (n === 0 ? t("today") : n === 1 ? t("tomorrow") : t("inDays", { n }));
+const domain = (url: string | null) => {
+  try {
+    return url ? new URL(url).hostname.replace(/^www\./, "") : "";
+  } catch {
+    return "";
+  }
+};
+// Several gifts added to the same list in a row become one post.
+const posts: FeedEntry[][] = [];
+for (const it of activity) {
+  const last = posts.at(-1);
+  if (last && last[0].list_slug === it.list_slug) last.push(it);
+  else posts.push([it]);
+}
+const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav text-lav-ink", "bg-sun text-sun-ink"];
+---
+
+<Layout title={t("title")} noindex mainClass="mx-auto max-w-3xl px-4 py-8 sm:px-6 sm:py-10">
+  <header class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("hi", { name: firstName })}</h1>
+      <p class="mt-1 text-ink-soft">{t("intro")}</p>
+    </div>
+    <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sun text-sun-ink">
+      <Icon name="hand-waving" class="h-7 w-7" />
+    </span>
+  </header>
+
+  <form action={href("/search")} method="get" class="mt-6" role="search">
+    <label class="relative block">
+      <span class="sr-only">{t("search")}</span>
+      <Icon name="magnifying-glass" weight="regular" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-soft" />
+      <input name="q" type="search" autocomplete="off" placeholder={t("search")} class="field !rounded-full !bg-white !py-3.5 !pl-12 shadow-soft" />
+    </label>
+  </form>
+
+  <nav class="no-scrollbar -mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
+    <a href={href("/dashboard")} class="chip shrink-0 bg-white !px-4 !py-2 text-ink shadow-soft hover:text-accent-700">
+      <Icon name="list-heart" class="h-4 w-4 text-accent-500" />{t("myLists")}
+    </a>
+    <a href={href("/dashboard/reservations")} class="chip shrink-0 bg-white !px-4 !py-2 text-ink shadow-soft hover:text-accent-700">
+      <Icon name="hand-heart" class="h-4 w-4 text-accent-500" />{t("myReservations")}
+    </a>
+    <a href={href("/search")} class="chip shrink-0 bg-white !px-4 !py-2 text-ink shadow-soft hover:text-accent-700">
+      <Icon name="user-plus" class="h-4 w-4 text-accent-500" />{t("findFriends")}
+    </a>
+  </nav>
+
+  {
+    birthdays.length > 0 && (
+      <section class="mt-8">
+        <h2 class="flex items-center gap-2 text-lg font-extrabold">
+          <Icon name="cake" class="h-5 w-5 text-accent-500" />
+          {t("birthdays")}
+        </h2>
+        <ul class="no-scrollbar -mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0">
+          {birthdays.map((b, i) => (
+            <li class="shrink-0">
+              <a
+                href={b.username ? href(`/@${b.username}`) : "#"}
+                class="card flex w-56 items-stretch overflow-hidden !rounded-2xl transition hover:-translate-y-0.5 hover:shadow-lift"
+              >
+                <span class:list={["grid w-14 shrink-0 place-content-center text-center leading-none", DATE_TINTS[i % DATE_TINTS.length]]}>
+                  <span class="text-xl font-extrabold">{day.format(b.next)}</span>
+                  <span class="mt-1 text-[11px] font-semibold uppercase">{month.format(b.next).replace(".", "")}</span>
+                </span>
+                <span class="flex min-w-0 items-center gap-2.5 p-3">
+                  <Avatar user={b} size={36} class="h-9 w-9" />
+                  <span class="min-w-0">
+                    <span class="block truncate text-sm font-bold">{b.name || `@${b.username}`}</span>
+                    <span class:list={["block text-xs", b.inDays === 0 ? "font-bold text-accent-700" : "text-ink-soft"]}>{when(b.inDays)}</span>
+                  </span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+
+  <section class="mt-8">
+    <h2 class="flex items-center gap-2 text-lg font-extrabold">
+      <Icon name="sparkle" class="h-5 w-5 text-accent-500" />
+      {t("activity")}
+    </h2>
+    {
+      activity.length === 0 ? (
+        <div class="card mt-3 flex flex-col items-center px-6 py-10 text-center">
+          <span class="grid h-16 w-16 place-items-center rounded-3xl bg-accent-100 text-accent-600">
+            <Icon name={counts.following ? "coffee" : "users-three"} class="h-8 w-8" />
+          </span>
+          <h3 class="mt-4 text-lg font-extrabold">{counts.following ? t("quietTitle") : t("emptyTitle")}</h3>
+          <p class="mx-auto mt-1 max-w-sm text-sm text-ink-soft">{counts.following ? t("quietText") : t("emptyText")}</p>
+          <a href={href("/search")} class="btn btn-primary mt-5 !py-3 text-sm">
+            <Icon name="magnifying-glass" weight="bold" class="h-4 w-4" />{t("findFriends")}
+          </a>
+        </div>
+      ) : (
+        <ul class="mt-3 grid gap-5">
+          {posts.map((group) => {
+            const it = group[0];
+            const owner = { name: it.owner_name, email: it.owner_email, avatar_url: it.owner_avatar };
+            const ownerName = it.owner_name || (it.owner_username ? `@${it.owner_username}` : "");
+            const ownerHref = it.owner_username ? href(`/@${it.owner_username}`) : href(`/w/${it.list_slug}`);
+            const listHref = href(`/w/${it.list_slug}`);
+            const shown = group.slice(0, 4);
+            return (
+              <li>
+                <div class="flex items-center gap-2.5">
+                  <a href={ownerHref}>
+                    <Avatar user={owner} size={36} class="h-9 w-9" />
+                  </a>
+                  <p class="min-w-0 text-sm leading-tight">
+                    <a href={ownerHref} class="font-bold hover:text-accent-700">{ownerName}</a>
+                    <span class="block truncate text-xs text-ink-soft">
+                      {group.length > 1
+                        ? plural(t, lang, "addedMany", group.length, { list: it.list_name })
+                        : t("addedTo", { list: it.list_name })}{" "}
+                      · {ago(it.created_at)}
+                    </span>
+                  </p>
+                </div>
+                {group.length === 1 ? (
+                  <a
+                    href={listHref}
+                    class="card mt-2 grid grid-cols-[96px_1fr_auto] items-center gap-4 !rounded-3xl p-2.5 transition hover:-translate-y-0.5 hover:shadow-lift"
+                  >
+                    {it.image_key ? (
+                      <img src={imageUrl(it.image_key)} alt="" loading="lazy" class:list={["h-24 w-24 rounded-2xl object-cover", it.reserved_at && "opacity-50 grayscale"]} />
+                    ) : (
+                      <span class="grid h-24 w-24 place-items-center rounded-2xl bg-accent-50 text-accent-500">
+                        <Icon name="gift" class="h-9 w-9" />
+                      </span>
+                    )}
+                    <span class="min-w-0">
+                      <span class="block truncate font-bold">{domain(it.product_url) || it.list_name}</span>
+                      <span class="mt-1 flex flex-wrap gap-1.5">
+                        {!!it.priority && <span class="chip bg-accent-100 text-accent-700">★ {t("mostWanted")}</span>}
+                        {it.reserved_at && <span class="chip bg-mint text-mint-ink">✓ {t("reserved")}</span>}
+                      </span>
+                      {it.price && <span class="mt-1.5 block text-lg font-extrabold">{it.price}</span>}
+                    </span>
+                    <Icon name="caret-right" weight="bold" class="mr-2 h-5 w-5 text-ink-soft" />
+                  </a>
+                ) : (
+                  <a href={listHref} class="card mt-2 block !rounded-3xl p-2.5 transition hover:-translate-y-0.5 hover:shadow-lift">
+                    <span class:list={["grid gap-2", shown.length === 2 ? "grid-cols-2" : shown.length === 3 ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4"]}>
+                      {shown.map((g, i) => (
+                        <span class="relative block">
+                          {g.image_key ? (
+                            <img src={imageUrl(g.image_key)} alt="" loading="lazy" class:list={["aspect-square w-full rounded-2xl object-cover", g.reserved_at && "opacity-50 grayscale"]} />
+                          ) : (
+                            <span class="grid aspect-square w-full place-items-center rounded-2xl bg-accent-50 text-accent-500">
+                              <Icon name="gift" class="h-9 w-9" />
+                            </span>
+                          )}
+                          {g.price && <span class="chip absolute bottom-2 left-2 bg-white/95 text-ink shadow-soft">{g.price}</span>}
+                          {i === shown.length - 1 && group.length > shown.length && (
+                            <span class="absolute inset-0 grid place-items-center rounded-2xl bg-ink/45 text-xl font-extrabold text-white">
+                              +{group.length - shown.length}
+                            </span>
+                          )}
+                        </span>
+                      ))}
+                    </span>
+                    <span class="flex items-center justify-between px-2 pb-1 pt-3 text-sm font-bold">
+                      {it.list_name}
+                      <span class="flex items-center gap-1 text-accent-700">{t("open")} <Icon name="caret-right" weight="bold" class="h-4 w-4" /></span>
+                    </span>
+                  </a>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )
+    }
+  </section>
+
+  {
+    suggestions.length > 0 && (
+      <section class="mt-10">
+        <h2 class="flex items-center gap-2 text-lg font-extrabold">
+          <Icon name="user-plus" class="h-5 w-5 text-accent-500" />
+          {t("suggested")}
+        </h2>
+        <ul class="card mt-3 divide-y divide-line px-5">
+          {suggestions.map((p) => (
+            <PersonRow person={p} meta={t("lists", { n: p.lists })}>
+              <FollowButton username={p.username} relation="none" isPrivate={!!p.is_private} size="sm" />
+            </PersonRow>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+</Layout>

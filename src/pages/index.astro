@@ -6,6 +6,8 @@ import common from "@/i18n/common";
 import home from "@/i18n/home";
 
 const { lang, user } = Astro.locals;
+// Signed in: the home page is the feed (birthdays and friends' new gifts).
+if (user) return Astro.rewrite(localePath(lang, "/feed"));
 const t = makeT(lang, common, home);
 const href = (p: string) => localePath(lang, p);
 // Signed-in visitors go straight to their lists instead of the sign-up flow.
