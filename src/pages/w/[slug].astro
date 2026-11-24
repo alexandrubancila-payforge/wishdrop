@@ -53,6 +53,8 @@ const RM = {
     cancelFail: "js.cancelFail",
   }),
   isLoggedIn: !!user,
+  /** Prefill for "show my name": the signed-in user's profile name. */
+  myName: user ? (user.name || user.username || "").trim().slice(0, 60) : "",
   registerUrl: localePath(lang, "/register"),
   loginUrl: localePath(lang, "/login"),
 };
@@ -394,17 +396,30 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
           if (next === "named") {
             nameField.classList.remove("hidden");
             nameInput.focus();
+            nameInput.setSelectionRange(nameInput.value.length, nameInput.value.length);
           } else {
             nameField.classList.add("hidden");
           }
           updateConfirm();
         }
 
+        // The name to suggest: the profile name when signed in, otherwise the
+        // name this browser used for its last reservation.
+        const NAME_KEY = "wd_name";
+        function suggestedName() {
+          if (RM.myName) return RM.myName;
+          try {
+            return localStorage.getItem(NAME_KEY) || "";
+          } catch {
+            return "";
+          }
+        }
+
         function openModal(card) {
           activeCard = card;
           choice = null;
           busy = false;
-          nameInput.value = "";
+          nameInput.value = suggestedName();
           nameField.classList.add("hidden");
           choiceBtns.forEach((b) => b.classList.remove("is-selected"));
           confirmLabel.textContent = RM.confirm;
@@ -487,6 +502,11 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
             }
             if (!res.ok) throw new Error(data.error || RM.fail);
             markReserved(activeCard, name);
+            if (name && !RM.myName) {
+              try {
+                localStorage.setItem(NAME_KEY, name);
+              } catch {}
+            }
             if (data.token) saveToken(itemId, data.token);
             showCancel(activeCard);
             fireConfetti();
