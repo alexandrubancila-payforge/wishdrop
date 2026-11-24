@@ -22,7 +22,7 @@ export interface User {
   /** Public address /@username; generated at sign-up, changeable in Settings. */
   username: string | null;
   bio: string | null;
-  /** 1 = following needs approval (the default). */
+  /** 1 = following needs approval. New accounts start public (0). */
   is_private: number;
 }
 
@@ -80,8 +80,8 @@ export async function createUser(u: {
   const id = newId();
   await db()
     .prepare(
-      `INSERT INTO users (id, email, password_hash, created_at, google_id, name, avatar_url, email_verified, verify_token, verify_expires, username)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO users (id, email, password_hash, created_at, google_id, name, avatar_url, email_verified, verify_token, verify_expires, username, is_private)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
     )
     .bind(
       id,

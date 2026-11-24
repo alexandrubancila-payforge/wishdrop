@@ -33,7 +33,7 @@ Locally, emails are printed to the terminal instead of being sent. Google sign-i
 Instagram-style, one-way following (`src/lib/social.ts`, migration `0010_social.sql`):
 
 - **Profile** at `/@username` once a user picks a username in Settings → Public profile. Without one there's no profile and no search result.
-- **Private profiles** (the default for everyone, including all accounts that existed before this feature): following sends a request, accepted or declined on `/requests`. Switching to public accepts everyone waiting.
+- **Public by default**: every account gets a generated username and a public profile (migration `0011`). Anyone can switch to **private** in Settings: then following sends a request, accepted or declined on `/requests`. Switching back to public accepts everyone waiting.
 - **List visibility** (in the list editor): *Everyone* (on the profile for anyone who can see it), *Followers* (accepted followers only), *Link only* (nowhere; the default). The `/w/<slug>` link always works, so guests can still reserve without an account.
 - **Search** at `/search` by name or @username; followers/following at `/@username/followers|following`.
 

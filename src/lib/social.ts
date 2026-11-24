@@ -2,7 +2,7 @@
  * Profiles and following (Instagram-style, one-way).
  *
  * - A user gets a public address /@username once they pick a username.
- * - Private profiles (the default) need approval: following creates a request.
+ * - Profiles are public by default; private ones need approval (following creates a request).
  * - A list's `visibility` decides whether it appears on the profile:
  *   'public' for anyone who can see the profile, 'followers' for accepted
  *   followers only, 'link' nowhere. The /w/<slug> link works in every case.
