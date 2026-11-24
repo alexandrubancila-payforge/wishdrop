@@ -4,3 +4,5 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 # Leave empty locally: emails are printed to the console instead of sent.
 CF_EMAIL_TOKEN=
+# Where the contact form goes (a secret in production).
+OWNER_EMAIL=you@example.com

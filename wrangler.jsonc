@@ -30,5 +30,6 @@
     }
   ],
   "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "wishdrop-images" }]
-  // Secrets (wrangler secret put …): JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, CF_EMAIL_TOKEN
+  // Secrets (wrangler secret put …): JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, CF_EMAIL_TOKEN,
+  // OWNER_EMAIL (where the contact form is delivered)
 }

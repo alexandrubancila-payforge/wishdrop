@@ -41,7 +41,7 @@ The migration only adds columns with defaults and a new table, so the old live s
 
 ## Deploy
 
-Secrets (once): `npx wrangler secret put JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `CF_EMAIL_TOKEN`.
+Secrets (once): `npx wrangler secret put JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `CF_EMAIL_TOKEN`, `OWNER_EMAIL` (where contact messages go).
 
 ```bash
 npm run deploy
