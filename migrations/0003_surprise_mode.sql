@@ -1,0 +1,1 @@
+ALTER TABLE wishlists ADD COLUMN hide_reservations INTEGER NOT NULL DEFAULT 0;

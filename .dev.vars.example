@@ -1,0 +1,6 @@
+# Copy to .dev.vars for local development.
+JWT_SECRET=change-me-local-only-32-characters-min
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+# Leave empty locally: emails are printed to the console instead of sent.
+CF_EMAIL_TOKEN=

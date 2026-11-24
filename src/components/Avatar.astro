@@ -1,0 +1,35 @@
+---
+/** A user's photo, or their initial on the brand gradient when they have none. */
+import type { User } from "@/lib/db";
+
+interface Props {
+  user: Pick<User, "name" | "email" | "avatar_url">;
+  size: number;
+  class?: string;
+  alt?: string;
+}
+const { user, size, class: className = "", alt = "" } = Astro.props;
+const label = user.name || user.email.split("@")[0];
+const initial = label.trim().charAt(0).toUpperCase() || "?";
+---
+
+{
+  user.avatar_url ? (
+    <img
+      src={user.avatar_url}
+      alt={alt}
+      width={size}
+      height={size}
+      referrerpolicy="no-referrer"
+      class:list={["rounded-full object-cover", className]}
+    />
+  ) : (
+    <span
+      class:list={["grid shrink-0 place-items-center rounded-full gift-gradient font-display font-bold text-white", className]}
+      style={`width:${size}px;height:${size}px;font-size:${Math.round(size * 0.45)}px`}
+      aria-hidden={alt ? undefined : "true"}
+    >
+      {initial}
+    </span>
+  )
+}

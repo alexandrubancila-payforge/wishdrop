@@ -1,0 +1,1 @@
+ALTER TABLE items ADD COLUMN reserver_user_id TEXT REFERENCES users(id) ON DELETE SET NULL;

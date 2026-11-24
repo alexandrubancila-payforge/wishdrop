@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  // WishDrop — Astro (SSR) on a Cloudflare Worker.
+  // Bindings are the same Cloudflare resources the old Pages project used, so
+  // every user, list, gift and photo stays where it is.
+  "name": "wishdrop",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-06-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": "./dist", "binding": "ASSETS" },
+  "placement": { "mode": "smart" },
+  "observability": { "enabled": true },
+  "vars": {
+    "APP_URL": "https://wishdrop.site",
+    "CF_ACCOUNT_ID": "302e8d2b3de7b2c06581cf32860e4c53",
+    "MAIL_FROM": "WishDrop <noreply@wishdrop.site>",
+    "REQUIRE_EMAIL_VERIFICATION": "false"
+  },
+  // Astro sessions (kept from the old project).
+  "kv_namespaces": [{ "binding": "SESSION", "id": "6057ce6d44d24ea4bf62e3837a8c986a" }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wishdrop-db",
+      "database_id": "24e88cb9-5dd7-4051-bfd2-d99e46b3ee6d",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "wishdrop-images" }]
+  // Secrets (wrangler secret put …): JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, CF_EMAIL_TOKEN
+}

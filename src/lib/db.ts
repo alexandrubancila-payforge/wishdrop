@@ -1,0 +1,203 @@
+/**
+ * D1 access. The schema is in `migrations/` (recovered from the live database).
+ * Times are Unix milliseconds. IDs are UUIDs.
+ */
+import { env } from "cloudflare:workers";
+
+export interface User {
+  id: string;
+  email: string;
+  password_hash: string;
+  created_at: number;
+  google_id: string | null;
+  name: string | null;
+  avatar_url: string | null;
+  email_verified: number;
+  verify_token: string | null;
+  verify_expires: number | null;
+  reset_token: string | null;
+  reset_expires: number | null;
+  birthday: string | null;
+  disable_seasons: number;
+}
+
+export interface Wishlist {
+  id: string;
+  user_id: string;
+  name: string;
+  slug: string;
+  created_at: number;
+  hide_reservations: number;
+}
+
+export interface Item {
+  id: string;
+  wishlist_id: string;
+  image_key: string;
+  product_url: string | null;
+  price: string | null;
+  reserved_by: string | null;
+  reserved_at: number | null;
+  created_at: number;
+  priority: number;
+  reserve_token: string | null;
+  reserver_user_id: string | null;
+}
+
+export const db = () => env.DB;
+export const now = () => Date.now();
+export const newId = () => crypto.randomUUID();
+
+/* ---------- users ---------- */
+
+export const getUserById = (id: string) =>
+  db().prepare("SELECT * FROM users WHERE id = ?").bind(id).first<User>();
+
+export const getUserByEmail = (email: string) =>
+  db().prepare("SELECT * FROM users WHERE email = ? COLLATE NOCASE").bind(email.trim()).first<User>();
+
+export const getUserByGoogleId = (googleId: string) =>
+  db().prepare("SELECT * FROM users WHERE google_id = ?").bind(googleId).first<User>();
+
+export async function createUser(u: {
+  email: string;
+  password_hash?: string;
+  google_id?: string | null;
+  name?: string | null;
+  avatar_url?: string | null;
+  email_verified?: boolean;
+  verify_token?: string | null;
+  verify_expires?: number | null;
+}): Promise<User> {
+  const id = newId();
+  await db()
+    .prepare(
+      `INSERT INTO users (id, email, password_hash, created_at, google_id, name, avatar_url, email_verified, verify_token, verify_expires)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(
+      id,
+      u.email.trim().toLowerCase(),
+      u.password_hash ?? "",
+      now(),
+      u.google_id ?? null,
+      u.name ?? null,
+      u.avatar_url ?? null,
+      u.email_verified ? 1 : 0,
+      u.verify_token ?? null,
+      u.verify_expires ?? null,
+    )
+    .run();
+  return (await getUserById(id))!;
+}
+
+const USER_COLUMNS = new Set([
+  "password_hash", "google_id", "name", "avatar_url", "email_verified", "verify_token",
+  "verify_expires", "reset_token", "reset_expires", "birthday", "disable_seasons",
+]);
+
+export async function updateUser(id: string, fields: Partial<User>) {
+  const keys = Object.keys(fields).filter((k) => USER_COLUMNS.has(k));
+  if (!keys.length) return;
+  const set = keys.map((k) => `${k} = ?`).join(", ");
+  const values = keys.map((k) => (fields as Record<string, unknown>)[k] ?? null);
+  await db().prepare(`UPDATE users SET ${set} WHERE id = ?`).bind(...values, id).run();
+}
+
+/* ---------- wishlists ---------- */
+
+export const getWishlist = (id: string) =>
+  db().prepare("SELECT * FROM wishlists WHERE id = ?").bind(id).first<Wishlist>();
+
+export const getWishlistBySlug = (slug: string) =>
+  db().prepare("SELECT * FROM wishlists WHERE slug = ?").bind(slug).first<Wishlist>();
+
+/** A user's lists, newest first, with item counts and up to four cover images. */
+export async function getUserWishlists(userId: string) {
+  const { results } = await db()
+    .prepare(
+      `SELECT w.*,
+              (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id) AS item_count,
+              (SELECT COUNT(*) FROM items i WHERE i.wishlist_id = w.id AND i.reserved_at IS NOT NULL) AS reserved_count
+         FROM wishlists w WHERE w.user_id = ? ORDER BY w.created_at DESC`,
+    )
+    .bind(userId)
+    .all<Wishlist & { item_count: number; reserved_count: number }>();
+  const covers = await db()
+    .prepare(
+      `SELECT wishlist_id, image_key FROM items
+        WHERE image_key <> '' AND wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)
+        ORDER BY priority DESC, created_at DESC`,
+    )
+    .bind(userId)
+    .all<{ wishlist_id: string; image_key: string }>();
+  return results.map((w) => ({
+    ...w,
+    covers: covers.results.filter((c) => c.wishlist_id === w.id).map((c) => c.image_key).slice(0, 4),
+  }));
+}
+
+/** "Birthday list" → "birthday-list-3v7uzd" (the live site's slug shape). */
+export function makeSlug(name: string) {
+  const base =
+    name
+      .normalize("NFKD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 40)
+      .replace(/-+$/, "") || "wishlist";
+  const rand = Array.from(crypto.getRandomValues(new Uint8Array(6)), (b) => "abcdefghijklmnopqrstuvwxyz0123456789"[b % 36]).join("");
+  return `${base}-${rand}`;
+}
+
+export async function createWishlist(userId: string, name: string): Promise<Wishlist> {
+  const id = newId();
+  await db()
+    .prepare("INSERT INTO wishlists (id, user_id, name, slug, created_at) VALUES (?, ?, ?, ?, ?)")
+    .bind(id, userId, name, makeSlug(name), now())
+    .run();
+  return (await getWishlist(id))!;
+}
+
+/* ---------- items ---------- */
+
+export const getItem = (id: string) =>
+  db().prepare("SELECT * FROM items WHERE id = ?").bind(id).first<Item>();
+
+/** Most wanted first, then newest. */
+export async function getItems(wishlistId: string) {
+  const { results } = await db()
+    .prepare("SELECT * FROM items WHERE wishlist_id = ? ORDER BY priority DESC, created_at DESC")
+    .bind(wishlistId)
+    .all<Item>();
+  return results;
+}
+
+/** The item together with the list it belongs to (for ownership checks). */
+export const getItemWithList = (id: string) =>
+  db()
+    .prepare(
+      `SELECT i.*, w.user_id AS owner_id, w.slug AS wishlist_slug
+         FROM items i JOIN wishlists w ON w.id = i.wishlist_id WHERE i.id = ?`,
+    )
+    .bind(id)
+    .first<Item & { owner_id: string; wishlist_slug: string }>();
+
+/** Gifts the user reserved on other people's lists. */
+export async function getReservationsOf(userId: string) {
+  const { results } = await db()
+    .prepare(
+      `SELECT i.*, w.name AS wishlist_name, w.slug AS wishlist_slug,
+              u.name AS owner_name, u.email AS owner_email, u.avatar_url AS owner_avatar
+         FROM items i
+         JOIN wishlists w ON w.id = i.wishlist_id
+         JOIN users u ON u.id = w.user_id
+        WHERE i.reserver_user_id = ?
+        ORDER BY i.reserved_at DESC`,
+    )
+    .bind(userId)
+    .all<Item & { wishlist_name: string; wishlist_slug: string; owner_name: string | null; owner_email: string; owner_avatar: string | null }>();
+  return results;
+}

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.dev.vars
+.DS_Store
+# Recovered production data: user accounts and photos. Never commit.
+_recovered/wishdrop-db.sql
+_recovered/r2/
+_recovered/logged-in/
