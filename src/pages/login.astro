@@ -1,0 +1,91 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import GoogleButton from "@/components/auth/GoogleButton.astro";
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import auth from "@/i18n/auth";
+
+const { lang, user } = Astro.locals;
+const t = makeT(lang, common, auth);
+
+// ?next= is a path without the language prefix ("/dashboard/…"), set by the middleware.
+const rawNext = Astro.url.searchParams.get("next") ?? "";
+const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "";
+const nextUrl = localePath(lang, next || "/dashboard");
+
+if (user) return Astro.redirect(nextUrl);
+
+const googleHref = next ? `/api/auth/google?next=${encodeURIComponent(next)}` : "/api/auth/google";
+const M = { failed: t("login.failed"), err: t("auth.error") };
+---
+
+<Layout title={t("login.title")} description={t("auth.description")} noindex mainClass="mx-auto flex max-w-md flex-col px-4 py-14 sm:py-20">
+  <div class="card rise-in p-8">
+    <h1 class="font-display text-3xl font-extrabold tracking-tight">{t("login.heading")}</h1>
+    <p class="mt-2 text-sm text-ink-soft">
+      {t("login.noAccount")}
+      <a href={localePath(lang, "/register")} class="font-semibold text-accent-600 hover:underline">{t("login.createOne")}</a>
+    </p>
+    <GoogleButton href={googleHref} label={t("auth.continueGoogle")} divider={t("auth.orEmail")} />
+    <form id="auth-form" class="space-y-4" data-next={nextUrl}>
+      <div>
+        <label for="email" class="block text-sm font-semibold text-ink">{t("auth.email")}</label>
+        <input id="email" name="email" type="email" autocomplete="email" required class="field mt-1" />
+      </div>
+      <div>
+        <div class="flex items-center justify-between">
+          <label for="password" class="block text-sm font-semibold text-ink">{t("auth.password")}</label>
+          <a href={localePath(lang, "/forgot-password")} class="text-xs font-medium text-accent-600 hover:underline">{t("login.forgot")}</a>
+        </div>
+        <input id="password" name="password" type="password" autocomplete="current-password" required class="field mt-1" />
+      </div>
+      <p id="auth-error" class="text-sm font-medium text-rose-600 hidden"></p>
+      <button type="submit" id="auth-submit" class="btn btn-primary w-full py-3">
+        <span data-submit-label>{t("login.submit")}</span>
+      </button>
+    </form>
+  </div>
+</Layout>
+
+<script is:inline define:vars={{ M }}>
+  const form = document.getElementById("auth-form");
+  const submit = document.getElementById("auth-submit");
+  const label = form.querySelector("[data-submit-label]");
+  const labelText = label.textContent || "";
+  const errorEl = document.getElementById("auth-error");
+  const next = form.dataset.next || "/dashboard";
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorEl.classList.add("hidden");
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    submit.disabled = true;
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || M.failed);
+      // Reservations made as a guest on this device become the account's.
+      try {
+        const tokens = JSON.parse(localStorage.getItem("wd_resv") || "{}");
+        if (Object.keys(tokens).length > 0) {
+          await fetch("/api/account/link-reservations", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ tokens }),
+          });
+        }
+      } catch {}
+      window.location.href = next;
+    } catch (err) {
+      errorEl.textContent = err instanceof Error ? err.message : M.err;
+      errorEl.classList.remove("hidden");
+      submit.disabled = false;
+      label.textContent = labelText;
+    }
+  });
+</script>

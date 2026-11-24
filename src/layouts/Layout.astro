@@ -21,6 +21,8 @@ interface Props {
   /** Show the mobile tab bar (adds bottom padding on phones). */
   tabbar?: boolean;
   footer?: boolean;
+  /** The site header; the public list page has its own hero instead. */
+  header?: boolean;
 }
 
 const { lang, path, user } = Astro.locals;
@@ -32,6 +34,7 @@ const {
   mainClass,
   tabbar = true,
   footer = true,
+  header = true,
 } = Astro.props;
 
 const site = import.meta.env.SITE ?? "https://wishdrop.site";
@@ -98,6 +101,8 @@ const year = new Date().getFullYear();
     <slot name="head" />
   </head>
   <body class:list={["min-h-screen antialiased", { "has-tabbar": tabbar }]}>
+    {
+      header && (
     <header class="sticky top-0 z-30 border-b border-black/5 bg-[#fffbf7]/80 backdrop-blur-md">
       <nav class="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <a href={href("/")} class="flex shrink-0 items-center gap-2 font-display text-lg font-extrabold tracking-tight text-ink sm:text-xl">
@@ -186,6 +191,8 @@ const year = new Date().getFullYear();
         </div>
       </nav>
     </header>
+      )
+    }
 
     <main class={mainClass}>
       <slot />
@@ -201,6 +208,14 @@ const year = new Date().getFullYear();
               <p class="mx-auto mt-1.5 max-w-sm text-sm text-ink-soft">{t("footer.support")}</p>
               <button data-donate-open class="btn btn-ghost mt-4 !px-5 !py-2.5 text-sm">{t("footer.supportBtn")}</button>
             </div>
+            {
+              !user && (
+                <p class="mt-8 text-center text-sm text-ink-soft">
+                  {t("footer.wantList")}{" "}
+                  <a href={href("/register")} class="font-semibold text-accent-600 hover:underline">{t("footer.createFree")}</a>
+                </p>
+              )
+            }
             <!-- Legal / trust links -->
             <nav class="mt-10 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-black/5 pt-6 text-sm text-ink-soft">
               <a href={href("/privacy")} class="hover:text-ink hover:underline">{t("footer.privacy")}</a>

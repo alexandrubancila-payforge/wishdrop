@@ -1,0 +1,34 @@
+---
+/** "Account settings" heading + the Profile · Password · Account tabs. */
+import { makeT, localePath } from "@/lib/i18n";
+import strings from "@/i18n/settings";
+
+interface Props {
+  active: "profile" | "password" | "account";
+}
+const { active } = Astro.props;
+const { lang } = Astro.locals;
+const t = makeT(lang, strings);
+const tabs = [
+  { key: "profile", href: localePath(lang, "/settings"), label: t("tabProfile") },
+  { key: "password", href: localePath(lang, "/settings/password"), label: t("tabPassword") },
+  { key: "account", href: localePath(lang, "/settings/account"), label: t("tabAccount") },
+] as const;
+---
+
+<h1 class="font-display text-3xl font-extrabold tracking-tight">{t("heading")}</h1>
+<nav class="mt-5 grid grid-cols-3 gap-1 rounded-xl bg-black/5 p-1 text-sm font-semibold">
+  {
+    tabs.map((tab) => (
+      <a
+        href={tab.href}
+        class:list={[
+          "rounded-lg py-2 text-center",
+          tab.key === active ? "bg-white text-accent-700 shadow-sm" : "text-ink-soft transition hover:text-ink",
+        ]}
+      >
+        {tab.label}
+      </a>
+    ))
+  }
+</nav>

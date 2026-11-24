@@ -1,0 +1,80 @@
+---
+/**
+ * A small seasonal greeting in the top-right of a public list's hero
+ * (the live site keeps a slot there: "logo stânga · salut sezon dreapta").
+ *
+ *   Christmas 1–31 Dec · New Year 1–7 Jan · Valentine's 7–14 Feb ·
+ *   Easter week (Orthodox or Western, Mon before → Mon after) ·
+ *   the owner's birthday (14 days before → the day itself).
+ *
+ * Nothing renders outside those windows, or when the owner turned seasonal
+ * themes off in Settings (users.disable_seasons).
+ */
+import { makeT, type Lang } from "@/lib/i18n";
+import publiclist from "@/i18n/publiclist";
+
+interface Props {
+  lang: Lang;
+  /** Owner's birthday, "YYYY-MM-DD" or null. */
+  birthday: string | null;
+}
+const { lang, birthday } = Astro.props;
+const t = makeT(lang, publiclist);
+
+const DAY = 86_400_000;
+// Today in Moldova, as a UTC midnight timestamp.
+const [y, m, d] = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Chisinau" }).format(new Date()).split("-").map(Number);
+const today = Date.UTC(y, m - 1, d);
+const day = (month: number, date: number, year = y) => Date.UTC(year, month - 1, date);
+const within = (from: number, to: number) => today >= from && today <= to;
+
+/** Orthodox Easter (Julian computus, shifted to the Gregorian calendar). */
+function orthodoxEaster(year: number) {
+  const a = year % 4, b = year % 7, c = year % 19;
+  const dd = (19 * c + 15) % 30;
+  const e = (2 * a + 4 * b - dd + 34) % 7;
+  const month = Math.floor((dd + e + 114) / 31);
+  const date = ((dd + e + 114) % 31) + 1;
+  return Date.UTC(year, month - 1, date) + 13 * DAY;
+}
+
+/** Western Easter (anonymous Gregorian algorithm). */
+function westernEaster(year: number) {
+  const a = year % 19, b = Math.floor(year / 100), c = year % 100;
+  const dd = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - dd - g + 15) % 30, i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7, mm = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * mm + 114) / 31);
+  const date = ((h + l - 7 * mm + 114) % 31) + 1;
+  return Date.UTC(year, month - 1, date);
+}
+
+const easterWeek = (easter: number) => within(easter - 6 * DAY, easter + DAY);
+
+let greeting: string | null = null;
+
+if (birthday && /^\d{4}-\d{2}-\d{2}$/.test(birthday)) {
+  const [, bm, bd] = birthday.split("-").map(Number);
+  let next = day(bm, bd);
+  if (next < today) next = day(bm, bd, y + 1);
+  if (next === today) greeting = t("season.birthdayToday");
+  else if (next - today <= 14 * DAY) {
+    const date = new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", timeZone: "UTC" }).format(next);
+    greeting = t("season.birthday", { date });
+  }
+}
+if (!greeting) {
+  if (within(day(12, 1), day(12, 31))) greeting = t("season.christmas");
+  else if (within(day(1, 1), day(1, 7))) greeting = t("season.newYear");
+  else if (within(day(2, 7), day(2, 14))) greeting = t("season.valentine");
+  else if (easterWeek(orthodoxEaster(y)) || easterWeek(westernEaster(y))) greeting = t("season.easter");
+}
+---
+
+{
+  greeting && (
+    <span class="inline-flex items-center gap-1.5 rounded-full border border-accent-200 bg-white/80 px-3.5 py-1.5 text-xs font-semibold text-accent-700 shadow-sm">
+      {greeting}
+    </span>
+  )
+}

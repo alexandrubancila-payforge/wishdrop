@@ -13,7 +13,7 @@ export const PATCH: APIRoute = async (ctx) => {
   const fields: Record<string, unknown> = {};
   if (typeof body.name === "string") {
     const name = body.name.trim();
-    if (name.length > 60) return fail(t("nameTooLong"));
+    if (name.length > 100) return fail(t("nameTooLong"));
     fields.name = name || null;
   }
   if (typeof body.birthday === "string") {

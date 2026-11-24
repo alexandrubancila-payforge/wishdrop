@@ -1,0 +1,283 @@
+---
+/**
+ * A demo list that looks exactly like a real public page. Reserving here only
+ * plays the animation — nothing is saved.
+ */
+import Layout from "@/layouts/Layout.astro";
+import { localePath, makeT, pick } from "@/lib/i18n";
+import common from "@/i18n/common";
+import example from "@/i18n/example";
+
+const { lang, user } = Astro.locals;
+const t = makeT(lang, common, example);
+const createHref = user ? localePath(lang, "/dashboard") : localePath(lang, "/register");
+
+/** The demo gifts (same in every language). */
+const ITEMS = [
+  { id: "c5106713-c715-451a-a186-2f34524bb436", price: "349 lei", image: "/demo/headphones.jpg", priority: true, reservedBy: null },
+  { id: "7315825f-906d-4486-94e6-4578d3b531d7", price: "799 lei", image: "/demo/watch.jpg", priority: false, reservedBy: "Maria" },
+  { id: "c1b989c9-db7d-48d6-8351-b04fff900cf0", price: "120 lei", image: "/demo/books.jpg", priority: false, reservedBy: null },
+];
+const PRODUCT_URL = "https://example.com";
+
+const RM = pick(t, { confirm: "ex.confirm" });
+---
+
+<Layout title={t("ex.title")} description={t("ex.description")} mainClass="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+  <!-- Example banner -->
+  <div class="card mb-6 flex flex-col items-start gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+    <div class="min-w-0">
+      <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
+        {t("ex.badge")}
+      </span>
+      <h2 class="mt-2 font-display text-lg font-bold">{t("ex.bannerTitle")}</h2>
+      <p class="mt-0.5 text-sm text-ink-soft">{t("ex.description")}</p>
+    </div>
+    <a href={createHref} class="btn btn-primary shrink-0 !py-2.5 text-sm">{t("ex.cta")}</a>
+  </div>
+
+  <!-- Demo list header (mirrors a real public page) -->
+  <header class="text-center">
+    <h1 class="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{t("ex.h1")}</h1>
+    <p class="mx-auto mt-2 max-w-md text-ink-soft">{t("ex.lead")}</p>
+  </header>
+
+  <div id="items-grid" class="mt-8 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
+    {
+      ITEMS.map((item) => {
+        const reserved = !!item.reservedBy;
+        return (
+          <article
+            class="card group relative flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1.5 hover:shadow-[0_24px_44px_-26px_rgba(124,58,237,0.5)]"
+            data-item-id={item.id}
+            data-reserved={reserved ? "true" : "false"}
+            data-my-reservation="false"
+            data-price={item.price}
+            data-product-url={PRODUCT_URL}
+            data-image-url={item.image}
+          >
+            <a
+              class="relative block aspect-square overflow-hidden bg-gradient-to-br from-violet-50 to-fuchsia-50"
+              href={PRODUCT_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Deschide produsul"
+            >
+              <img
+                src={item.image}
+                alt={`Cadou — ${item.price}`}
+                loading="lazy"
+                class:list={[
+                  "h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]",
+                  { "opacity-40 grayscale": reserved },
+                ]}
+                data-card-img
+              />
+              <div class:list={["absolute inset-0 grid place-items-center bg-emerald-500/10", { hidden: !reserved }]} data-reserved-overlay>
+                <div class="flex flex-col items-center gap-1.5">
+                  <span class="gift-tag -rotate-6">{t("ex.reserved")}</span>
+                  <p
+                    class:list={[
+                      "max-w-[80%] truncate rounded-full bg-white/80 px-2.5 py-0.5 text-center text-xs font-semibold text-emerald-700",
+                      { hidden: !item.reservedBy },
+                    ]}
+                    data-reserved-name
+                  >
+                    {item.reservedBy ?? ""}
+                  </p>
+                  <button
+                    data-unreserve-btn
+                    class="mt-1 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-rose-600 shadow-sm hover:bg-white hidden"
+                  >
+                    {t("ex.cancelReservation")}
+                  </button>
+                </div>
+              </div>
+            </a>
+            {/* "Most wanted" star — kept OUTSIDE the image link so tapping it never navigates. Indicator for visitors. */}
+            {item.priority && (
+              <span
+                class="absolute left-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-amber-400 text-white shadow-sm"
+                aria-hidden="true"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" class="h-[18px] w-[18px]">
+                  <path d="M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2l3.086 6.253 6.9 1.002-4.993 4.867 1.179 6.873z" />
+                </svg>
+              </span>
+            )}
+            <div class="card-divider" />
+            <div class="flex flex-1 flex-col gap-3 p-4">
+              <div class="min-w-0">
+                <p class="font-display text-xl font-bold tracking-tight">{item.price}</p>
+                <p class="truncate font-medium text-ink-soft mt-0.5 text-xs text-ink-soft/70">example.com</p>
+              </div>
+              <div class="mt-auto flex flex-col gap-2.5 pt-1">
+                <button data-reserve-btn class:list={["btn btn-primary w-full !py-3 text-sm font-semibold", { hidden: reserved }]}>
+                  {t("ex.reserve")}
+                </button>
+                <span class="mx-auto h-px w-5/6 bg-black/10" aria-hidden="true" />
+                <a
+                  href={PRODUCT_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center justify-center gap-1 text-xs font-medium text-ink-soft transition hover:text-accent-600"
+                >
+                  {t("ex.viewProduct")} <span aria-hidden="true">↗</span>
+                </a>
+              </div>
+            </div>
+          </article>
+        );
+      })
+    }
+  </div>
+
+  <div
+    id="reserve-modal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="reserve-modal-title"
+  >
+    <!-- Step 1: reservation form -->
+    <div class="card w-full max-w-md p-6" id="reserve-step-1">
+      <div class="text-3xl">🎀</div>
+      <h2 id="reserve-modal-title" class="mt-2 font-display text-2xl font-bold">{t("ex.modalTitle")}</h2>
+      <p class="mt-1 text-sm text-ink-soft">{t("ex.modalText")}</p>
+      <p class="mt-5 text-sm font-semibold text-ink">{t("ex.showName")}</p>
+      <div class="mt-2 grid grid-cols-2 gap-2.5">
+        <button type="button" data-choice="named" class="reserve-choice">{t("ex.named")}</button>
+        <button type="button" data-choice="anon" class="reserve-choice">{t("ex.anon")}</button>
+      </div>
+      <div id="reserve-name-field" class="mt-3 hidden">
+        <input id="reserve-name" type="text" maxlength="60" placeholder={t("ex.yourName")} class="field" />
+      </div>
+      <p id="reserve-error" class="mt-2 hidden text-sm font-medium text-rose-600"></p>
+      <div class="mt-6 flex flex-col gap-2.5">
+        <button id="reserve-confirm" class="btn btn-primary w-full !py-3 text-sm" disabled>
+          <span data-confirm-label>{t("ex.confirm")}</span>
+        </button>
+        <button id="reserve-cancel" class="btn btn-ghost w-full !py-2.5 text-sm">{t("ex.cancel")}</button>
+      </div>
+    </div>
+    <!-- Step 2: CTA after successful reservation (only for guests) -->
+    <div class="card hidden w-full max-w-md p-6 text-center" id="reserve-step-2">
+      <div class="text-4xl">🎁</div>
+      <h2 class="mt-3 font-display text-xl font-bold">{t("ex.ctaTitle")}</h2>
+      <p class="mt-2 text-sm text-ink-soft">{t("ex.ctaText")}</p>
+      <div class="mt-6 flex flex-col gap-2.5">
+        <a id="reserve-cta-btn" href={localePath(lang, "/register")} class="btn btn-primary w-full !py-3 text-sm">{t("ex.ctaRegister")}</a>
+        <a id="reserve-cta-login" href={localePath(lang, "/login")} class="btn btn-ghost w-full !py-2.5 text-sm">{t("ex.ctaLogin")}</a>
+        <button id="reserve-cta-skip" class="btn btn-ghost w-full !py-2 text-xs text-ink-soft/60">{t("ex.ctaSkip")}</button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ RM }}>
+    function fireConfetti() {
+      if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const canvas = document.createElement("canvas");
+      canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60";
+      document.body.appendChild(canvas);
+      const ctx = canvas.getContext("2d");
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = window.innerWidth * dpr;
+      canvas.height = window.innerHeight * dpr;
+      const colors = ["#7c3aed", "#d946ef", "#f59e0b", "#10b981", "#f472b6"];
+      const parts = [];
+      for (let i = 0; i < 130; i++)
+        parts.push({
+          x: (window.innerWidth / 2) * dpr,
+          y: window.innerHeight * 0.4 * dpr,
+          vx: (Math.random() - 0.5) * 16 * dpr,
+          vy: (Math.random() * -13 - 5) * dpr,
+          g: 0.38 * dpr,
+          size: (Math.random() * 6 + 4) * dpr,
+          color: colors[i % colors.length],
+          rot: Math.random() * Math.PI,
+          vr: (Math.random() - 0.5) * 0.3,
+        });
+      const start = performance.now();
+      function frame(now) {
+        const tt = now - start;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const p of parts) {
+          p.vy += p.g;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vx *= 0.99;
+          p.rot += p.vr;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rot);
+          ctx.globalAlpha = Math.max(0, 1 - tt / 2400);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+          ctx.restore();
+        }
+        if (tt < 2400) requestAnimationFrame(frame);
+        else canvas.remove();
+      }
+      requestAnimationFrame(frame);
+    }
+
+    const modal = document.getElementById("reserve-modal");
+    const nameInput = document.getElementById("reserve-name");
+    const nameField = document.getElementById("reserve-name-field");
+    const confirmBtn = document.getElementById("reserve-confirm");
+    const cancelBtn = document.getElementById("reserve-cancel");
+    const choiceBtns = Array.from(modal.querySelectorAll("[data-choice]"));
+    let activeCard = null;
+    let choice = null;
+
+    function updateConfirm() {
+      const ready = choice === "anon" || (choice === "named" && nameInput.value.trim().length > 0);
+      confirmBtn.disabled = !ready;
+    }
+    choiceBtns.forEach((b) =>
+      b.addEventListener("click", () => {
+        choice = b.dataset.choice;
+        choiceBtns.forEach((x) => x.classList.toggle("is-selected", x === b));
+        nameField.classList.toggle("hidden", choice !== "named");
+        if (choice === "named") nameInput.focus();
+        updateConfirm();
+      }),
+    );
+    nameInput.addEventListener("input", updateConfirm);
+
+    function close() {
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+    document.querySelectorAll("[data-reserve-btn]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        activeCard = btn.closest("[data-item-id]");
+        choice = null;
+        nameInput.value = "";
+        nameField.classList.add("hidden");
+        choiceBtns.forEach((x) => x.classList.remove("is-selected"));
+        confirmBtn.disabled = true;
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+      }),
+    );
+    cancelBtn.addEventListener("click", close);
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) close();
+    });
+    confirmBtn.addEventListener("click", () => {
+      if (!activeCard) return;
+      const name = choice === "named" ? nameInput.value.trim() : "";
+      activeCard.querySelector("[data-card-img]")?.classList.add("opacity-40", "grayscale");
+      activeCard.querySelector("[data-reserve-btn]")?.classList.add("hidden");
+      activeCard.querySelector("[data-reserved-overlay]")?.classList.remove("hidden");
+      const nameEl = activeCard.querySelector("[data-reserved-name]");
+      if (nameEl && name) {
+        nameEl.textContent = name;
+        nameEl.classList.remove("hidden");
+      }
+      close();
+      fireConfetti();
+    });
+  </script>
+</Layout>

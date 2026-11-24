@@ -1,0 +1,787 @@
+---
+/**
+ * The list editor (owner only): rename, share link, surprise mode, add a gift
+ * (auto-fill from a product link or photo upload), and the gift grid with
+ * "most wanted" star, edit and delete.
+ */
+import Layout from "@/layouts/Layout.astro";
+import { makeT, localePath } from "@/lib/i18n";
+import common from "@/i18n/common";
+import strings from "@/i18n/editor";
+import { getItems, getWishlist } from "@/lib/db";
+import { imageUrl } from "@/lib/storage";
+
+const { lang } = Astro.locals;
+const user = Astro.locals.user!;
+const t = makeT(lang, common, strings);
+
+const list = Astro.params.id ? await getWishlist(Astro.params.id) : null;
+if (!list || list.user_id !== user.id) return Astro.redirect(localePath(lang, "/dashboard"));
+
+const items = await getItems(list.id);
+const surprise = !!list.hide_reservations;
+const shareUrl = `${Astro.url.origin}/w/${list.slug}`;
+const domain = (url: string | null) => {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+};
+
+const addStrings = {
+  submit: t("js.submit"),
+  blocked: t("js.blocked"),
+  gotBoth: t("js.gotBoth"),
+  gotImg: t("js.gotImg"),
+  gotPrice: t("js.gotPrice"),
+  none: t("js.none"),
+  amazon: t("js.amazon"),
+  needImg: t("js.needImg"),
+  tooBig: t("js.tooBig"),
+  err: t("js.err"),
+};
+const pageStrings = {
+  copyLink: t("copyLink"),
+  copied: t("js.copied"),
+  on: t("on"),
+  off: t("off"),
+  reveal: t("js.reveal"),
+  hide: t("js.hide"),
+  save: t("save"),
+  renameFail: t("js.renameFail"),
+  saveFail: t("js.saveFail"),
+  delConfirm: t("js.delConfirm"),
+  delFail: t("js.delFail"),
+  tooBig: t("js.tooBig"),
+  err: t("js.err"),
+};
+const wishlistId = list.id;
+---
+
+<Layout title={`${list.name} — WishDrop`} noindex mainClass="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
+  <a href={localePath(lang, "/dashboard")} class="text-sm font-medium text-ink-soft hover:text-ink">{t("back")}</a>
+
+  <div class="mt-3">
+    <div id="title-view" class="flex items-center gap-2">
+      <h1 id="wl-title" title={list.name} class="min-w-0 truncate font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+        {list.name}
+      </h1>
+      <button
+        id="rename-btn"
+        aria-label={t("rename")}
+        class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-soft/60 transition hover:bg-gray-100 hover:text-accent-600"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+          <path d="M12 20h9" />
+          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+        </svg>
+      </button>
+    </div>
+    <form id="rename-form" class="hidden items-center gap-2" data-wishlist-id={list.id}>
+      <input id="rename-input" type="text" maxlength="60" required value={list.name} class="field !py-1.5 font-display text-xl font-bold" />
+      <button type="submit" class="btn btn-primary shrink-0 !px-3 !py-1.5 text-sm">{t("save")}</button>
+      <button type="button" id="rename-cancel" class="btn btn-ghost shrink-0 !px-3 !py-1.5 text-sm">{t("cancel")}</button>
+    </form>
+
+    <!-- Compact share row: link · copy · open -->
+    <div class="mt-3 flex items-center gap-2">
+      <input
+        readonly
+        value={shareUrl}
+        id="share-url"
+        class="min-w-0 flex-1 truncate rounded-lg border border-black/10 bg-accent-50/50 px-3 py-2 text-xs text-ink-soft sm:max-w-md"
+      />
+      <button id="copy-share" class="shrink-0 rounded-lg bg-accent-100 px-3 py-2 text-xs font-semibold text-accent-700 transition hover:bg-accent-200">
+        {t("copyLink")}
+      </button>
+      <a
+        href={`/w/${list.slug}`}
+        target="_blank"
+        rel="noopener"
+        aria-label={t("viewPublic")}
+        title={t("viewPublic")}
+        class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-black/10 bg-white text-ink-soft transition hover:border-accent-300 hover:text-accent-600"
+      >
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+          <polyline points="15 3 21 3 21 9" />
+          <line x1="10" y1="14" x2="21" y2="3" />
+        </svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- Surprise mode (compact) -->
+  <div class="card mt-5 flex items-center justify-between gap-3 p-3.5">
+    <div class="flex min-w-0 items-start gap-2.5">
+      <span class="text-xl leading-none">🤫</span>
+      <div class="min-w-0">
+        <p class="font-semibold leading-tight">{t("surprise")}</p>
+        <p class="mt-1 text-xs leading-snug text-ink-soft">{t("surpriseText")}</p>
+      </div>
+    </div>
+    <label class="inline-flex shrink-0 cursor-pointer items-center gap-2">
+      <input type="checkbox" id="surprise-toggle" class="peer sr-only" data-wishlist-id={list.id} checked={surprise} />
+      <span
+        class="relative h-6 w-11 rounded-full bg-gray-300 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:bg-accent-600 peer-checked:after:translate-x-5"
+      ></span>
+      <span class="hidden text-sm font-semibold sm:inline" data-surprise-label>{surprise ? t("on") : t("off")}</span>
+    </label>
+  </div>
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-[360px_1fr] lg:gap-8">
+    <div class="lg:sticky lg:top-20 lg:self-start">
+      <form id="add-item-form" data-wishlist-id={list.id} class="card p-6">
+        <h2 class="font-display text-lg font-bold">{t("addTitle")}</h2>
+
+        <!-- Auto-fill from link -->
+        <div class="mt-4">
+          <label for="item-url" class="block text-sm font-semibold text-ink">{t("productLink")}</label>
+          <div class="relative mt-1">
+            <input id="item-url" name="product_url" type="url" placeholder="https://..." class="field !pr-11" />
+            <span id="autofill-spinner" class="absolute right-3 top-1/2 hidden -translate-y-1/2 text-accent-500">
+              <span class="btn-spinner"></span>
+            </span>
+          </div>
+          <p class="mt-1 text-xs text-ink-soft/70">{t("autofillHint")}</p>
+        </div>
+
+        <!-- Image picker with preview -->
+        <div class="mt-4">
+          <label class="block text-sm font-semibold text-ink">
+            {t("image")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+          </label>
+          <label
+            for="item-image"
+            class="mt-1 flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-accent-200 bg-gradient-to-br from-violet-50/60 to-fuchsia-50/60 text-center text-sm text-ink-soft transition hover:border-accent-400"
+          >
+            <img data-preview class="hidden h-full w-full object-contain" alt="" />
+            <span data-preview-placeholder class="px-4">
+              {t("choose")}<br />
+              <span class="text-xs text-ink-soft/70">{t("chooseHint")}</span>
+            </span>
+          </label>
+          <input id="item-image" name="image" type="file" accept="image/*" class="hidden" />
+        </div>
+
+        <!-- Price -->
+        <div class="mt-4">
+          <label for="item-price" class="block text-sm font-semibold text-ink">
+            {t("price")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+          </label>
+          <input id="item-price" name="price" type="text" maxlength="40" placeholder={t("pricePlaceholder")} class="field mt-1" />
+        </div>
+
+        <p id="add-item-error" class="mt-3 hidden text-sm font-medium text-rose-600"></p>
+        <div class="mt-4 flex justify-end">
+          <button type="submit" id="add-item-submit" class="btn btn-primary py-2.5">
+            <span data-submit-label>{t("addGift")}</span>
+          </button>
+        </div>
+      </form>
+
+      <script is:inline define:vars={{ M: addStrings, wishlistId }}>
+        const form = document.getElementById("add-item-form");
+        const urlInput = document.getElementById("item-url");
+        const autofillSpinner = document.getElementById("autofill-spinner");
+        const fileInput = document.getElementById("item-image");
+        const preview = form.querySelector("[data-preview]");
+        const placeholder = form.querySelector("[data-preview-placeholder]");
+        const priceInput = document.getElementById("item-price");
+        const submitBtn = document.getElementById("add-item-submit");
+        const submitLabel = form.querySelector("[data-submit-label]");
+        const errorEl = document.getElementById("add-item-error");
+        const MAX_BYTES = 15 * 1024 * 1024;
+
+        let scrapedImageKey = null;
+
+        // Downscale + recompress in the browser before upload so we never store a
+        // multi-MB phone photo. Long edge capped, exported as WebP.
+        async function downscaleImage(file, maxDim = 1280, quality = 0.82) {
+          if (!file || !file.type.startsWith("image/")) return file;
+          let bitmap;
+          try {
+            bitmap = await createImageBitmap(file);
+          } catch {
+            return file; // can't decode (e.g. HEIC) — let the server take the original
+          }
+          const { width, height } = bitmap;
+          const longest = Math.max(width, height);
+          // Already small enough? keep it.
+          if (longest <= maxDim && file.size < 350 * 1024) {
+            bitmap.close?.();
+            return file;
+          }
+          const scale = Math.min(1, maxDim / longest);
+          const w = Math.round(width * scale);
+          const h = Math.round(height * scale);
+          const canvas = document.createElement("canvas");
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(bitmap, 0, 0, w, h);
+          bitmap.close?.();
+          const blob = await new Promise((res) => canvas.toBlob(res, "image/webp", quality));
+          if (!blob || blob.size >= file.size) return file; // no gain — keep original
+          return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".webp", {
+            type: "image/webp",
+          });
+        }
+
+        function showError(msg) {
+          errorEl.textContent = msg;
+          errorEl.className = "mt-3 text-sm font-medium text-rose-600";
+        }
+        function showHint(msg) {
+          errorEl.textContent = msg;
+          errorEl.className = "mt-3 text-sm font-medium text-amber-700";
+        }
+        function clearError() {
+          errorEl.className = "mt-3 hidden text-sm font-medium text-rose-600";
+          errorEl.textContent = "";
+        }
+        function setPreview(src) {
+          preview.src = src;
+          preview.classList.remove("hidden");
+          placeholder.classList.add("hidden");
+        }
+
+        let lastFetched = "";
+        let fetching = false;
+        const looksLikeUrl = (v) => /^https?:\/\/\S+\.\S+/i.test(v);
+        const isAmazon = (v) => /^https?:\/\/(www\.)?amazon\.(com|de|co\.uk|fr|it|es|ca|co\.jp)/i.test(v);
+
+        async function runAutofill() {
+          const url = urlInput.value.trim();
+          if (fetching || !looksLikeUrl(url) || url === lastFetched) return;
+          if (isAmazon(url)) {
+            lastFetched = url;
+            showHint(M.amazon);
+            return;
+          }
+          lastFetched = url;
+          fetching = true;
+          clearError();
+          autofillSpinner.classList.remove("hidden");
+          try {
+            const res = await fetch("/api/scrape", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ url }),
+            });
+            const data = await res.json();
+            if (!res.ok) {
+              showHint(data.error === "amazon_blocked" ? M.amazon : M.blocked);
+              return;
+            }
+            if (data.image_key && data.image_url) {
+              scrapedImageKey = data.image_key;
+              fileInput.value = "";
+              setPreview(data.image_url);
+              showHint(M.gotImg);
+            } else {
+              showHint(M.none);
+            }
+          } catch {
+            showHint(M.blocked);
+          } finally {
+            fetching = false;
+            autofillSpinner.classList.add("hidden");
+          }
+        }
+
+        urlInput.addEventListener("blur", runAutofill);
+        urlInput.addEventListener("paste", () => setTimeout(runAutofill, 50));
+        urlInput.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            runAutofill();
+          }
+        });
+
+        fileInput.addEventListener("change", () => {
+          const file = fileInput.files && fileInput.files[0];
+          if (!file) return;
+          scrapedImageKey = null;
+          setPreview(URL.createObjectURL(file));
+        });
+
+        function setSubmitLoading(loading) {
+          // Keep the label (no content swap) so the button doesn't resize; the
+          // disabled state alone signals progress.
+          submitBtn.disabled = loading;
+        }
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          clearError();
+          const rawFile = fileInput.files && fileInput.files[0];
+          const productUrl = urlInput.value.trim();
+          if (!rawFile && !scrapedImageKey && !productUrl) return showError(M.needImg);
+          if (rawFile && rawFile.size > MAX_BYTES) return showError(M.tooBig);
+
+          setSubmitLoading(true);
+          try {
+            let imageKey = scrapedImageKey;
+            if (rawFile) {
+              const file = await downscaleImage(rawFile);
+              const fd = new FormData();
+              fd.append("file", file);
+              const upRes = await fetch("/api/upload", { method: "POST", body: fd });
+              const upData = await upRes.json();
+              if (!upRes.ok || !upData.image_key) throw new Error(upData.error || M.err);
+              imageKey = upData.image_key;
+            }
+            const res = await fetch(`/api/wishlists/${wishlistId}/items`, {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                image_key: imageKey || "",
+                price: priceInput.value.trim() || null,
+                product_url: productUrl || null,
+              }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || M.err);
+            window.location.reload();
+          } catch (err) {
+            showError(err instanceof Error ? err.message : M.err);
+            setSubmitLoading(false);
+          }
+        });
+      </script>
+    </div>
+
+    <div>
+      <h2 class="font-display text-lg font-bold">{t("gifts", { n: items.length })}</h2>
+      {
+        items.length === 0 ? (
+          <div class="mt-4 rounded-3xl border-2 border-dashed border-accent-200 bg-white/60 p-10 text-center">
+            <div class="text-4xl">🎁</div>
+            <p class="mt-3 font-display text-lg font-bold">{t("emptyTitle")}</p>
+            <p class="mx-auto mt-1 max-w-sm text-sm text-ink-soft">{t("emptyText")}</p>
+          </div>
+        ) : (
+          <div id="items-grid" data-surprise={surprise ? "on" : "off"} class="mt-4 grid grid-cols-2 gap-4 sm:gap-5 xl:grid-cols-3">
+            {items.map((item) => {
+              const reserved = item.reserved_at != null;
+              const img = imageUrl(item.image_key);
+              const host = domain(item.product_url);
+              const href = item.product_url || undefined;
+              return (
+                <article
+                  class="card group relative flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1.5 hover:shadow-[0_24px_44px_-26px_rgba(124,58,237,0.5)]"
+                  data-item-id={item.id}
+                  data-reserved={reserved ? "true" : "false"}
+                  data-my-reservation="false"
+                  data-price={item.price ?? ""}
+                  data-product-url={item.product_url ?? ""}
+                  data-image-url={img}
+                >
+                  <a
+                    class="relative block aspect-square overflow-hidden bg-gradient-to-br from-violet-50 to-fuchsia-50"
+                    href={href}
+                    target={href ? "_blank" : undefined}
+                    rel={href ? "noopener noreferrer" : undefined}
+                    title={href ? t("openProduct") : undefined}
+                  >
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={item.price ? t("giftAltPrice", { price: item.price }) : t("giftAlt")}
+                        loading="lazy"
+                        class:list={[
+                          "h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]",
+                          reserved && "opacity-40 grayscale",
+                        ]}
+                        data-card-img
+                      />
+                    ) : (
+                      <div
+                        class:list={[
+                          "flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center",
+                          reserved && "opacity-40 grayscale",
+                        ]}
+                        data-card-img
+                      >
+                        <span class="text-5xl">🎁</span>
+                        {host && <span class="max-w-full truncate text-sm font-semibold text-accent-700">{host}</span>}
+                      </div>
+                    )}
+                    <div class:list={["absolute inset-0 grid place-items-center bg-emerald-500/10", !reserved && "hidden"]} data-reserved-overlay>
+                      <div class="flex flex-col items-center gap-1.5">
+                        <span class="gift-tag -rotate-6">{t("reserved")}</span>
+                        <p
+                          class:list={[
+                            "max-w-[80%] truncate rounded-full bg-white/80 px-2.5 py-0.5 text-center text-xs font-semibold text-emerald-700",
+                            !(reserved && item.reserved_by) && "hidden",
+                          ]}
+                          data-reserved-name
+                        >
+                          {reserved ? item.reserved_by : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                  {/* "Most wanted" star — kept OUTSIDE the image link so tapping it never
+                      navigates. Toggle for the owner, indicator for visitors. */}
+                  <button
+                    data-priority-btn
+                    aria-label={t("favourite")}
+                    title={t("favourite")}
+                    class:list={[
+                      "priority-star absolute left-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full transition",
+                      item.priority && "is-priority",
+                    ]}
+                  >
+                    <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]">
+                      <path d="M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2l3.086 6.253 6.9 1.002-4.993 4.867 1.179 6.873z" />
+                    </svg>
+                  </button>
+                  <div class="card-divider" />
+                  <div class="flex flex-1 flex-col gap-3 p-4">
+                    <div class="min-w-0">
+                      {item.price ? (
+                        <>
+                          <p class="font-display text-xl font-bold tracking-tight">{item.price}</p>
+                          {host && <p class="truncate font-medium text-ink-soft mt-0.5 text-xs text-ink-soft/70">{host}</p>}
+                        </>
+                      ) : (
+                        host && <p class="truncate font-medium text-ink-soft text-sm">{host}</p>
+                      )}
+                    </div>
+                    <div class="mt-auto flex items-center justify-end gap-1.5 border-t border-black/5 pt-3">
+                      {href && (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          aria-label={t("viewProduct")}
+                          title={t("viewProduct")}
+                          class="mr-auto grid h-9 w-9 place-items-center rounded-lg border border-black/10 bg-white text-ink-soft transition hover:border-accent-300 hover:text-accent-600"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                            <polyline points="15 3 21 3 21 9" />
+                            <line x1="10" y1="14" x2="21" y2="3" />
+                          </svg>
+                        </a>
+                      )}
+                      <button
+                        data-edit-btn
+                        aria-label={t("edit")}
+                        title={t("edit")}
+                        class="grid h-9 w-9 place-items-center rounded-lg border border-black/10 bg-white text-ink-soft transition hover:border-accent-300 hover:text-accent-600"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+                          <path d="M12 20h9" />
+                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                        </svg>
+                      </button>
+                      <button
+                        data-delete-btn
+                        aria-label={t("delete")}
+                        title={t("delete")}
+                        class="grid h-9 w-9 place-items-center rounded-lg border border-black/10 bg-white text-ink-soft transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+                          <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )
+      }
+    </div>
+  </div>
+
+  <!-- Edit item modal -->
+  <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+    <div class="card w-full max-w-md p-6">
+      <h2 class="font-display text-xl font-bold">{t("edit")}</h2>
+      <div class="mt-4">
+        <label class="block text-sm font-semibold text-ink">
+          {t("image")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+        </label>
+        <label
+          for="edit-image"
+          class="mt-1 flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-accent-200 bg-gradient-to-br from-violet-50/60 to-fuchsia-50/60 text-center text-sm text-ink-soft transition hover:border-accent-400"
+        >
+          <img id="edit-preview" class="hidden h-full w-full object-contain" alt="" />
+          <span id="edit-preview-ph" class="px-4">
+            {t("change")}<br />
+            <span class="text-xs text-ink-soft/70">{t("changeHint")}</span>
+          </span>
+        </label>
+        <input id="edit-image" type="file" accept="image/*" class="hidden" />
+        <button type="button" id="edit-remove-image" class="mt-1 hidden text-xs font-medium text-rose-600 hover:underline">{t("removePhoto")}</button>
+      </div>
+      <div class="mt-4">
+        <label for="edit-price" class="block text-sm font-semibold text-ink">
+          {t("price")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+        </label>
+        <input id="edit-price" type="text" maxlength="40" class="field mt-1" />
+      </div>
+      <div class="mt-4">
+        <label for="edit-url" class="block text-sm font-semibold text-ink">{t("productLink")}</label>
+        <input id="edit-url" type="url" placeholder="https://..." class="field mt-1" />
+      </div>
+      <p id="edit-error" class="mt-3 hidden text-sm font-medium text-rose-600"></p>
+      <div class="mt-6 flex justify-end gap-3">
+        <button id="edit-cancel" class="btn btn-ghost !px-4 !py-2 text-sm">{t("cancel")}</button>
+        <button id="edit-save" class="btn btn-primary !px-4 !py-2 text-sm">
+          <span data-save-label>{t("save")}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ M: pageStrings }}>
+    // Copy share link
+    const copyBtn = document.getElementById("copy-share");
+    copyBtn?.addEventListener("click", async () => {
+      const input = document.getElementById("share-url");
+      try {
+        await navigator.clipboard.writeText(input.value);
+      } catch {
+        input.select();
+        document.execCommand("copy");
+      }
+      copyBtn.textContent = M.copied;
+      setTimeout(() => (copyBtn.textContent = M.copyLink), 1500);
+    });
+
+    // --- Rename list ---
+    const titleView = document.getElementById("title-view");
+    const renameForm = document.getElementById("rename-form");
+    const renameInput = document.getElementById("rename-input");
+    const renameBtn = document.getElementById("rename-btn");
+    const renameCancel = document.getElementById("rename-cancel");
+    const wlTitle = document.getElementById("wl-title");
+    const wlId = renameForm.dataset.wishlistId;
+
+    function closeRename() {
+      renameForm.classList.add("hidden");
+      renameForm.classList.remove("flex");
+      titleView.classList.remove("hidden");
+    }
+    renameBtn?.addEventListener("click", () => {
+      titleView.classList.add("hidden");
+      renameForm.classList.remove("hidden");
+      renameForm.classList.add("flex");
+      renameInput.value = wlTitle.textContent.trim();
+      renameInput.focus();
+      renameInput.select();
+    });
+    renameCancel?.addEventListener("click", closeRename);
+    renameInput?.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeRename();
+    });
+    renameForm?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const name = renameInput.value.trim();
+      if (!name) return;
+      const sb = renameForm.querySelector('button[type="submit"]');
+      sb.disabled = true;
+      try {
+        const res = await fetch(`/api/wishlists/${wlId}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+        if (!res.ok) throw new Error();
+        wlTitle.textContent = name;
+        document.title = `${name} — WishDrop`;
+        closeRename();
+      } catch {
+        alert(M.renameFail);
+      } finally {
+        sb.disabled = false;
+      }
+    });
+
+    // Surprise mode toggle (persisted)
+    const surpriseToggle = document.getElementById("surprise-toggle");
+    const surpriseLabel = document.querySelector("[data-surprise-label]");
+    surpriseToggle?.addEventListener("change", async () => {
+      const hide = surpriseToggle.checked;
+      surpriseToggle.disabled = true;
+      if (surpriseLabel) surpriseLabel.textContent = hide ? M.on : M.off;
+      try {
+        const res = await fetch(`/api/wishlists/${surpriseToggle.dataset.wishlistId}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ hide_reservations: hide }),
+        });
+        if (!res.ok) throw new Error();
+        window.location.reload();
+      } catch {
+        surpriseToggle.checked = !hide;
+        if (surpriseLabel) surpriseLabel.textContent = surpriseToggle.checked ? M.on : M.off;
+        surpriseToggle.disabled = false;
+        alert(M.saveFail);
+      }
+    });
+
+    // Delete item
+    document.querySelectorAll("[data-delete-btn]").forEach((b) => {
+      b.addEventListener("click", async () => {
+        const card = b.closest("[data-item-id]");
+        const ok = window.wdConfirm ? await window.wdConfirm(M.delConfirm) : confirm(M.delConfirm);
+        if (!ok) return;
+        b.disabled = true;
+        const res = await fetch(`/api/items/${card.dataset.itemId}`, { method: "DELETE" });
+        if (res.ok) card.remove();
+        else {
+          alert(M.delFail);
+          b.disabled = false;
+        }
+      });
+    });
+
+    // Toggle "most wanted" priority (star)
+    document.querySelectorAll("[data-priority-btn]").forEach((b) => {
+      b.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const card = b.closest("[data-item-id]");
+        const on = !b.classList.contains("is-priority");
+        b.disabled = true;
+        try {
+          const res = await fetch(`/api/items/${card.dataset.itemId}`, {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ priority: on }),
+          });
+          if (!res.ok) throw new Error();
+          b.classList.toggle("is-priority", on);
+        } catch {
+          alert(M.saveFail);
+        } finally {
+          b.disabled = false;
+        }
+      });
+    });
+
+    // --- Edit item ---
+    const editModal = document.getElementById("edit-modal");
+    const editImage = document.getElementById("edit-image");
+    const editPreview = document.getElementById("edit-preview");
+    const editPreviewPh = document.getElementById("edit-preview-ph");
+    const editRemoveBtn = document.getElementById("edit-remove-image");
+    const editPrice = document.getElementById("edit-price");
+    const editUrl = document.getElementById("edit-url");
+    const editError = document.getElementById("edit-error");
+    const editSave = document.getElementById("edit-save");
+    const editSaveLabel = editModal.querySelector("[data-save-label]");
+    const editCancel = document.getElementById("edit-cancel");
+
+    let editItemId = null;
+    let editNewFile = null;
+    let editImageRemoved = false;
+
+    function showEditPreview(src) {
+      editPreview.src = src;
+      editPreview.classList.remove("hidden");
+      editPreviewPh.classList.add("hidden");
+      editRemoveBtn.classList.remove("hidden");
+    }
+    function hideEditPreview() {
+      editPreview.classList.add("hidden");
+      editPreviewPh.classList.remove("hidden");
+      editRemoveBtn.classList.add("hidden");
+    }
+    function closeEdit() {
+      editModal.classList.add("hidden");
+      editModal.classList.remove("flex");
+      editItemId = null;
+    }
+
+    document.querySelectorAll("[data-edit-btn]").forEach((b) => {
+      b.addEventListener("click", () => {
+        const card = b.closest("[data-item-id]");
+        editItemId = card.dataset.itemId;
+        editPrice.value = card.dataset.price || "";
+        editUrl.value = card.dataset.productUrl || "";
+        editNewFile = null;
+        editImageRemoved = false;
+        editImage.value = "";
+        editError.classList.add("hidden");
+        const imgUrl = card.dataset.imageUrl || "";
+        if (imgUrl) showEditPreview(imgUrl);
+        else hideEditPreview();
+        editModal.classList.remove("hidden");
+        editModal.classList.add("flex");
+      });
+    });
+
+    editImage.addEventListener("change", () => {
+      const file = editImage.files && editImage.files[0];
+      if (!file) return;
+      editNewFile = file;
+      editImageRemoved = false;
+      showEditPreview(URL.createObjectURL(file));
+    });
+    editRemoveBtn.addEventListener("click", () => {
+      editNewFile = null;
+      editImageRemoved = true;
+      editImage.value = "";
+      hideEditPreview();
+    });
+    editCancel.addEventListener("click", closeEdit);
+    editModal.addEventListener("click", (e) => {
+      if (e.target === editModal) closeEdit();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !editModal.classList.contains("hidden")) closeEdit();
+    });
+
+    editSave.addEventListener("click", async () => {
+      if (!editItemId) return;
+      editError.classList.add("hidden");
+      if (editNewFile && editNewFile.size > 5 * 1024 * 1024) {
+        editError.textContent = M.tooBig;
+        editError.classList.remove("hidden");
+        return;
+      }
+      editSave.disabled = true;
+      try {
+        const body = {
+          price: editPrice.value.trim() || null,
+          product_url: editUrl.value.trim() || null,
+        };
+        if (editNewFile) {
+          const fd = new FormData();
+          fd.append("file", editNewFile);
+          const up = await fetch("/api/upload", { method: "POST", body: fd });
+          const upData = await up.json();
+          if (!up.ok || !upData.image_key) throw new Error(upData.error || M.err);
+          body.image_key = upData.image_key;
+        } else if (editImageRemoved) {
+          body.image_key = "";
+        }
+        const res = await fetch(`/api/items/${editItemId}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || M.err);
+        window.location.reload();
+      } catch (err) {
+        editError.textContent = err instanceof Error ? err.message : M.err;
+        editError.classList.remove("hidden");
+        editSave.disabled = false;
+        editSaveLabel.textContent = M.save;
+      }
+    });
+  </script>
+</Layout>

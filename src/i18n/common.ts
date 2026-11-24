@@ -3,6 +3,8 @@ import type { Bundle } from "@/lib/i18n";
 /** Header, footer, mobile tab bar and the shared modals. */
 export default {
   ro: {
+    "footer.wantList": "Vrei și tu o listă de cadouri?",
+    "footer.createFree": "Creează una gratis →",
     "meta.title": "WishDrop — Liste de cadouri pe care le împarți cu drag",
     "meta.description": "Creează wishlist-uri frumoase cu poză, preț și link. Trimite un link, iar cei dragi rezervă — fără cadouri duble.",
     "nav.myLists": "Listele mele",
@@ -36,6 +38,8 @@ export default {
     "donate.close": "Închide",
   },
   en: {
+    "footer.wantList": "Want your own gift list?",
+    "footer.createFree": "Create one for free →",
     "meta.title": "WishDrop — Beautiful gift lists you love to share",
     "meta.description": "Build beautiful wishlists with photo, price and link. Share one link and your loved ones reserve gifts — no duplicate presents.",
     "nav.myLists": "My lists",
@@ -69,6 +73,8 @@ export default {
     "donate.close": "Close",
   },
   de: {
+    "footer.wantList": "Möchtest du auch eine Geschenkliste?",
+    "footer.createFree": "Erstelle eine kostenlos →",
     "meta.title": "WishDrop — Schöne Geschenklisten zum Teilen",
     "meta.description": "Erstelle schöne Wunschlisten mit Foto, Preis und Link. Teile einen Link und deine Liebsten reservieren Geschenke — keine doppelten Geschenke.",
     "nav.myLists": "Meine Listen",
@@ -102,6 +108,8 @@ export default {
     "donate.close": "Schließen",
   },
   ru: {
+    "footer.wantList": "Хотите свой список подарков?",
+    "footer.createFree": "Создайте бесплатно →",
     "meta.title": "WishDrop — Красивые списки подарков, которыми приятно делиться",
     "meta.description": "Создавайте красивые вишлисты с фото, ценой и ссылкой. Поделитесь одной ссылкой, и близкие забронируют подарки — без повторов.",
     "nav.myLists": "Мои списки",

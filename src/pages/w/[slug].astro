@@ -1,0 +1,566 @@
+---
+/**
+ * A public wishlist: anyone with the link can reserve a gift (guests too).
+ *
+ * - The owner sees "← Manage list"; in surprise mode (wishlists.hide_reservations)
+ *   reservations are hidden from them until they press "Reveal".
+ * - Whoever reserved a gift can cancel it: by the token kept on their device
+ *   (localStorage "wd_resv"), or by account when signed in.
+ * - The site header is hidden here, as on the live site: the list is the page.
+ */
+import Layout from "@/layouts/Layout.astro";
+import HeroArt from "@/components/list/HeroArt.astro";
+import GuestCta from "@/components/list/GuestCta.astro";
+import SeasonGreeting from "@/components/list/SeasonGreeting.astro";
+import { localePath, makeT, pick } from "@/lib/i18n";
+import { getItems, getUserById, getWishlistBySlug } from "@/lib/db";
+import { imageUrl } from "@/lib/storage";
+import common from "@/i18n/common";
+import publiclist from "@/i18n/publiclist";
+
+const { lang, user } = Astro.locals;
+const t = makeT(lang, common, publiclist);
+
+const list = await getWishlistBySlug(Astro.params.slug ?? "");
+if (!list) Astro.response.status = 404;
+
+const owner = list ? await getUserById(list.user_id) : null;
+const items = list ? await getItems(list.id) : [];
+const isOwner = !!user && !!list && user.id === list.user_id;
+const surprise = isOwner && !!list?.hide_reservations;
+const available = items.filter((i) => !i.reserved_at).length;
+
+const host = (url: string | null) => {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+};
+
+const RM = {
+  ...pick(t, {
+    confirm: "modal.confirm",
+    reveal: "list.reveal",
+    hide: "list.hide",
+    conflict: "js.conflict",
+    fail: "js.fail",
+    err: "js.err",
+    cancelFail: "js.cancelFail",
+  }),
+  isLoggedIn: !!user,
+  registerUrl: localePath(lang, "/register"),
+  loginUrl: localePath(lang, "/login"),
+};
+
+const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2l3.086 6.253 6.9 1.002-4.993 4.867 1.179 6.873z";
+---
+
+{
+  !list ? (
+    <Layout title={t("notFound.title")} description={t("list.description")} noindex mainClass="mx-auto flex max-w-md flex-col px-4 py-14 sm:py-20">
+      <div class="card rise-in p-8 text-center">
+        <div class="text-4xl">🎁</div>
+        <h1 class="mt-3 font-display text-3xl font-extrabold tracking-tight">{t("notFound.heading")}</h1>
+        <p class="mt-2 text-sm text-ink-soft">{t("notFound.text")}</p>
+        <a href={localePath(lang, "/")} class="btn btn-primary mt-6 w-full py-3">
+          {t("notFound.button")}
+        </a>
+      </div>
+    </Layout>
+  ) : (
+    <Layout
+      title={`${list.name} — WishDrop`}
+      description={t("list.description")}
+      noindex
+      header={false}
+      tabbar={false}
+      mainClass="relative z-10 mx-auto max-w-6xl px-4 py-10 sm:px-6"
+    >
+      <header class="relative overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 px-6 py-8 shadow-sm sm:px-12 sm:py-10">
+        <!-- Blob decorativ mare într-un colț -->
+        <div class="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-fuchsia-200/30 blur-3xl" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-violet-200/30 blur-3xl" aria-hidden="true"></div>
+        <HeroArt />
+        <div class="relative z-10">
+          <!-- Rând sus: logo stânga · salut sezon dreapta -->
+          <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+            <a href={localePath(lang, "/")} class="font-display text-sm font-bold tracking-tight text-ink-soft/70">
+              🎁 Wish<span class="gradient-text">Drop</span>
+            </a>
+            {owner && !owner.disable_seasons && <SeasonGreeting lang={lang} birthday={owner.birthday} />}
+          </div>
+          <!-- Titlu + subtitlu: mare, aliniat la stânga pe desktop -->
+          <div class="mt-6 text-center sm:mt-8 sm:text-left">
+            <h1 class="font-display text-4xl font-extrabold tracking-tight sm:text-6xl">{list.name}</h1>
+            <p class="mx-auto mt-4 max-w-md text-ink-soft sm:mx-0">{isOwner ? t("list.ownerSubtitle") : t("list.subtitle")}</p>
+          </div>
+          <!-- Footer hero: acțiuni owner + disponibilitate, centrate jos -->
+          <div class="mt-6 flex flex-col items-center gap-4 sm:mt-8">
+            {
+              isOwner && (
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                  <a href={localePath(lang, `/dashboard/${list.id}`)} class="btn btn-ghost !px-4 !py-2 text-sm">
+                    {t("list.manage")}
+                  </a>
+                  {surprise && (
+                    <button id="reveal-btn" type="button" data-revealed="false" class="btn btn-ghost !px-4 !py-2 text-sm">
+                      {t("list.reveal")}
+                    </button>
+                  )}
+                </div>
+              )
+            }
+            {
+              items.length > 0 && !surprise && (
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-accent-200 bg-white/70 px-4 py-1.5 text-xs font-semibold text-accent-700">
+                  <span aria-hidden="true">🎁</span>
+                  <span>{t("list.available", { available, total: items.length })}</span>
+                </span>
+              )
+            }
+          </div>
+        </div>
+      </header>
+
+      {
+        items.length === 0 ? (
+          <div class="card mt-10 p-10 text-center">
+            <div class="text-4xl" aria-hidden="true">
+              🎁
+            </div>
+            <p class="mt-3 text-ink-soft">{t("list.empty")}</p>
+            {isOwner && (
+              <a href={localePath(lang, `/dashboard/${list.id}`)} class="btn btn-primary mt-5 !px-5 !py-2.5 text-sm">
+                {t("list.emptyOwner")}
+              </a>
+            )}
+          </div>
+        ) : (
+          <div
+            id="items-grid"
+            data-surprise={surprise ? "on" : "off"}
+            data-owner={isOwner ? "true" : "false"}
+            class="mt-10 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
+          >
+            {items.map((item) => {
+              const reserved = !!item.reserved_at;
+              const mine = !!user && !!item.reserver_user_id && item.reserver_user_id === user.id;
+              const img = imageUrl(item.image_key);
+              const site = host(item.product_url);
+              const Wrapper = item.product_url ? "a" : "div";
+              const wrapperProps = item.product_url
+                ? { href: item.product_url, target: "_blank", rel: "noopener noreferrer", title: t("list.openProduct") }
+                : {};
+              return (
+                <article
+                  class="card group relative flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1.5 hover:shadow-[0_24px_44px_-26px_rgba(124,58,237,0.5)]"
+                  data-item-id={item.id}
+                  data-reserved={reserved ? "true" : "false"}
+                  data-my-reservation={mine ? "true" : "false"}
+                  data-price={item.price ?? ""}
+                  data-product-url={item.product_url ?? ""}
+                  data-image-url={img}
+                >
+                  <Wrapper class="relative block aspect-square overflow-hidden bg-gradient-to-br from-violet-50 to-fuchsia-50" {...wrapperProps}>
+                    {img ? (
+                      <img
+                        src={img}
+                        alt={item.price ? `${t("list.giftAlt")} — ${item.price}` : t("list.giftAlt")}
+                        loading="lazy"
+                        class:list={[
+                          "h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]",
+                          { "opacity-40 grayscale": reserved },
+                        ]}
+                        data-card-img
+                      />
+                    ) : (
+                      <div class:list={["grid h-full w-full place-items-center text-6xl", { "opacity-40 grayscale": reserved }]} data-card-img aria-hidden="true">
+                        🎁
+                      </div>
+                    )}
+                    <div class:list={["absolute inset-0 grid place-items-center bg-emerald-500/10", { hidden: !reserved }]} data-reserved-overlay>
+                      <div class="flex flex-col items-center gap-1.5">
+                        <span class="gift-tag -rotate-6">{t("list.reserved")}</span>
+                        <p
+                          class:list={[
+                            "max-w-[80%] truncate rounded-full bg-white/80 px-2.5 py-0.5 text-center text-xs font-semibold text-emerald-700",
+                            { hidden: !(reserved && item.reserved_by) },
+                          ]}
+                          data-reserved-name
+                        >
+                          {reserved ? item.reserved_by : ""}
+                        </p>
+                        <button data-unreserve-btn class="mt-1 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-rose-600 shadow-sm hover:bg-white hidden">
+                          {t("list.cancelReservation")}
+                        </button>
+                      </div>
+                    </div>
+                  </Wrapper>
+                  {/* "Most wanted" star — kept OUTSIDE the image link so tapping it never navigates. Indicator for visitors. */}
+                  {item.priority ? (
+                    <span
+                      class="priority-star is-priority absolute left-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full"
+                      title={t("list.mostWanted")}
+                      aria-label={t("list.mostWanted")}
+                    >
+                      <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]">
+                        <path d={STAR_PATH} />
+                      </svg>
+                    </span>
+                  ) : null}
+                  <div class="card-divider"></div>
+                  <div class="flex flex-1 flex-col gap-3 p-4">
+                    <div class="min-w-0">
+                      {item.price ? (
+                        <>
+                          <p class="font-display text-xl font-bold tracking-tight">{item.price}</p>
+                          {site && <p class="truncate font-medium text-ink-soft mt-0.5 text-xs text-ink-soft/70">{site}</p>}
+                        </>
+                      ) : (
+                        site && <p class="truncate font-medium text-ink-soft text-sm">{site}</p>
+                      )}
+                    </div>
+                    <div class="mt-auto flex flex-col gap-2.5 pt-1">
+                      <button data-reserve-btn class:list={["btn btn-primary w-full !py-3 text-sm font-semibold", { hidden: reserved }]}>
+                        {t("list.reserve")}
+                      </button>
+                      {item.product_url && (
+                        <>
+                          <span class="mx-auto h-px w-5/6 bg-black/10" aria-hidden="true"></span>
+                          <a
+                            href={item.product_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="inline-flex items-center justify-center gap-1 text-xs font-medium text-ink-soft transition hover:text-accent-600"
+                          >
+                            {t("list.viewProduct")} <span aria-hidden="true">↗</span>
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )
+      }
+
+      {!user && <GuestCta lang={lang} />}
+
+      <div id="reserve-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="reserve-modal-title">
+        <!-- Step 1: reservation form -->
+        <div class="card w-full max-w-md p-6" id="reserve-step-1">
+          <div class="text-3xl">🎀</div>
+          <h2 id="reserve-modal-title" class="mt-2 font-display text-2xl font-bold">{t("modal.title")}</h2>
+          <p class="mt-1 text-sm text-ink-soft">{t("modal.text")}</p>
+          <p class="mt-5 text-sm font-semibold text-ink">{t("modal.nameQuestion")}</p>
+          <div class="mt-2 grid grid-cols-2 gap-2.5">
+            <button type="button" data-choice="named" class="reserve-choice">{t("modal.named")}</button>
+            <button type="button" data-choice="anon" class="reserve-choice">{t("modal.anon")}</button>
+          </div>
+          <div id="reserve-name-field" class="mt-3 hidden">
+            <input id="reserve-name" type="text" maxlength="60" placeholder={t("modal.namePlaceholder")} class="field" />
+          </div>
+          <p id="reserve-error" class="mt-2 hidden text-sm font-medium text-rose-600"></p>
+          <div class="mt-6 flex flex-col gap-2.5">
+            <button id="reserve-confirm" class="btn btn-primary w-full !py-3 text-sm" disabled>
+              <span data-confirm-label>{t("modal.confirm")}</span>
+            </button>
+            <button id="reserve-cancel" class="btn btn-ghost w-full !py-2.5 text-sm">{t("modal.cancel")}</button>
+          </div>
+        </div>
+        <!-- Step 2: CTA after successful reservation (only for guests) -->
+        <div class="card hidden w-full max-w-md p-6 text-center" id="reserve-step-2">
+          <div class="text-4xl">🎁</div>
+          <h2 class="mt-3 font-display text-xl font-bold">{t("step2.title")}</h2>
+          <p class="mt-2 text-sm text-ink-soft">{t("step2.text")}</p>
+          <div class="mt-6 flex flex-col gap-2.5">
+            <a id="reserve-cta-btn" href={RM.registerUrl} class="btn btn-primary w-full !py-3 text-sm">
+              {t("step2.create")}
+            </a>
+            <a id="reserve-cta-login" href={RM.loginUrl} class="btn btn-ghost w-full !py-2.5 text-sm">
+              {t("step2.login")}
+            </a>
+            <button id="reserve-cta-skip" class="btn btn-ghost w-full !py-2 text-xs text-ink-soft/60">{t("step2.skip")}</button>
+          </div>
+        </div>
+      </div>
+
+
+      <script is:inline define:vars={{ RM }}>
+        // A tiny dependency-free confetti burst, fired when a gift is reserved.
+        function fireConfetti() {
+          if (window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+          const canvas = document.createElement("canvas");
+          canvas.style.cssText = "position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:60";
+          document.body.appendChild(canvas);
+          const ctx = canvas.getContext("2d");
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          const resize = () => {
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+          };
+          resize();
+          const colors = ["#7c3aed", "#d946ef", "#f59e0b", "#10b981", "#f472b6"];
+          const parts = [];
+          for (let i = 0; i < 130; i++) {
+            parts.push({
+              x: (window.innerWidth / 2) * dpr,
+              y: window.innerHeight * 0.4 * dpr,
+              vx: (Math.random() - 0.5) * 16 * dpr,
+              vy: (Math.random() * -13 - 5) * dpr,
+              g: 0.38 * dpr,
+              size: (Math.random() * 6 + 4) * dpr,
+              color: colors[i % colors.length],
+              rot: Math.random() * Math.PI,
+              vr: (Math.random() - 0.5) * 0.3,
+            });
+          }
+          const start = performance.now();
+          function frame(now) {
+            const t = now - start;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (const p of parts) {
+              p.vy += p.g;
+              p.x += p.vx;
+              p.y += p.vy;
+              p.vx *= 0.99;
+              p.rot += p.vr;
+              ctx.save();
+              ctx.translate(p.x, p.y);
+              ctx.rotate(p.rot);
+              ctx.globalAlpha = Math.max(0, 1 - t / 2400);
+              ctx.fillStyle = p.color;
+              ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+              ctx.restore();
+            }
+            if (t < 2400) requestAnimationFrame(frame);
+            else canvas.remove();
+          }
+          requestAnimationFrame(frame);
+        }
+
+        const modal = document.getElementById("reserve-modal");
+        const nameInput = document.getElementById("reserve-name");
+        const nameField = document.getElementById("reserve-name-field");
+        const confirmBtn = document.getElementById("reserve-confirm");
+        const cancelBtn = document.getElementById("reserve-cancel");
+        const confirmLabel = modal.querySelector("[data-confirm-label]");
+        const modalError = document.getElementById("reserve-error");
+        const choiceBtns = Array.from(modal.querySelectorAll("[data-choice]"));
+
+        // Step 2 CTA (for guests after a successful reservation)
+        const step1 = document.getElementById("reserve-step-1");
+        const step2 = document.getElementById("reserve-step-2");
+        const ctaBtn = document.getElementById("reserve-cta-btn");
+        const ctaSkip = document.getElementById("reserve-cta-skip");
+        const ctaLoginBtn = document.getElementById("reserve-cta-login");
+
+        let activeCard = null;
+        let choice = null;
+        let busy = false;
+
+        function updateConfirm() {
+          const ready = choice === "anon" || (choice === "named" && nameInput.value.trim().length > 0);
+          confirmBtn.disabled = busy || !ready;
+        }
+
+        function setChoice(next) {
+          choice = next;
+          choiceBtns.forEach((b) => {
+            b.classList.toggle("is-selected", b.dataset.choice === next);
+          });
+          if (next === "named") {
+            nameField.classList.remove("hidden");
+            nameInput.focus();
+          } else {
+            nameField.classList.add("hidden");
+          }
+          updateConfirm();
+        }
+
+        function openModal(card) {
+          activeCard = card;
+          choice = null;
+          busy = false;
+          nameInput.value = "";
+          nameField.classList.add("hidden");
+          choiceBtns.forEach((b) => b.classList.remove("is-selected"));
+          confirmLabel.textContent = RM.confirm;
+          confirmBtn.disabled = true;
+          modalError.classList.add("hidden");
+          step1.classList.remove("hidden");
+          step2.classList.add("hidden");
+          modal.classList.remove("hidden");
+          modal.classList.add("flex");
+        }
+
+        function closeModal() {
+          modal.classList.add("hidden");
+          modal.classList.remove("flex");
+          activeCard = null;
+        }
+
+        function setLoading(loading) {
+          // No content swap → button keeps its size; disabled state signals progress.
+          busy = loading;
+          updateConfirm();
+        }
+
+        choiceBtns.forEach((b) => b.addEventListener("click", () => setChoice(b.dataset.choice)));
+        nameInput.addEventListener("input", updateConfirm);
+
+        document.querySelectorAll("[data-reserve-btn]").forEach((btn) => {
+          btn.addEventListener("click", () => openModal(btn.closest("[data-item-id]")));
+        });
+
+        cancelBtn.addEventListener("click", closeModal);
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) closeModal();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
+        });
+
+        function markReserved(card, name) {
+          card.dataset.reserved = "true";
+          card.querySelector("[data-card-img]")?.classList.add("opacity-40", "grayscale");
+          card.querySelector("[data-reserve-btn]")?.classList.add("hidden");
+          card.querySelector("[data-reserved-overlay]")?.classList.remove("hidden");
+          const nameEl = card.querySelector("[data-reserved-name]");
+          if (nameEl) {
+            if (name) {
+              nameEl.textContent = name;
+              nameEl.classList.remove("hidden");
+            } else {
+              nameEl.classList.add("hidden");
+            }
+          }
+        }
+
+        ctaSkip?.addEventListener("click", closeModal);
+        if (ctaBtn) ctaBtn.href = RM.registerUrl;
+        if (ctaLoginBtn) ctaLoginBtn.href = RM.loginUrl;
+
+        function showCTA() {
+          step1.classList.add("hidden");
+          step2.classList.remove("hidden");
+        }
+
+        confirmBtn.addEventListener("click", async () => {
+          if (!activeCard || confirmBtn.disabled) return;
+          const itemId = activeCard.dataset.itemId;
+          const name = choice === "named" ? nameInput.value.trim() : "";
+          modalError.classList.add("hidden");
+          setLoading(true);
+          try {
+            const res = await fetch(`/api/items/${itemId}/reserve`, {
+              method: "PATCH",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ reserved_by: name || null }),
+            });
+            const data = await res.json();
+            if (res.status === 409) {
+              markReserved(activeCard, "");
+              throw new Error(RM.conflict);
+            }
+            if (!res.ok) throw new Error(data.error || RM.fail);
+            markReserved(activeCard, name);
+            if (data.token) saveToken(itemId, data.token);
+            showCancel(activeCard);
+            fireConfetti();
+            if (RM.isLoggedIn) {
+              closeModal();
+            } else {
+              showCTA();
+            }
+          } catch (err) {
+            modalError.textContent = err instanceof Error ? err.message : RM.err;
+            modalError.classList.remove("hidden");
+            setLoading(false);
+          }
+        });
+
+        // --- Cancel reservation (only the reserver, from this device, via token) ---
+        const TOKENS_KEY = "wd_resv";
+        function getTokens() {
+          try {
+            return JSON.parse(localStorage.getItem(TOKENS_KEY) || "{}");
+          } catch {
+            return {};
+          }
+        }
+        function saveToken(id, token) {
+          const t = getTokens();
+          t[id] = token;
+          localStorage.setItem(TOKENS_KEY, JSON.stringify(t));
+        }
+        function removeToken(id) {
+          const t = getTokens();
+          delete t[id];
+          localStorage.setItem(TOKENS_KEY, JSON.stringify(t));
+        }
+        function showCancel(card) {
+          card?.querySelector("[data-unreserve-btn]")?.classList.remove("hidden");
+        }
+        function markAvailable(card) {
+          card.dataset.reserved = "false";
+          card.querySelector("[data-card-img]")?.classList.remove("opacity-40", "grayscale");
+          card.querySelector("[data-reserve-btn]")?.classList.remove("hidden");
+          card.querySelector("[data-reserved-overlay]")?.classList.add("hidden");
+          card.querySelector("[data-unreserve-btn]")?.classList.add("hidden");
+        }
+
+        // On load, reveal the cancel button for: items with a localStorage token OR
+        // items where the signed-in user is the reserver (data-my-reservation).
+        const myTokens = getTokens();
+        document.querySelectorAll("[data-item-id]").forEach((card) => {
+          if (card.dataset.reserved === "true") {
+            if (myTokens[card.dataset.itemId] || card.dataset.myReservation === "true") {
+              showCancel(card);
+            }
+          }
+        });
+
+        document.querySelectorAll("[data-unreserve-btn]").forEach((btn) => {
+          btn.addEventListener("click", async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const card = btn.closest("[data-item-id]");
+            const id = card.dataset.itemId;
+            const token = getTokens()[id];
+            const isMyReservation = card.dataset.myReservation === "true";
+            if (!token && !isMyReservation) return;
+            btn.disabled = true;
+            try {
+              const res = await fetch(`/api/items/${id}/reserve`, {
+                method: "DELETE",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ token: token || "" }),
+              });
+              if (!res.ok) throw new Error();
+              removeToken(id);
+              markAvailable(card);
+            } catch {
+              alert(RM.cancelFail);
+              btn.disabled = false;
+            }
+          });
+        });
+
+        // Owner surprise mode: peek at reservations
+        const revealBtn = document.getElementById("reveal-btn");
+        const grid = document.getElementById("items-grid");
+        revealBtn?.addEventListener("click", () => {
+          const next = revealBtn.dataset.revealed !== "true";
+          revealBtn.dataset.revealed = String(next);
+          grid?.setAttribute("data-surprise", next ? "off" : "on");
+          revealBtn.textContent = next ? RM.hide : RM.reveal;
+        });
+      </script>
+    </Layout>
+  )
+}

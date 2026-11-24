@@ -1,0 +1,40 @@
+---
+/** Shared layout for the privacy policy and the terms (content in src/i18n/legal.ts). */
+import Layout from "@/layouts/Layout.astro";
+import type { LegalDoc } from "@/i18n/legal";
+
+interface Props {
+  doc: LegalDoc;
+}
+const { doc } = Astro.props;
+
+/** "write to {contact@wishdrop.site}." → text and mailto parts. */
+const parts = (text: string) =>
+  text.split(/\{([^{}\s]+@[^{}\s]+)\}/).map((part, i) => ({ text: part, email: i % 2 === 1 }));
+---
+
+<Layout title={doc.title} description={doc.description} mainClass="mx-auto max-w-2xl px-4 py-14 sm:px-6">
+  <h1 class="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{doc.h1}</h1>
+  <p class="mt-2 text-sm text-ink-soft/70">{doc.updated}</p>
+  <p class="mt-6 leading-relaxed text-ink-soft">{doc.intro}</p>
+  <div class="mt-10 space-y-8">
+    {
+      doc.sections.map((s) => (
+        <section>
+          <h2 class="font-display text-lg font-bold">{s.h}</h2>
+          {s.list ? (
+            <ul class="mt-2 list-disc space-y-1.5 pl-5 leading-relaxed text-ink-soft">
+              {s.list.map((li) => (
+                <li>{parts(li).map((p) => (p.email ? <a href={`mailto:${p.text}`}>{p.text}</a> : p.text))}</li>
+              ))}
+            </ul>
+          ) : (
+            <p class="mt-2 leading-relaxed text-ink-soft">
+              {parts(s.p ?? "").map((p) => (p.email ? <a href={`mailto:${p.text}`}>{p.text}</a> : p.text))}
+            </p>
+          )}
+        </section>
+      ))
+    }
+  </div>
+</Layout>

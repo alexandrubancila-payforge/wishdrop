@@ -1,0 +1,136 @@
+---
+/** Home: the pitch, how it works, and a closing call to action. */
+import Layout from "@/layouts/Layout.astro";
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import home from "@/i18n/home";
+
+const { lang, user } = Astro.locals;
+const t = makeT(lang, common, home);
+const href = (p: string) => localePath(lang, p);
+// Signed-in visitors go straight to their lists instead of the sign-up flow.
+const startHref = user ? href("/dashboard") : href("/register");
+---
+
+<Layout>
+  <!-- Hero -->
+  <section class="mx-auto max-w-6xl px-4 pt-14 sm:px-6 sm:pt-20">
+    <div class="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+      <!-- Left: the thesis -->
+      <div class="rise-in">
+        <span class="inline-flex items-center gap-2 rounded-full border border-accent-200 bg-white/70 px-4 py-1.5 text-sm font-semibold text-accent-700 shadow-sm">
+          {t("home.badge")}
+        </span>
+        <h1 class="mt-6 font-display text-5xl font-extrabold leading-[1.02] tracking-tight sm:text-6xl">
+          {t("home.h1a")}<br />
+          <span class="gradient-text">{t("home.h1b")}</span>
+        </h1>
+        <p class="mt-6 max-w-xl text-lg leading-relaxed text-ink-soft">{t("home.lead")}</p>
+        <div class="mt-9 flex flex-col gap-3 sm:flex-row">
+          <a href={startHref} class="btn btn-primary px-7 py-3.5 text-base">
+            {user ? t("home.goToLists") : t("home.start")} <span aria-hidden="true">→</span>
+          </a>
+          {
+            !user && (
+              <a href={href("/login")} class="btn btn-ghost px-7 py-3.5 text-base">
+                {t("home.haveAccount")}
+              </a>
+            )
+          }
+        </div>
+        <p class="mt-5 text-sm text-ink-soft/80">{t("home.free")}</p>
+        <a
+          href={href("/example")}
+          class="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-accent-600 transition hover:text-accent-700 hover:underline"
+        >
+          {t("home.example")} <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+
+      <!-- Right: the signature — gifts you actually reserve -->
+      <div class="relative h-[420px] sm:h-[460px]" aria-hidden="true">
+        <div class="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fuchsia-300/30 blur-3xl"></div>
+
+        <div class="float-soft card absolute left-2 top-6 w-44 overflow-hidden sm:left-6" style="--tilt:-7deg; animation-delay:-1s;">
+          <img src="/demo/headphones.jpg" alt="" loading="lazy" class="h-32 w-full object-cover" />
+          <div class="p-3">
+            <p class="font-display text-lg font-bold">349 lei</p>
+            <span class="text-xs font-semibold text-accent-600">{t("home.reserve")}</span>
+          </div>
+        </div>
+
+        <div class="float-soft card absolute right-2 top-0 w-48 overflow-hidden sm:right-6" style="--tilt:6deg;">
+          <div class="relative">
+            <img src="/demo/watch.jpg" alt="" loading="lazy" class="h-36 w-full object-cover opacity-40 grayscale" />
+            <div class="absolute inset-0 grid place-items-center bg-emerald-500/10">
+              <span class="gift-tag -rotate-6">{t("home.reserved")}</span>
+            </div>
+          </div>
+          <div class="p-3">
+            <p class="font-display text-lg font-bold text-ink/50">799 lei</p>
+            <span class="text-xs font-semibold text-emerald-600">{t("home.picked")}</span>
+          </div>
+        </div>
+
+        <div class="float-soft card absolute bottom-2 left-1/2 w-44 -translate-x-1/2 overflow-hidden" style="--tilt:3deg; animation-delay:-3s;">
+          <img src="/demo/books.jpg" alt="" loading="lazy" class="h-28 w-full object-cover" />
+          <div class="p-3">
+            <p class="font-display text-lg font-bold">120 lei</p>
+            <span class="text-xs font-semibold text-accent-600">{t("home.reserve")}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-28">
+    <h2 class="text-center font-display text-3xl font-bold tracking-tight sm:text-4xl">{t("home.stepsTitle")}</h2>
+    <div class="mt-12 grid gap-6 sm:grid-cols-3">
+      <div class="card p-7">
+        <div class="grid h-14 w-14 place-items-center rounded-2xl gift-gradient text-white shadow-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7"
+            ><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg
+          >
+        </div>
+        <h3 class="mt-5 font-display text-xl font-bold">{t("home.step1Title")}</h3>
+        <p class="mt-2 text-sm leading-relaxed text-ink-soft">{t("home.step1Text")}</p>
+      </div>
+      <div class="card p-7">
+        <div class="grid h-14 w-14 place-items-center rounded-2xl gift-gradient text-white shadow-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7"
+            ><path d="m22 2-7 20-4-9-9-4Z"></path><path d="M22 2 11 13"></path></svg
+          >
+        </div>
+        <h3 class="mt-5 font-display text-xl font-bold">{t("home.step2Title")}</h3>
+        <p class="mt-2 text-sm leading-relaxed text-ink-soft">{t("home.step2Text")}</p>
+      </div>
+      <div class="card p-7">
+        <div class="grid h-14 w-14 place-items-center rounded-2xl gift-gradient text-white shadow-sm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-7 w-7"
+            ><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path
+              d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path
+              d="M7.5 8a2.5 2.5 0 0 1 0-5C9 3 10.5 4 12 8c1.5-4 3-5 4.5-5a2.5 2.5 0 0 1 0 5"></path></svg
+          >
+        </div>
+        <h3 class="mt-5 font-display text-xl font-bold">{t("home.step3Title")}</h3>
+        <p class="mt-2 text-sm leading-relaxed text-ink-soft">{t("home.step3Text")}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Closing CTA -->
+  {
+    !user && (
+    <section class="mx-auto max-w-6xl px-4 pb-14 sm:px-6 sm:pb-24">
+      <div class="relative overflow-hidden rounded-[2rem] gift-gradient px-8 py-14 text-center text-white shadow-xl sm:py-16">
+        <h2 class="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{t("home.ctaTitle")}</h2>
+        <p class="mx-auto mt-3 max-w-md text-white/90">{t("home.ctaText")}</p>
+        <a href={startHref} class="btn mt-8 bg-white px-7 py-3.5 text-base text-accent-700 hover:-translate-y-0.5">
+          {t("home.ctaBtn")}
+        </a>
+      </div>
+    </section>
+    )
+  }
+</Layout>

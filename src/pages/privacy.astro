@@ -1,0 +1,8 @@
+---
+import LegalPage from "@/components/public/LegalPage.astro";
+import { privacy } from "@/i18n/legal";
+
+const doc = privacy[Astro.locals.lang];
+---
+
+<LegalPage doc={doc} />

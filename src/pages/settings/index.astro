@@ -1,0 +1,301 @@
+---
+/** Settings → Profile: photo, name, birthday, account stats and seasonal themes. */
+import Layout from "@/layouts/Layout.astro";
+import SettingsTabs from "@/components/dashboard/SettingsTabs.astro";
+import { makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import strings from "@/i18n/settings";
+import { db } from "@/lib/db";
+import { plural } from "@/components/dashboard/plural";
+
+const { lang } = Astro.locals;
+const user = Astro.locals.user!;
+const t = makeT(lang, common, strings);
+
+const stats = (await db()
+  .prepare(
+    `SELECT (SELECT COUNT(*) FROM wishlists WHERE user_id = ?1) AS lists,
+            (SELECT COUNT(*) FROM items i JOIN wishlists w ON w.id = i.wishlist_id WHERE w.user_id = ?1) AS gifts,
+            (SELECT COUNT(*) FROM items i JOIN wishlists w ON w.id = i.wishlist_id
+              WHERE w.user_id = ?1 AND i.reserved_at IS NOT NULL) AS reserved`,
+  )
+  .bind(user.id)
+  .first<{ lists: number; gifts: number; reserved: number }>()) ?? { lists: 0, gifts: 0, reserved: 0 };
+
+const displayName = user.name || user.email.split("@")[0];
+const initial = displayName.trim().charAt(0).toUpperCase() || "?";
+const memberSince = new Date(user.created_at).getFullYear();
+const seasonsEnabled = !user.disable_seasons;
+
+const M = {
+  saved: t("js.saved"),
+  saveFail: t("js.saveFail"),
+  tooBig: t("js.tooBig"),
+  save: t("js.save"),
+  seasonsOn: t("js.seasonsOn"),
+  seasonsOff: t("js.seasonsOff"),
+};
+const initialAvatar = user.avatar_url ?? "";
+---
+
+<Layout title={t("titleProfile")} noindex mainClass="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+  <div class="mx-auto max-w-xl">
+    <SettingsTabs active="profile" />
+  </div>
+
+  <!-- Profile hero -->
+  <section class="card mt-8 overflow-hidden">
+    <div class="h-24 gift-gradient"></div>
+    <div class="px-6 pb-6">
+      <div class="-mt-8 flex items-end gap-4">
+        <div class="relative shrink-0">
+          <img
+            id="avatar-preview"
+            src={user.avatar_url || undefined}
+            alt=""
+            referrerpolicy="no-referrer"
+            class:list={["h-24 w-24 rounded-full object-cover ring-4 ring-white", !user.avatar_url && "hidden"]}
+          />
+          <span
+            id="avatar-initial"
+            class:list={[
+              "grid h-24 w-24 place-items-center rounded-full gift-gradient text-3xl font-bold text-white ring-4 ring-white",
+              user.avatar_url && "hidden",
+            ]}
+          >
+            {initial}
+          </span>
+          <label
+            for="avatar-input"
+            aria-label={t("changePhoto")}
+            title={t("changePhoto")}
+            class="absolute -bottom-0.5 -right-0.5 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-black/5 bg-white text-ink-soft shadow-md transition hover:text-accent-600"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
+              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+              <circle cx="12" cy="13" r="3" />
+            </svg>
+          </label>
+          <input id="avatar-input" type="file" accept="image/*" class="hidden" />
+        </div>
+        <div class="min-w-0 pb-1">
+          <p class="truncate font-display text-xl font-bold">{displayName}</p>
+          <p class="truncate text-sm text-ink-soft">{user.email}</p>
+        </div>
+      </div>
+      <p class="mt-4 text-xs text-ink-soft">{t("memberSince", { year: memberSince })}</p>
+    </div>
+  </section>
+
+  <!-- Dashboard grid: form (main) + sidebar (stats + seasonal) -->
+  <div class="mt-6 grid gap-6 lg:grid-cols-3">
+    <!-- Main column: edit fields -->
+    <form id="settings-form" class="lg:col-span-2">
+      <section class="card space-y-5 p-6 sm:p-8">
+        <h2 class="font-display text-lg font-bold">{t("profile")}</h2>
+        <div>
+          <label for="set-name" class="block text-sm font-semibold text-ink">{t("name")}</label>
+          <input
+            id="set-name"
+            name="name"
+            type="text"
+            maxlength="100"
+            value={user.name ?? ""}
+            placeholder={t("namePlaceholder")}
+            class="field mt-1"
+          />
+        </div>
+        <div>
+          <label for="set-birthday" class="block text-sm font-semibold text-ink">
+            {t("birthday")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+          </label>
+          <input id="set-birthday" name="birthday" type="date" value={user.birthday ?? ""} class="field mt-1" />
+        </div>
+        <div class="flex items-center justify-end gap-3 border-t border-black/5 pt-5">
+          <p id="settings-status" class="hidden text-sm font-medium"></p>
+          <button type="submit" id="settings-save" class="btn btn-primary py-2.5">
+            <span data-save-label>{t("save")}</span>
+          </button>
+        </div>
+      </section>
+    </form>
+
+    <!-- Sidebar: stats + seasonal toggle -->
+    <div class="space-y-6 lg:col-span-1">
+      <div class="grid grid-cols-3 gap-3 lg:grid-cols-1">
+        <div class="card flex items-center gap-3 p-4 lg:justify-start">
+          <p class="font-display text-2xl font-extrabold lg:text-3xl">{stats.lists}</p>
+          <p class="text-xs text-ink-soft">{plural(t, lang, "stat.lists", stats.lists)}</p>
+        </div>
+        <div class="card flex items-center gap-3 p-4 lg:justify-start">
+          <p class="font-display text-2xl font-extrabold lg:text-3xl">{stats.gifts}</p>
+          <p class="text-xs text-ink-soft">{plural(t, lang, "stat.gifts", stats.gifts)}</p>
+        </div>
+        <div class="card flex items-center gap-3 p-4 lg:justify-start">
+          <p class="font-display text-2xl font-extrabold text-emerald-600 lg:text-3xl">{stats.reserved}</p>
+          <p class="text-xs text-ink-soft">{plural(t, lang, "stat.reserved", stats.reserved)}</p>
+        </div>
+      </div>
+
+      <!-- Seasonal themes toggle -->
+      <section class="card p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <p class="font-semibold text-ink">{t("seasons")}</p>
+            <p class="mt-0.5 text-sm text-ink-soft">{t("seasonsText")}</p>
+          </div>
+          <button
+            id="seasons-toggle"
+            type="button"
+            data-enabled={seasonsEnabled ? "true" : "false"}
+            class:list={[
+              "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
+              seasonsEnabled ? "bg-accent-500" : "bg-black/20",
+            ]}
+            aria-checked={seasonsEnabled ? "true" : "false"}
+            aria-label={t("seasons")}
+            role="switch"
+          >
+            <span
+              class:list={[
+                "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform duration-200",
+                seasonsEnabled ? "translate-x-5" : "translate-x-0",
+              ]}
+            ></span>
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script is:inline define:vars={{ M, initialAvatar }}>
+    const form = document.getElementById("settings-form");
+    const fileInput = document.getElementById("avatar-input");
+    const preview = document.getElementById("avatar-preview");
+    const initialEl = document.getElementById("avatar-initial");
+    const saveBtn = document.getElementById("settings-save");
+    const saveLabel = form.querySelector("[data-save-label]");
+    const status = document.getElementById("settings-status");
+    const MAX_BYTES = 5 * 1024 * 1024;
+
+    let avatarUrl = initialAvatar || "";
+    let avatarChanged = false;
+
+    function showAvatar(url) {
+      if (url) {
+        preview.src = url;
+        preview.classList.remove("hidden");
+        initialEl.classList.add("hidden");
+      } else {
+        preview.classList.add("hidden");
+        initialEl.classList.remove("hidden");
+      }
+    }
+
+    function setStatus(msg, ok) {
+      status.textContent = msg;
+      status.className = "text-sm font-medium " + (ok ? "text-emerald-600" : "text-rose-600");
+      status.classList.remove("hidden");
+    }
+
+    async function downscale(file) {
+      if (!file.type.startsWith("image/")) return file;
+      let bmp;
+      try {
+        bmp = await createImageBitmap(file);
+      } catch {
+        return file;
+      }
+      const max = 512;
+      const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+      const w = Math.round(bmp.width * scale);
+      const h = Math.round(bmp.height * scale);
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      canvas.getContext("2d").drawImage(bmp, 0, 0, w, h);
+      bmp.close?.();
+      const blob = await new Promise((r) => canvas.toBlob(r, "image/webp", 0.85));
+      if (!blob || blob.size >= file.size) return file;
+      return new File([blob], "avatar.webp", { type: "image/webp" });
+    }
+
+    fileInput.addEventListener("change", async () => {
+      const raw = fileInput.files && fileInput.files[0];
+      if (!raw) return;
+      if (raw.size > MAX_BYTES) return setStatus(M.tooBig, false);
+      status.classList.add("hidden");
+      saveBtn.disabled = true;
+      try {
+        const file = await downscale(raw);
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok || !data.url) throw new Error();
+        avatarUrl = data.url;
+        avatarChanged = true;
+        showAvatar(avatarUrl);
+      } catch {
+        setStatus(M.saveFail, false);
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      status.classList.add("hidden");
+      saveBtn.disabled = true;
+      const body = {
+        name: document.getElementById("set-name").value.trim(),
+        birthday: document.getElementById("set-birthday").value,
+      };
+      if (avatarChanged) body.avatar_url = avatarUrl ? avatarUrl.split("?")[0] : null;
+      try {
+        const res = await fetch("/api/account/profile", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error();
+        avatarChanged = false;
+        setStatus(M.saved, true);
+      } catch {
+        setStatus(M.saveFail, false);
+      } finally {
+        saveBtn.disabled = false;
+        saveLabel.textContent = M.save;
+      }
+    });
+
+    // Seasonal themes toggle
+    const seasonsToggle = document.getElementById("seasons-toggle");
+    seasonsToggle?.addEventListener("click", async () => {
+      const wasEnabled = seasonsToggle.dataset.enabled === "true";
+      const nowEnabled = !wasEnabled;
+      seasonsToggle.dataset.enabled = String(nowEnabled);
+      seasonsToggle.setAttribute("aria-checked", String(nowEnabled));
+      seasonsToggle.classList.toggle("bg-accent-500", nowEnabled);
+      seasonsToggle.classList.toggle("bg-black/20", !nowEnabled);
+      const thumb = seasonsToggle.querySelector("span");
+      thumb?.classList.toggle("translate-x-5", nowEnabled);
+      thumb?.classList.toggle("translate-x-0", !nowEnabled);
+      try {
+        await fetch("/api/account/seasons", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ disable: !nowEnabled }),
+        });
+      } catch {
+        // revert on error
+        seasonsToggle.dataset.enabled = String(wasEnabled);
+        seasonsToggle.setAttribute("aria-checked", String(wasEnabled));
+        seasonsToggle.classList.toggle("bg-accent-500", wasEnabled);
+        seasonsToggle.classList.toggle("bg-black/20", !wasEnabled);
+        thumb?.classList.toggle("translate-x-5", wasEnabled);
+        thumb?.classList.toggle("translate-x-0", !wasEnabled);
+      }
+    });
+  </script>
+</Layout>
