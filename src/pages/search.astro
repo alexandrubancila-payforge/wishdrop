@@ -30,21 +30,25 @@ const relTo = (id: string): Relation => (user?.id === id ? "self" : (mine.get(id
   <h1 class="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{t("search.heading")}</h1>
   <p class="mt-1 text-ink-soft">{t("search.intro")}</p>
 
-  <form method="get" class="card mt-6 flex gap-3 p-4 sm:p-5" role="search">
+  <form method="get" id="search-form" class="card mt-6 p-4 sm:p-5" role="search">
     <label for="q" class="sr-only">{t("search.placeholder")}</label>
-    <input
-      id="q"
-      name="q"
-      type="search"
-      value={q}
-      minlength="2"
-      maxlength="50"
-      autocomplete="off"
-      autofocus={!q}
-      placeholder={t("search.placeholder")}
-      class="field flex-1"
-    />
-    <button type="submit" class="btn btn-primary py-2.5">{t("search.button")}</button>
+    <div class="relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-soft/60" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input
+        id="q"
+        name="q"
+        type="search"
+        value={q}
+        maxlength="50"
+        autocomplete="off"
+        autocapitalize="none"
+        spellcheck="false"
+        autofocus
+        placeholder={t("search.placeholder")}
+        class="field !pl-11 !pr-11"
+      />
+      <span id="search-spinner" class="btn-spinner pointer-events-none absolute right-4 top-1/2 hidden -translate-y-1/2 text-accent-500" aria-hidden="true"></span>
+    </div>
   </form>
   <p class="mt-2 text-xs text-ink-soft/70">{t("search.hint")}</p>
 
@@ -60,24 +64,76 @@ const relTo = (id: string): Relation => (user?.id === id ? "self" : (mine.get(id
     )
   }
 
-  {
-    q && q.length < 2 ? (
-      <p class="mt-8 text-center text-sm text-ink-soft">{t("search.short")}</p>
-    ) : q && results.length === 0 ? (
-      <div class="card mt-8 p-8 text-center">
-        <div class="text-4xl">🔍</div>
-        <p class="mt-3 text-sm text-ink-soft">{t("search.empty", { q })}</p>
-      </div>
-    ) : (
-      results.length > 0 && (
-        <ul class="card mt-8 divide-y divide-black/5 px-5">
-          {results.map((p) => (
-            <PersonRow person={p} meta={plural(t, lang, "search.followers", p.followers)}>
-              <FollowButton username={p.username!} relation={relTo(p.id)} isPrivate={!!p.is_private} size="sm" />
-            </PersonRow>
-          ))}
-        </ul>
+  <div id="search-results" aria-live="polite">
+    {
+      q && q.length < 2 ? (
+        <p class="mt-8 text-center text-sm text-ink-soft">{t("search.short")}</p>
+      ) : q && results.length === 0 ? (
+        <div class="card mt-8 p-8 text-center">
+          <div class="text-4xl">🔍</div>
+          <p class="mt-3 text-sm text-ink-soft">{t("search.empty", { q })}</p>
+        </div>
+      ) : (
+        results.length > 0 && (
+          <ul class="card mt-8 divide-y divide-black/5 px-5">
+            {results.map((p) => (
+              <PersonRow person={p} meta={plural(t, lang, "search.followers", p.followers)}>
+                <FollowButton username={p.username!} relation={relTo(p.id)} isPrivate={!!p.is_private} size="sm" />
+              </PersonRow>
+            ))}
+          </ul>
+        )
       )
-    )
-  }
+    }
+  </div>
+
+  <script>
+    import "@/scripts/follow";
+
+    // Search as you type: fetch this same page with ?q= and swap in its results.
+    const form = document.getElementById("search-form") as HTMLFormElement;
+    const input = document.getElementById("q") as HTMLInputElement;
+    const results = document.getElementById("search-results")!;
+    const spinner = document.getElementById("search-spinner")!;
+    let timer: number | undefined;
+    let controller: AbortController | null = null;
+    let last = input.value.trim();
+
+    // Keep the caret at the end when the page opens with a query.
+    input.setSelectionRange(input.value.length, input.value.length);
+
+    async function run() {
+      const q = input.value.trim();
+      if (q === last) return;
+      last = q;
+      controller?.abort();
+      controller = new AbortController();
+      const url = q ? `${location.pathname}?q=${encodeURIComponent(q)}` : location.pathname;
+      history.replaceState(null, "", url);
+      if (q.length < 2) {
+        results.innerHTML = "";
+        spinner.classList.add("hidden");
+        return;
+      }
+      spinner.classList.remove("hidden");
+      try {
+        const html = await (await fetch(url, { signal: controller.signal })).text();
+        const doc = new DOMParser().parseFromString(html, "text/html");
+        results.innerHTML = doc.getElementById("search-results")?.innerHTML ?? "";
+        spinner.classList.add("hidden");
+      } catch (e) {
+        if ((e as Error).name !== "AbortError") spinner.classList.add("hidden");
+      }
+    }
+
+    input.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = window.setTimeout(run, 250);
+    });
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      clearTimeout(timer);
+      run();
+    });
+  </script>
 </Layout>
