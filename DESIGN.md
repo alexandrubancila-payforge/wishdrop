@@ -1,6 +1,6 @@
 # WishDrop · Pastel design
 
-Light and warm: white cards with soft shadows on a warm-white page, **coral** as the one accent, pastel tints (mint, lavender, sun) for dates and states. **Flat colors only — no gradients anywhere.** One typeface, Plus Jakarta Sans. Icons are Phosphor duotone.
+Light and warm: white cards with soft shadows on a warm-white page, **coral** as the one accent, pastel tints (mint, lavender, sun) for dates and states. **Flat colors only — no gradients anywhere.** One typeface, Plus Jakarta Sans. Icons are Phosphor classic line icons ("regular").
 
 Reference implementation: `src/pages/feed.astro` (the signed-in home) and `src/layouts/Layout.astro` (header, tab bar, footer). When in doubt, copy how they do it.
 
@@ -39,7 +39,7 @@ Do not use Tailwind's own palette colors (violet, fuchsia, pink, purple, amber, 
 
 ## Type
 
-All headings `font-extrabold tracking-tight` (no separate display font; `font-display` still works but is the same face). Page title `text-3xl sm:text-4xl`; section title `text-lg font-extrabold` with a coral duotone icon before it (`<Icon name="sparkle" class="h-5 w-5 text-accent-500" />`); body `text-sm`/`text-base`, muted copy `text-ink-soft`. Labels `text-sm font-semibold`.
+All headings `font-extrabold tracking-tight` (no separate display font; `font-display` still works but is the same face). Page title `text-3xl sm:text-4xl`; section title `text-lg font-extrabold` with a coral line icon before it (`<Icon name="sparkle" class="h-5 w-5 text-accent-500" />`); body `text-sm`/`text-base`, muted copy `text-ink-soft`. Labels `text-sm font-semibold`.
 
 ## Shapes and layout
 
@@ -52,4 +52,4 @@ All headings `font-extrabold tracking-tight` (no separate display font; `font-di
 
 ## Icons
 
-`<Icon name="…" />` from `src/components/Icon.astro`. Default weight `duotone`; use `weight="regular"` inside inputs and small chrome, `weight="bold"` for carets/check marks, `weight="fill"` for active states. Available names are the list in `scripts/build-icons.mjs` (add a name there and run `node scripts/build-icons.mjs` for more). Prefer icons to emoji for UI; emoji may stay inside user-facing text where the copy already has them.
+`<Icon name="…" />` from `src/components/Icon.astro`: Phosphor (phosphoricons.com) classic line icons. Use the default weight (`regular`) almost everywhere; `weight="fill"` only for an active state (active tab, a set star/heart); `weight="bold"` for small carets and check marks. Do not use `duotone`. Available names are the list in `scripts/build-icons.mjs` (add a name there and run `node scripts/build-icons.mjs` for more). Prefer icons to emoji for UI; emoji may stay inside user-facing text where the copy already has them.

@@ -1,17 +1,16 @@
 ---
 /**
- * Phosphor icons (duotone by default: a soft tinted fill under the outline,
- * which suits the Pastel style). The set is in src/lib/icons.gen.ts; add more
- * names in scripts/build-icons.mjs.
+ * Phosphor icons (phosphoricons.com): classic line icons by default
+ * ("regular"); "fill" for active states, "bold" for small carets and checks.
+ * The set is in src/lib/icons.gen.ts; add more names in scripts/build-icons.mjs.
  *
  *   <Icon name="gift" class="h-5 w-5 text-accent-500" />
- *   <Icon name="heart" weight="fill" />
+ *   <Icon name="house" weight="fill" />
  */
 import { ICONS, type IconWeight } from "@/lib/icons.gen";
 
 /** Names used before the redesign, mapped to their Phosphor equivalents. */
 const ALIASES: Record<string, string> = {
-  globe: "globe-hemisphere-east",
   chevronDown: "caret-down",
   settings: "gear",
   logout: "sign-out",
@@ -31,7 +30,7 @@ interface Props {
   strokeWidth?: number;
 }
 
-const { name, class: className = "h-5 w-5", weight = "duotone", label } = Astro.props;
+const { name, class: className = "h-5 w-5", weight = "regular", label } = Astro.props;
 const key = ALIASES[name] ?? name;
 const icon = ICONS[key];
 if (!icon) throw new Error(`Unknown icon "${name}". Add it to scripts/build-icons.mjs and run it.`);

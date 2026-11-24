@@ -5,7 +5,7 @@
  * Warm white canvas, white cards with soft shadows, coral as the one accent,
  * pastel tints (mint, lavender, sun) for dates and states. Flat colors only,
  * no gradients. One typeface:
- * Plus Jakarta Sans. Icons: Phosphor duotone (src/components/Icon.astro).
+ * Plus Jakarta Sans. Icons: Phosphor classic line icons (src/components/Icon.astro).
  *
  * Token names stay the same as before (accent-*, ink, ink-soft, paper), so
  * every page picks up the new palette; see DESIGN.md for how to use them.
