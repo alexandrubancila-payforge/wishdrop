@@ -37,6 +37,37 @@ export function usernameProblem(username: string): string | null {
   return null;
 }
 
+/**
+ * A free username for a new account, from their name or email:
+ * "Bancila Alexandru" → "bancila.alexandru", taken → "bancila.alexandru27".
+ */
+export async function suggestUsername(name: string | null | undefined, email: string) {
+  const clean = (s: string) =>
+    s
+      .normalize("NFKD")
+      .replace(/[̀-ͯ]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, ".")
+      .replace(/^\.+|\.+$/g, "")
+      .slice(0, 20)
+      .replace(/\.+$/, "");
+  let base = clean(name || "") || clean(email.split("@")[0]);
+  if (base.length < 3) base = `${base || "user"}.wish`.replace(/^\./, "");
+  if (usernameProblem(base)) base = `${base.replace(/[^a-z0-9]/g, "").slice(0, 16) || "user"}.wish`;
+
+  const taken = async (u: string) =>
+    !!(await db().prepare("SELECT 1 FROM users WHERE username = ?").bind(u).first());
+  if (!usernameProblem(base) && !(await taken(base))) return base;
+  for (let i = 0; i < 20; i++) {
+    const digits = i < 10 ? 2 : 4;
+    const candidate = `${base.slice(0, 24 - digits)}${Math.floor(Math.random() * 10 ** digits)
+      .toString()
+      .padStart(digits, "0")}`;
+    if (!usernameProblem(candidate) && !(await taken(candidate))) return candidate;
+  }
+  return `user${Date.now().toString(36)}`;
+}
+
 export const getUserByUsername = (username: string) =>
   db().prepare("SELECT * FROM users WHERE username = ?").bind(normalizeUsername(username)).first<User>();
 

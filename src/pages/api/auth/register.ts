@@ -4,6 +4,7 @@ import { EMAIL_RE, hashPassword, randomToken, startSession } from "@/lib/auth";
 import { apiT, fail, isHttps, json, readJson, requestLang } from "@/lib/http";
 import { sendVerifyEmail } from "@/lib/email";
 import { localePath } from "@/lib/i18n";
+import { suggestUsername } from "@/lib/social";
 
 export const POST: APIRoute = async (ctx) => {
   const t = apiT(ctx);
@@ -19,6 +20,7 @@ export const POST: APIRoute = async (ctx) => {
     password_hash: await hashPassword(String(password)),
     verify_token: verifyToken,
     verify_expires: Date.now() + 24 * 60 * 60 * 1000,
+    username: await suggestUsername(null, clean), // changeable in Settings; profile stays private
   });
   await startSession(ctx.cookies, user.id, isHttps(ctx));
 

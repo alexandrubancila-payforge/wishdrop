@@ -19,7 +19,7 @@ export interface User {
   reset_expires: number | null;
   birthday: string | null;
   disable_seasons: number;
-  /** Public address /@username; null until the user picks one. */
+  /** Public address /@username; generated at sign-up, changeable in Settings. */
   username: string | null;
   bio: string | null;
   /** 1 = following needs approval (the default). */
@@ -75,12 +75,13 @@ export async function createUser(u: {
   email_verified?: boolean;
   verify_token?: string | null;
   verify_expires?: number | null;
+  username?: string | null;
 }): Promise<User> {
   const id = newId();
   await db()
     .prepare(
-      `INSERT INTO users (id, email, password_hash, created_at, google_id, name, avatar_url, email_verified, verify_token, verify_expires)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO users (id, email, password_hash, created_at, google_id, name, avatar_url, email_verified, verify_token, verify_expires, username)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
@@ -93,6 +94,7 @@ export async function createUser(u: {
       u.email_verified ? 1 : 0,
       u.verify_token ?? null,
       u.verify_expires ?? null,
+      u.username ?? null,
     )
     .run();
   return (await getUserById(id))!;

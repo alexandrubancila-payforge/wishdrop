@@ -4,6 +4,7 @@ import { env } from "cloudflare:workers";
 import { createUser, getUserByEmail, getUserByGoogleId, updateUser } from "@/lib/db";
 import { OAUTH_COOKIE, startSession } from "@/lib/auth";
 import { isLang, localePath, type Lang } from "@/lib/i18n";
+import { suggestUsername } from "@/lib/social";
 
 interface GoogleUser {
   sub: string;
@@ -64,6 +65,7 @@ export const GET: APIRoute = async (ctx) => {
         name: g.name ?? null,
         avatar_url: g.picture ?? null,
         email_verified: true,
+        username: await suggestUsername(g.name, g.email), // changeable in Settings; profile stays private
       });
     }
   }
