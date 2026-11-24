@@ -38,6 +38,7 @@
   --color-paper: #fffaf7;
   --color-line: #f1e7e3;
   --color-sand: #f7efeb;
+  --color-skeleton: #efe3dd;
 
   --radius-card: 1.375rem;
   --shadow-soft: 0 8px 24px -14px rgb(43 36 51 / 0.28);
@@ -300,6 +301,20 @@ body {
   .account-panel--open {
     transform: translateY(0);
   }
+  /* Skeleton: a flat sand block that breathes while content loads. */
+  .skeleton {
+    background-color: var(--color-skeleton);
+    border-radius: 0.75rem;
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+  }
+  .skeleton-line {
+    display: block;
+    height: 0.75rem;
+    border-radius: 999px;
+    background-color: var(--color-skeleton);
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
+  }
+
   /* Horizontal scrollers (birthdays, chips) without a visible scrollbar. */
   .no-scrollbar {
     scrollbar-width: none;
@@ -311,6 +326,15 @@ body {
     opacity: 0.6;
     transition: opacity 0.2s;
   }
+}
+
+/* Photos breathe as skeletons until they arrive (Layout marks them data-loaded). */
+main img:not([data-loaded]):not([src^="data:"]) {
+  background-color: var(--color-skeleton);
+  animation: skeleton-pulse 1.4s ease-in-out infinite;
+}
+main img[data-loaded] {
+  animation: photo-in 0.35s ease-out;
 }
 
 /* Surprise mode and owner view on the public list (data attributes set by the page). */
@@ -336,6 +360,22 @@ body {
   }
 }
 
+@keyframes skeleton-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+@keyframes photo-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 @keyframes spin {
   to {
     transform: rotate(360deg);

@@ -434,6 +434,23 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
         });
       })();
 
+      // Photo skeletons: mark each <img> when it has loaded (or failed) so the CSS
+      // pulse stops. Images already in cache are marked right away.
+      (function () {
+        function done(img) {
+          if (img.tagName === "IMG") img.setAttribute("data-loaded", "");
+        }
+        document.addEventListener("load", function (e) { done(e.target); }, true);
+        document.addEventListener("error", function (e) { done(e.target); }, true);
+        function sweep() {
+          document.querySelectorAll("main img:not([data-loaded])").forEach(function (img) {
+            if (img.complete) done(img);
+          });
+        }
+        sweep();
+        document.addEventListener("DOMContentLoaded", sweep);
+      })();
+
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           navigator.serviceWorker.register("/sw.js").catch(() => {});

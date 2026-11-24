@@ -238,9 +238,13 @@ const wishlistId = list.id;
           </label>
           <label
             for="item-image"
-            class="mt-1 flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-line bg-sand text-center text-sm text-ink-soft transition hover:border-accent-300 hover:bg-accent-50"
+            class="relative mt-1 flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-line bg-sand text-center text-sm text-ink-soft transition hover:border-accent-300 hover:bg-accent-50"
           >
             <img data-preview class="hidden h-full w-full object-contain" alt="" />
+            <!-- Pulses over the box while the link auto-fill looks for a photo. -->
+            <span data-preview-skeleton class="skeleton absolute inset-0 hidden place-items-center !rounded-none text-ink-soft/50" aria-hidden="true">
+              <Icon name="image" class="h-10 w-10" />
+            </span>
             <span data-preview-placeholder class="px-4">
               <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white text-accent-500 shadow-soft">
                 <Icon name="camera" class="h-6 w-6" />
@@ -279,6 +283,7 @@ const wishlistId = list.id;
         const fileInput = document.getElementById("item-image");
         const preview = form.querySelector("[data-preview]");
         const placeholder = form.querySelector("[data-preview-placeholder]");
+        const previewSkeleton = form.querySelector("[data-preview-skeleton]");
         const priceInput = document.getElementById("item-price");
         const submitBtn = document.getElementById("add-item-submit");
         const submitLabel = form.querySelector("[data-submit-label]");
@@ -355,6 +360,7 @@ const wishlistId = list.id;
           fetching = true;
           clearError();
           autofillSpinner.classList.remove("hidden");
+          previewSkeleton.classList.replace("hidden", "grid");
           try {
             const res = await fetch("/api/scrape", {
               method: "POST",
@@ -379,6 +385,7 @@ const wishlistId = list.id;
           } finally {
             fetching = false;
             autofillSpinner.classList.add("hidden");
+            previewSkeleton.classList.replace("grid", "hidden");
           }
         }
 

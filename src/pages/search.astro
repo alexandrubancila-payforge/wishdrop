@@ -75,6 +75,24 @@ const relTo = (id: string): Relation => (user?.id === id ? "self" : (mine.get(id
     )
   }
 
+  <!-- Shown in #search-results while a search is loading. -->
+  <template id="search-skeleton">
+    <ul class="card mt-8 divide-y divide-line px-5" aria-hidden="true">
+      {
+        [62, 48, 55].map((w) => (
+          <li class="flex items-center gap-3 py-3.5">
+            <span class="skeleton h-12 w-12 shrink-0 !rounded-full" />
+            <span class="min-w-0 flex-1 space-y-2">
+              <span class="skeleton-line h-3.5" style={`width:${w}%`} />
+              <span class="skeleton-line h-3" style={`width:${w - 20}%`} />
+            </span>
+            <span class="skeleton h-8 w-24 shrink-0 !rounded-full" />
+          </li>
+        ))
+      }
+    </ul>
+  </template>
+
   <div id="search-results" aria-live="polite">
     {
       q && q.length < 2 ? (
@@ -129,6 +147,8 @@ const relTo = (id: string): Relation => (user?.id === id ? "self" : (mine.get(id
         return;
       }
       spinner.classList.remove("hidden");
+      const skeleton = document.getElementById("search-skeleton") as HTMLTemplateElement | null;
+      if (skeleton) results.replaceChildren(skeleton.content.cloneNode(true));
       try {
         const html = await (await fetch(url, { signal: controller.signal })).text();
         const doc = new DOMParser().parseFromString(html, "text/html");
