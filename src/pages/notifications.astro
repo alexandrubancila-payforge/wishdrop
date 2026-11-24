@@ -1,0 +1,138 @@
+---
+/**
+ * The bell's page: who followed you, asked to follow you, or accepted your
+ * request. Opening it marks everything read (the new ones stay highlighted
+ * for this visit).
+ */
+import Layout from "@/layouts/Layout.astro";
+import Icon from "@/components/Icon.astro";
+import Avatar from "@/components/Avatar.astro";
+import FollowButton from "@/components/social/FollowButton.astro";
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import strings from "@/i18n/notifications";
+import { listNotifications, markAllRead, type NotificationRow } from "@/lib/notifications";
+
+const { lang } = Astro.locals;
+const user = Astro.locals.user!;
+const t = makeT(lang, common, strings);
+const href = (p: string) => localePath(lang, p);
+
+const items = await listNotifications(user.id);
+await markAllRead(user.id);
+const fresh = items.filter((n) => !n.read_at);
+const earlier = items.filter((n) => n.read_at);
+
+const rtf = new Intl.RelativeTimeFormat(lang, { numeric: "auto", style: "short" });
+function ago(ms: number) {
+  const s = (ms - Date.now()) / 1000;
+  const steps: [Intl.RelativeTimeFormatUnit, number][] = [["minute", 60], ["hour", 3600], ["day", 86400], ["week", 604800]];
+  if (-s < 60) return rtf.format(0, "minute");
+  let unit: Intl.RelativeTimeFormatUnit = "minute";
+  let size = 60;
+  for (const [u, sz] of steps) if (-s >= sz) [unit, size] = [u, sz];
+  return rtf.format(Math.round(s / size), unit);
+}
+const nameOf = (n: NotificationRow) => n.name || (n.username ? `@${n.username}` : n.email.split("@")[0]);
+const escape = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+const sentence = (n: NotificationRow) => escape(t(n.type)).replace("{name}", `<b class="font-bold text-ink">${escape(nameOf(n))}</b>`);
+const ICON: Record<string, { name: string; tint: string }> = {
+  follow: { name: "user-plus", tint: "bg-accent-500 text-white" },
+  follow_request: { name: "lock", tint: "bg-lav-ink text-white" },
+  follow_accepted: { name: "check", tint: "bg-mint-ink text-white" },
+};
+const sections = [
+  { title: t("new"), rows: fresh },
+  { title: t("earlier"), rows: earlier },
+].filter((s) => s.rows.length);
+---
+
+<Layout title={`${t("title")} — WishDrop`} noindex mainClass="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+  <h1 class="flex items-center gap-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
+    <span class="grid h-12 w-12 place-items-center rounded-2xl bg-accent-100 text-accent-600">
+      <Icon name="bell" class="h-6 w-6" />
+    </span>
+    {t("title")}
+  </h1>
+
+  {
+    items.length === 0 ? (
+      <div class="card mt-8 flex flex-col items-center px-6 py-12 text-center">
+        <span class="grid h-16 w-16 place-items-center rounded-3xl bg-lav text-lav-ink">
+          <Icon name="bell" class="h-8 w-8" />
+        </span>
+        <h2 class="mt-4 text-lg font-extrabold">{t("emptyTitle")}</h2>
+        <p class="mt-1 max-w-sm text-sm text-ink-soft">{t("emptyText")}</p>
+        <a href={href("/search")} class="btn btn-primary mt-5 !py-3 text-sm">
+          <Icon name="magnifying-glass" weight="bold" class="h-4 w-4" />
+          {t("findFriends")}
+        </a>
+      </div>
+    ) : (
+      sections.map((section) => (
+        <section class="mt-8">
+          <h2 class="px-1 text-sm font-extrabold uppercase tracking-wide text-ink-soft">{section.title}</h2>
+          <ul class="card mt-3 divide-y divide-line px-4 sm:px-5" data-notifications>
+            {section.rows.map((n) => {
+              const profile = n.username ? href(`/@${n.username}`) : null;
+              const icon = ICON[n.type] ?? ICON.follow;
+              return (
+                <li class:list={["flex items-center gap-3 py-3.5", !n.read_at && "-mx-4 bg-accent-50 px-4 sm:-mx-5 sm:px-5"]} data-notification={n.id}>
+                  <a href={profile ?? undefined} class="relative shrink-0">
+                    <Avatar user={n} size={48} class="h-12 w-12" />
+                    <span class:list={["absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full ring-2 ring-white", icon.tint]}>
+                      <Icon name={icon.name} weight="bold" class="h-3.5 w-3.5" />
+                    </span>
+                  </a>
+                  <p class="min-w-0 flex-1 text-sm leading-snug text-ink-soft">
+                    {profile ? (
+                      <a href={profile} class="hover:text-ink" set:html={sentence(n)} />
+                    ) : (
+                      <span set:html={sentence(n)} />
+                    )}
+                    <span class="ml-1 whitespace-nowrap text-xs text-ink-soft/80">{ago(n.created_at)}</span>
+                  </p>
+                  <div class="flex shrink-0 items-center gap-2">
+                    {n.type === "follow_request" && n.request_pending ? (
+                      <div class="flex gap-2" data-request={n.actor_id} data-l-accepted={t("accepted")} data-l-declined={t("declined")}>
+                        <button type="button" data-action="accept" class="btn btn-primary !px-3.5 !py-2 text-xs">{t("accept")}</button>
+                        <button type="button" data-action="decline" class="btn btn-ghost !px-3.5 !py-2 text-xs">{t("decline")}</button>
+                      </div>
+                    ) : (
+                      n.type !== "follow_accepted" &&
+                      !n.my_status &&
+                      n.username && <FollowButton username={n.username} relation="none" isPrivate={!!n.is_private} size="sm" />
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))
+    )
+  }
+
+  <script>
+    // Accept / decline right from the notification (same API as /requests).
+    document.querySelectorAll<HTMLElement>("[data-request]").forEach((box) => {
+      box.querySelectorAll<HTMLButtonElement>("[data-action]").forEach((b) => {
+        b.addEventListener("click", async () => {
+          const action = b.dataset.action!;
+          box.querySelectorAll("button").forEach((x) => (x.disabled = true));
+          const res = await fetch("/api/follows/requests", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ user_id: box.dataset.request, action }),
+          });
+          if (res.ok) {
+            box.innerHTML = `<span class="chip ${action === "accept" ? "bg-mint text-mint-ink" : "bg-sand text-ink-soft"}"></span>`;
+            box.firstElementChild!.textContent = action === "accept" ? box.dataset.lAccepted! : box.dataset.lDeclined!;
+          } else {
+            box.querySelectorAll("button").forEach((x) => (x.disabled = false));
+          }
+        });
+      });
+    });
+  </script>
+</Layout>

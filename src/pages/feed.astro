@@ -16,6 +16,8 @@ import { friendsActivity, suggestedPeople, upcomingBirthdays } from "@/lib/feed"
 import { followCounts } from "@/lib/social";
 import { imageUrl } from "@/lib/storage";
 import { db } from "@/lib/db";
+import { unreadCount } from "@/lib/notifications";
+import notifStrings from "@/i18n/notifications";
 import { plural } from "@/components/dashboard/plural";
 import type { FeedEntry } from "@/lib/feed";
 
@@ -24,13 +26,15 @@ const user = Astro.locals.user!;
 const t = makeT(lang, common, social, feed);
 const href = (p: string) => localePath(lang, p);
 
-const [birthdays, activity, counts, suggestions, myLists] = await Promise.all([
+const [birthdays, activity, counts, suggestions, myLists, unread] = await Promise.all([
   upcomingBirthdays(user.id),
   friendsActivity(user.id),
   followCounts(user.id),
   suggestedPeople(user.id, 5),
   db().prepare("SELECT COUNT(*) AS n FROM wishlists WHERE user_id = ?").bind(user.id).first<{ n: number }>(),
+  unreadCount(user.id),
 ]);
+const notifLabel = makeT(lang, notifStrings)("title");
 const profileHref = user.username ? href(`/@${user.username}`) : href("/settings") + "#public-profile";
 const displayName = user.name || (user.username ? `@${user.username}` : user.email.split("@")[0]);
 
@@ -97,6 +101,7 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
         <nav class="card p-2" aria-label={t("nav.navigation")}>
           {[
             { href: href("/"), icon: "house", label: t("nav.feed"), active: true },
+            { href: href("/notifications"), icon: "bell", label: notifLabel, badge: unread },
             { href: href("/dashboard"), icon: "list-heart", label: t("myLists") },
             { href: href("/dashboard/reservations"), icon: "hand-heart", label: t("myReservations") },
             { href: href("/search"), icon: "user-plus", label: t("findFriends") },
@@ -111,7 +116,8 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
               ]}
             >
               <Icon name={item.icon} weight={item.active ? "fill" : "regular"} class:list={["h-5 w-5", item.active ? "text-accent-600" : "text-ink-soft"]} />
-              {item.label}
+              <span class="flex-1">{item.label}</span>
+              {!!item.badge && <span class="chip bg-accent-600 !px-2 !py-0.5 text-white">{item.badge}</span>}
             </a>
           ))}
         </nav>

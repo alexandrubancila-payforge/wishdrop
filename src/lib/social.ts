@@ -8,6 +8,7 @@
  *   followers only, 'link' nowhere. The /w/<slug> link works in every case.
  */
 import { db, now, type User, type Wishlist } from "./db";
+import { forgetFollow, notify } from "./notifications";
 
 export type Visibility = "link" | "followers" | "public";
 export const VISIBILITIES: Visibility[] = ["public", "followers", "link"];
@@ -184,19 +185,27 @@ export async function searchUsers(q: string) {
 /** Follow (public profile) or ask to follow (private profile). */
 export async function follow(follower: User, followee: User) {
   const status = followee.is_private ? "pending" : "accepted";
-  await db()
+  const res = await db()
     .prepare(
       `INSERT INTO follows (follower_id, followee_id, status, created_at) VALUES (?, ?, ?, ?)
        ON CONFLICT (follower_id, followee_id) DO NOTHING`,
     )
     .bind(follower.id, followee.id, status, now())
     .run();
+  if (res.meta.changes) await notify(followee.id, follower.id, status === "accepted" ? "follow" : "follow_request");
   return (await relation(follower, followee)) as "following" | "requested";
 }
 
-export const unfollow = (followerId: string, followeeId: string) =>
-  db().prepare("DELETE FROM follows WHERE follower_id = ? AND followee_id = ?").bind(followerId, followeeId).run();
+/** Unfollow, withdraw a request, or remove a follower — and drop its notification. */
+export async function unfollow(followerId: string, followeeId: string) {
+  await db().prepare("DELETE FROM follows WHERE follower_id = ? AND followee_id = ?").bind(followerId, followeeId).run();
+  await forgetFollow(followeeId, followerId);
+}
 
-/** Going public accepts everyone who was waiting. */
-export const acceptAllPending = (userId: string) =>
-  db().prepare("UPDATE follows SET status = 'accepted' WHERE followee_id = ? AND status = 'pending'").bind(userId).run();
+/** Going public accepts everyone who was waiting; their requests now read as follows. */
+export async function acceptAllPending(userId: string) {
+  await db().batch([
+    db().prepare("UPDATE follows SET status = 'accepted' WHERE followee_id = ? AND status = 'pending'").bind(userId),
+    db().prepare("UPDATE notifications SET type = 'follow' WHERE user_id = ? AND type = 'follow_request'").bind(userId),
+  ]);
+}
