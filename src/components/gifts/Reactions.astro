@@ -4,6 +4,7 @@
  *   react     signed-in visitor: toggles (src/scripts/reactions.ts)
  *   login     guest: the buttons lead to the login page
  *   readonly  the owner: counts only, shown when there are any
+ * `heartOnly`: just the ❤️, as a small pill over a photo (feed tiles).
  */
 import Icon from "@/components/Icon.astro";
 import { makeT, type Lang } from "@/lib/i18n";
@@ -16,15 +17,18 @@ interface Props {
   summary?: ReactionSummary;
   mode: "react" | "login" | "readonly";
   loginHref?: string;
+  heartOnly?: boolean;
   class?: string;
 }
-const { lang, itemId, mode, loginHref = "/login", class: cls } = Astro.props;
+const { lang, itemId, mode, loginHref = "/login", heartOnly = false, class: cls } = Astro.props;
 const summary = Astro.props.summary ?? { heart: 0, want: 0, mine: [] };
 const t = makeT(lang, gifts);
-const kinds = [
-  { kind: "heart", icon: "heart", label: t("react.heart"), n: summary.heart },
-  { kind: "want", icon: "sparkle", label: t("react.want"), n: summary.want },
-] as const;
+const kinds = (
+  [
+    { kind: "heart", icon: "heart", label: t("react.heart"), n: summary.heart },
+    { kind: "want", icon: "sparkle", label: t("react.want"), n: summary.want },
+  ] as const
+).filter((k) => !heartOnly || k.kind === "heart");
 const hidden = mode === "readonly" && !summary.heart && !summary.want;
 ---
 
@@ -42,7 +46,7 @@ const hidden = mode === "readonly" && !summary.heart && !summary.want;
           </>
         );
         return mode === "react" ? (
-          <button type="button" class:list={["react-btn", `react-${kind}`]} data-react={kind} aria-pressed={on ? "true" : "false"} aria-label={label} title={label}>
+          <button type="button" class:list={["react-btn", `react-${kind}`, heartOnly && "is-overlay"]} data-react={kind} aria-pressed={on ? "true" : "false"} aria-label={label} title={label}>
             {inner}
           </button>
         ) : mode === "login" ? (

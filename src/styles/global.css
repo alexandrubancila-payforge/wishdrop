@@ -481,3 +481,14 @@ html {
 [data-owner="true"] [data-leave-btn] {
   display: none !important;
 }
+/* The ❤️ pill over a feed photo. */
+.react-btn.is-overlay {
+  min-height: 1.9rem;
+  padding: 0.25rem 0.55rem;
+  background: rgb(255 255 255 / 0.95);
+  box-shadow: 0 2px 8px rgb(43 36 51 / 0.15);
+}
+.react-btn.is-overlay[aria-pressed="true"] {
+  background: var(--color-accent-500);
+  color: #fff;
+}
