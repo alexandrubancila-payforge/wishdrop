@@ -8,6 +8,9 @@
   "compatibility_date": "2026-06-24",
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "./dist", "binding": "ASSETS" },
+  // The live domain. Cloudflare creates the DNS record; remove this line to hand the domain back.
+  "routes": [{ "pattern": "wishdrop.site", "custom_domain": true }],
+  "workers_dev": true,
   "placement": { "mode": "smart" },
   "observability": { "enabled": true },
   "vars": {

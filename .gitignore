@@ -8,3 +8,4 @@ dist/
 _recovered/wishdrop-db.sql
 _recovered/r2/
 _recovered/logged-in/
+_recovered/backup-*.sql
