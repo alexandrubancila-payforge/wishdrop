@@ -9,3 +9,7 @@ _recovered/wishdrop-db.sql
 _recovered/r2/
 _recovered/logged-in/
 _recovered/backup-*.sql
+# Captured pages with personal data (names, real lists, photos): local only.
+_recovered/fragments/
+_recovered/i18n/
+_recovered/site-public-list/
