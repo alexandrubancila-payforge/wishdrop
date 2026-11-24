@@ -3,6 +3,9 @@ import type { Bundle } from "@/lib/i18n";
 /** The signed-in home: birthdays and what friends added. */
 export default {
   ro: {
+    noBirthdays: "Nicio zi de naștere în următoarele 60 de zile.",
+    createList: "Creează o listă",
+    seeAll: "Vezi tot",
     "addedMany.few": "a adăugat {n} cadouri în {list}",
     "addedMany.other": "a adăugat {n} de cadouri în {list}",
     title: "Acasă — WishDrop",
@@ -29,6 +32,9 @@ export default {
     lists: "{n} liste",
   },
   en: {
+    noBirthdays: "No birthdays in the next 60 days.",
+    createList: "Create a list",
+    seeAll: "See all",
     "addedMany.other": "added {n} gifts to {list}",
     title: "Home — WishDrop",
     hi: "Hi, {name}!",
@@ -54,6 +60,9 @@ export default {
     lists: "{n} lists",
   },
   de: {
+    noBirthdays: "Keine Geburtstage in den nächsten 60 Tagen.",
+    createList: "Liste erstellen",
+    seeAll: "Alle ansehen",
     "addedMany.other": "hat {n} Geschenke zu {list} hinzugefügt",
     title: "Start — WishDrop",
     hi: "Hallo, {name}!",
@@ -79,6 +88,9 @@ export default {
     lists: "{n} Listen",
   },
   ru: {
+    noBirthdays: "В ближайшие 60 дней дней рождения нет.",
+    createList: "Создать список",
+    seeAll: "Все",
     "addedMany.few": "добавил(а) {n} подарка в «{list}»",
     "addedMany.many": "добавил(а) {n} подарков в «{list}»",
     "addedMany.other": "добавил(а) {n} подарка в «{list}»",
