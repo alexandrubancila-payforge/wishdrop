@@ -125,7 +125,7 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
     <title>{title}</title>
     <slot name="head" />
   </head>
-  <body class:list={["min-h-screen antialiased", { "has-tabbar": tabbar }]}>
+  <body class:list={["flex min-h-screen flex-col antialiased", { "has-tabbar": tabbar }]}>
     {
       header && (
         <header class="sticky top-0 z-30 bg-paper/85 backdrop-blur-md">
@@ -266,7 +266,8 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
       )
     }
 
-    <main class={mainClass}>
+    <!-- flex-1 pushes the footer to the bottom on short pages; w-full keeps mx-auto/max-w working inside the flex column. -->
+    <main class:list={["w-full flex-1", mainClass]}>
       <slot />
     </main>
 
