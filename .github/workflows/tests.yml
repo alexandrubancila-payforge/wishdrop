@@ -1,0 +1,52 @@
+# Runs the end-to-end tests (tests/e2e) on every push and pull request:
+# a fresh local database, the site on localhost:4400, and all the suites.
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Local settings for the test run
+        run: |
+          grep -v '^VAPID_\|^JWT_SECRET' .dev.vars.example > .dev.vars
+          echo "JWT_SECRET=$(openssl rand -hex 32)" >> .dev.vars
+          node scripts/vapid-keys.mjs >> .dev.vars
+
+      - name: Empty local database with every migration
+        run: npx wrangler d1 migrations apply wishdrop-db --local
+
+      - name: Build
+        run: npx astro build
+
+      - name: Start the site
+        run: |
+          npx astro dev --port 4400 > dev.log 2>&1 &
+          for i in $(seq 1 90); do
+            curl -sf http://localhost:4400/api/health && exit 0
+            sleep 2
+          done
+          cat dev.log
+          exit 1
+
+      - name: End-to-end tests
+        run: python3 -I tests/e2e/run_all.py http://localhost:4400
+
+      - name: Dev server log
+        if: failure()
+        run: tail -200 dev.log || true
