@@ -1,36 +1,49 @@
 ---
 /** Shared layout for the privacy policy and the terms (content in src/i18n/legal.ts). */
 import Layout from "@/layouts/Layout.astro";
+import Icon from "@/components/Icon.astro";
 import type { LegalDoc } from "@/i18n/legal";
 
 interface Props {
   doc: LegalDoc;
+  /** Icon in the header tile. */
+  icon?: string;
+  /** Pastel pair for the header tile (e.g. "bg-lav text-lav-ink"). */
+  tint?: string;
 }
-const { doc } = Astro.props;
+const { doc, icon = "scroll", tint = "bg-accent-100 text-accent-600" } = Astro.props;
 
 /** "write to {contact@wishdrop.site}." → text and mailto parts. */
 const parts = (text: string) =>
   text.split(/\{([^{}\s]+@[^{}\s]+)\}/).map((part, i) => ({ text: part, email: i % 2 === 1 }));
+const linkClass = "font-semibold text-accent-700 hover:underline";
 ---
 
-<Layout title={doc.title} description={doc.description} mainClass="mx-auto max-w-2xl px-4 py-14 sm:px-6">
-  <h1 class="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{doc.h1}</h1>
-  <p class="mt-2 text-sm text-ink-soft/70">{doc.updated}</p>
+<Layout title={doc.title} description={doc.description} mainClass="mx-auto max-w-2xl px-4 py-10 sm:px-6 sm:py-14">
+  <header class="flex items-start justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{doc.h1}</h1>
+      <p class="mt-3"><span class="chip bg-sun text-sun-ink"><Icon name="calendar-blank" class="h-3.5 w-3.5" />{doc.updated}</span></p>
+    </div>
+    <span class:list={["grid h-12 w-12 shrink-0 place-items-center rounded-2xl", tint]}>
+      <Icon name={icon} class="h-7 w-7" />
+    </span>
+  </header>
   <p class="mt-6 leading-relaxed text-ink-soft">{doc.intro}</p>
-  <div class="mt-10 space-y-8">
+  <div class="card mt-8 divide-y divide-line px-5 sm:px-7">
     {
       doc.sections.map((s) => (
-        <section>
-          <h2 class="font-display text-lg font-bold">{s.h}</h2>
+        <section class="py-6">
+          <h2 class="text-lg font-extrabold tracking-tight">{s.h}</h2>
           {s.list ? (
-            <ul class="mt-2 list-disc space-y-1.5 pl-5 leading-relaxed text-ink-soft">
+            <ul class="mt-2 list-disc space-y-1.5 pl-5 leading-relaxed text-ink-soft marker:text-accent-500">
               {s.list.map((li) => (
-                <li>{parts(li).map((p) => (p.email ? <a href={`mailto:${p.text}`}>{p.text}</a> : p.text))}</li>
+                <li>{parts(li).map((p) => (p.email ? <a href={`mailto:${p.text}`} class={linkClass}>{p.text}</a> : p.text))}</li>
               ))}
             </ul>
           ) : (
             <p class="mt-2 leading-relaxed text-ink-soft">
-              {parts(s.p ?? "").map((p) => (p.email ? <a href={`mailto:${p.text}`}>{p.text}</a> : p.text))}
+              {parts(s.p ?? "").map((p) => (p.email ? <a href={`mailto:${p.text}`} class={linkClass}>{p.text}</a> : p.text))}
             </p>
           )}
         </section>

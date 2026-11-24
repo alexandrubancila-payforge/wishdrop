@@ -25,6 +25,8 @@ export default {
     "home.ctaTitle": "Următoarea ta zi de naștere merită o listă.",
     "home.ctaText": "Creează-ți lista în câteva minute și trimite linkul.",
     "home.ctaBtn": "Creează lista mea gratis",
+    "home.previewTitle": "Ziua Mariei 🎂",
+    "home.previewMeta": "3 cadouri · 1 rezervat",
   },
   en: {
     "home.goToLists": "Go to my lists",
@@ -49,6 +51,8 @@ export default {
     "home.ctaTitle": "Your next birthday deserves a list.",
     "home.ctaText": "Create your list in minutes and share the link.",
     "home.ctaBtn": "Create my list for free",
+    "home.previewTitle": "Maria's birthday 🎂",
+    "home.previewMeta": "3 gifts · 1 reserved",
   },
   de: {
     "home.goToLists": "Zu meinen Listen",
@@ -73,6 +77,8 @@ export default {
     "home.ctaTitle": "Dein nächster Geburtstag verdient eine Liste.",
     "home.ctaText": "Erstelle deine Liste in wenigen Minuten und teile den Link.",
     "home.ctaBtn": "Meine Liste kostenlos erstellen",
+    "home.previewTitle": "Marias Geburtstag 🎂",
+    "home.previewMeta": "3 Geschenke · 1 reserviert",
   },
   ru: {
     "home.goToLists": "К моим спискам",
@@ -97,5 +103,7 @@ export default {
     "home.ctaTitle": "Ваш следующий день рождения заслуживает списка.",
     "home.ctaText": "Создайте список за пару минут и поделитесь ссылкой.",
     "home.ctaBtn": "Создать список бесплатно",
+    "home.previewTitle": "День рождения Марии 🎂",
+    "home.previewMeta": "3 подарка · 1 забронирован",
   },
 } satisfies Bundle;

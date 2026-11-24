@@ -26,8 +26,13 @@ const sizing = size === "sm" ? "!px-3.5 !py-2 text-xs" : "!px-5 !py-2.5 text-sm"
 
 {
   relation === "self" ? null : !user ? (
-    <a href={`${localePath(lang, "/login")}?next=${encodeURIComponent(path)}`} class:list={["btn btn-primary", sizing]}>
-      {t("profile.loginToFollow")}
+    <a
+      href={`${localePath(lang, "/login")}?next=${encodeURIComponent(path)}`}
+      title={t("profile.loginToFollow")}
+      class:list={["btn btn-primary", sizing]}
+    >
+      {/* In lists (size sm) the long "Log in to follow" would squeeze the names; the link still goes to login. */}
+      {size === "sm" ? t("profile.follow") : t("profile.loginToFollow")}
     </a>
   ) : (
     <button

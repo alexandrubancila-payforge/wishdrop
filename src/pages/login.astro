@@ -1,5 +1,6 @@
 ---
 import Layout from "@/layouts/Layout.astro";
+import Icon from "@/components/Icon.astro";
 import GoogleButton from "@/components/auth/GoogleButton.astro";
 import { localePath, makeT } from "@/lib/i18n";
 import common from "@/i18n/common";
@@ -19,28 +20,31 @@ const googleHref = next ? `/api/auth/google?next=${encodeURIComponent(next)}` : 
 const M = { failed: t("login.failed"), err: t("auth.error") };
 ---
 
-<Layout title={t("login.title")} description={t("auth.description")} noindex mainClass="mx-auto flex max-w-md flex-col px-4 py-14 sm:py-20">
-  <div class="card rise-in p-8">
-    <h1 class="font-display text-3xl font-extrabold tracking-tight">{t("login.heading")}</h1>
+<Layout title={t("login.title")} description={t("auth.description")} noindex mainClass="mx-auto flex max-w-md flex-col px-4 py-10 sm:py-16">
+  <div class="card rise-in p-6 sm:p-8">
+    <span class="grid h-12 w-12 place-items-center rounded-2xl bg-sun text-sun-ink" aria-hidden="true">
+      <Icon name="hand-waving" class="h-6 w-6" />
+    </span>
+    <h1 class="mt-5 text-3xl font-extrabold tracking-tight">{t("login.heading")}</h1>
     <p class="mt-2 text-sm text-ink-soft">
-      {t("login.noAccount")}
-      <a href={localePath(lang, "/register")} class="font-semibold text-accent-600 hover:underline">{t("login.createOne")}</a>
+      {t("login.noAccount")}{" "}
+      <a href={localePath(lang, "/register")} class="font-semibold text-accent-700 hover:underline">{t("login.createOne")}</a>
     </p>
     <GoogleButton href={googleHref} label={t("auth.continueGoogle")} divider={t("auth.orEmail")} />
     <form id="auth-form" class="space-y-4" data-next={nextUrl}>
       <div>
         <label for="email" class="block text-sm font-semibold text-ink">{t("auth.email")}</label>
-        <input id="email" name="email" type="email" autocomplete="email" required class="field mt-1" />
+        <input id="email" name="email" type="email" autocomplete="email" required class="field mt-1.5" />
       </div>
       <div>
         <div class="flex items-center justify-between">
           <label for="password" class="block text-sm font-semibold text-ink">{t("auth.password")}</label>
-          <a href={localePath(lang, "/forgot-password")} class="text-xs font-medium text-accent-600 hover:underline">{t("login.forgot")}</a>
+          <a href={localePath(lang, "/forgot-password")} class="text-xs font-medium text-accent-700 hover:underline">{t("login.forgot")}</a>
         </div>
-        <input id="password" name="password" type="password" autocomplete="current-password" required class="field mt-1" />
+        <input id="password" name="password" type="password" autocomplete="current-password" required class="field mt-1.5" />
       </div>
       <p id="auth-error" class="text-sm font-medium text-rose-600 hidden"></p>
-      <button type="submit" id="auth-submit" class="btn btn-primary w-full py-3">
+      <button type="submit" id="auth-submit" class="btn btn-primary w-full py-3.5">
         <span data-submit-label>{t("login.submit")}</span>
       </button>
     </form>

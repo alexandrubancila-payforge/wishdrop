@@ -12,6 +12,8 @@ import Layout from "@/layouts/Layout.astro";
 import HeroArt from "@/components/list/HeroArt.astro";
 import GuestCta from "@/components/list/GuestCta.astro";
 import SeasonGreeting from "@/components/list/SeasonGreeting.astro";
+import Avatar from "@/components/Avatar.astro";
+import Icon from "@/components/Icon.astro";
 import { localePath, makeT, pick } from "@/lib/i18n";
 import { getItems, getUserById, getWishlistBySlug } from "@/lib/db";
 import { imageUrl } from "@/lib/storage";
@@ -55,17 +57,19 @@ const RM = {
   loginUrl: localePath(lang, "/login"),
 };
 
-const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2l3.086 6.253 6.9 1.002-4.993 4.867 1.179 6.873z";
+const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` : "") : "";
 ---
 
 {
   !list ? (
     <Layout title={t("notFound.title")} description={t("list.description")} noindex mainClass="mx-auto flex max-w-md flex-col px-4 py-14 sm:py-20">
-      <div class="card rise-in p-8 text-center">
-        <div class="text-4xl">🎁</div>
-        <h1 class="mt-3 font-display text-3xl font-extrabold tracking-tight">{t("notFound.heading")}</h1>
+      <div class="card rise-in flex flex-col items-center p-8 text-center">
+        <span class="grid h-16 w-16 place-items-center rounded-3xl bg-accent-100 text-accent-600">
+          <Icon name="gift" class="h-8 w-8" />
+        </span>
+        <h1 class="mt-4 text-3xl font-extrabold tracking-tight">{t("notFound.heading")}</h1>
         <p class="mt-2 text-sm text-ink-soft">{t("notFound.text")}</p>
-        <a href={localePath(lang, "/")} class="btn btn-primary mt-6 w-full py-3">
+        <a href={localePath(lang, "/")} class="btn btn-primary mt-6 w-full !py-3">
           {t("notFound.button")}
         </a>
       </div>
@@ -77,70 +81,77 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
       noindex
       header={false}
       tabbar={false}
-      mainClass="relative z-10 mx-auto max-w-6xl px-4 py-10 sm:px-6"
+      mainClass="relative z-10 mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8"
     >
-      <header class="relative overflow-hidden rounded-3xl border border-black/5 bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 px-6 py-8 shadow-sm sm:px-12 sm:py-10">
-        <!-- Blob decorativ mare într-un colț -->
-        <div class="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-fuchsia-200/30 blur-3xl" aria-hidden="true"></div>
-        <div class="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-violet-200/30 blur-3xl" aria-hidden="true"></div>
+      <header class="relative">
         <HeroArt />
-        <div class="relative z-10">
-          <!-- Rând sus: logo stânga · salut sezon dreapta -->
-          <div class="flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
-            <a href={localePath(lang, "/")} class="font-display text-sm font-bold tracking-tight text-ink-soft/70">
-              🎁 Wish<span class="gradient-text">Drop</span>
-            </a>
-            {owner && !owner.disable_seasons && <SeasonGreeting lang={lang} birthday={owner.birthday} />}
-          </div>
-          <!-- Titlu + subtitlu: mare, aliniat la stânga pe desktop -->
-          <div class="mt-6 text-center sm:mt-8 sm:text-left">
-            <h1 class="font-display text-4xl font-extrabold tracking-tight sm:text-6xl">{list.name}</h1>
-            <p class="mx-auto mt-4 max-w-md text-ink-soft sm:mx-0">{isOwner ? t("list.ownerSubtitle") : t("list.subtitle")}</p>
+        <!-- Top row: logo left · seasonal greeting right -->
+        <div class="relative z-10 flex items-center justify-between gap-3">
+          <a href={localePath(lang, "/")} class="flex shrink-0 items-center gap-2 text-base font-extrabold tracking-tight text-ink">
+            <span class="grid h-8 w-8 place-items-center rounded-xl bg-accent-500 text-white shadow-coral">
+              <Icon name="gift" weight="fill" class="h-4 w-4" />
+            </span>
+            <span>Wish<span class="text-accent-600">Drop</span></span>
+          </a>
+          {owner && !owner.disable_seasons && <SeasonGreeting lang={lang} birthday={owner.birthday} />}
+        </div>
+
+        <div class="relative z-10 mt-8 sm:mt-10 sm:max-w-[60%]">
+          <h1 class="break-words text-4xl font-extrabold tracking-tight sm:text-5xl">{list.name}</h1>
+          <div class="mt-4 flex flex-wrap items-center gap-2">
             {
-              owner?.username && (
-                <a href={localePath(lang, `/@${owner.username}`)} class="mt-2 inline-block text-sm font-semibold text-accent-600 hover:underline">
-                  {t("list.ownerProfile", { username: owner.username })}
+              owner && ownerName && (owner.username ? (
+                <a
+                  href={localePath(lang, `/@${owner.username}`)}
+                  title={t("list.ownerProfile", { username: owner.username })}
+                  class="chip bg-white !py-1 !pl-1 !pr-3 text-sm text-ink shadow-soft transition hover:text-accent-700"
+                >
+                  <Avatar user={owner} size={24} class="h-6 w-6" />
+                  {ownerName}
                 </a>
-              )
-            }
-          </div>
-          <!-- Footer hero: acțiuni owner + disponibilitate, centrate jos -->
-          <div class="mt-6 flex flex-col items-center gap-4 sm:mt-8">
-            {
-              isOwner && (
-                <div class="flex flex-wrap items-center justify-center gap-3">
-                  <a href={localePath(lang, `/dashboard/${list.id}`)} class="btn btn-ghost !px-4 !py-2 text-sm">
-                    {t("list.manage")}
-                  </a>
-                  {surprise && (
-                    <button id="reveal-btn" type="button" data-revealed="false" class="btn btn-ghost !px-4 !py-2 text-sm">
-                      {t("list.reveal")}
-                    </button>
-                  )}
-                </div>
-              )
+              ) : (
+                <span class="chip bg-white !py-1 !pl-1 !pr-3 text-sm text-ink shadow-soft">
+                  <Avatar user={owner} size={24} class="h-6 w-6" />
+                  {ownerName}
+                </span>
+              ))
             }
             {
               items.length > 0 && !surprise && (
-                <span class="inline-flex items-center gap-1.5 rounded-full border border-accent-200 bg-white/70 px-4 py-1.5 text-xs font-semibold text-accent-700">
-                  <span aria-hidden="true">🎁</span>
-                  <span>{t("list.available", { available, total: items.length })}</span>
+                <span class="chip bg-sun !py-1.5 text-sun-ink">
+                  <Icon name="gift" weight="bold" class="h-3.5 w-3.5" />
+                  {t("list.available", { available, total: items.length })}
                 </span>
               )
             }
           </div>
+          <p class="mt-4 max-w-md text-ink-soft">{isOwner ? t("list.ownerSubtitle") : t("list.subtitle")}</p>
+          {
+            isOwner && (
+              <div class="mt-5 flex flex-wrap items-center gap-2.5">
+                <a href={localePath(lang, `/dashboard/${list.id}`)} class="btn btn-ghost !px-4 !py-2.5 text-sm">
+                  {t("list.manage")}
+                </a>
+                {surprise && (
+                  <button id="reveal-btn" type="button" data-revealed="false" class="btn btn-ghost !px-4 !py-2.5 text-sm">
+                    {t("list.reveal")}
+                  </button>
+                )}
+              </div>
+            )
+          }
         </div>
       </header>
 
       {
         items.length === 0 ? (
-          <div class="card mt-10 p-10 text-center">
-            <div class="text-4xl" aria-hidden="true">
-              🎁
-            </div>
-            <p class="mt-3 text-ink-soft">{t("list.empty")}</p>
+          <div class="card mt-8 flex flex-col items-center px-6 py-10 text-center">
+            <span class="grid h-16 w-16 place-items-center rounded-3xl bg-accent-100 text-accent-600">
+              <Icon name="gift" class="h-8 w-8" />
+            </span>
+            <p class="mt-4 text-ink-soft">{t("list.empty")}</p>
             {isOwner && (
-              <a href={localePath(lang, `/dashboard/${list.id}`)} class="btn btn-primary mt-5 !px-5 !py-2.5 text-sm">
+              <a href={localePath(lang, `/dashboard/${list.id}`)} class="btn btn-primary mt-5 !px-5 !py-3 text-sm">
                 {t("list.emptyOwner")}
               </a>
             )}
@@ -150,7 +161,7 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
             id="items-grid"
             data-surprise={surprise ? "on" : "off"}
             data-owner={isOwner ? "true" : "false"}
-            class="mt-10 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4"
+            class="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3"
           >
             {items.map((item) => {
               const reserved = !!item.reserved_at;
@@ -163,7 +174,7 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
                 : {};
               return (
                 <article
-                  class="card group relative flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1.5 hover:shadow-[0_24px_44px_-26px_rgba(124,58,237,0.5)]"
+                  class="card group relative flex flex-col !rounded-3xl p-2 transition duration-200 hover:-translate-y-1 hover:shadow-lift"
                   data-item-id={item.id}
                   data-reserved={reserved ? "true" : "false"}
                   data-my-reservation={mine ? "true" : "false"}
@@ -171,7 +182,7 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
                   data-product-url={item.product_url ?? ""}
                   data-image-url={img}
                 >
-                  <Wrapper class="relative block aspect-square overflow-hidden bg-gradient-to-br from-violet-50 to-fuchsia-50" {...wrapperProps}>
+                  <Wrapper class="relative block aspect-square overflow-hidden rounded-2xl bg-sand" {...wrapperProps}>
                     {img ? (
                       <img
                         src={img}
@@ -179,73 +190,68 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
                         loading="lazy"
                         class:list={[
                           "h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]",
-                          { "opacity-40 grayscale": reserved },
+                          { "opacity-50 grayscale": reserved },
                         ]}
                         data-card-img
                       />
                     ) : (
-                      <div class:list={["grid h-full w-full place-items-center text-6xl", { "opacity-40 grayscale": reserved }]} data-card-img aria-hidden="true">
-                        🎁
+                      <div class:list={["grid h-full w-full place-items-center bg-accent-50 text-accent-500", { "opacity-50 grayscale": reserved }]} data-card-img aria-hidden="true">
+                        <Icon name="gift" class="h-12 w-12" />
                       </div>
                     )}
-                    <div class:list={["absolute inset-0 grid place-items-center bg-emerald-500/10", { hidden: !reserved }]} data-reserved-overlay>
-                      <div class="flex flex-col items-center gap-1.5">
-                        <span class="gift-tag -rotate-6">{t("list.reserved")}</span>
-                        <p
-                          class:list={[
-                            "max-w-[80%] truncate rounded-full bg-white/80 px-2.5 py-0.5 text-center text-xs font-semibold text-emerald-700",
-                            { hidden: !(reserved && item.reserved_by) },
-                          ]}
-                          data-reserved-name
-                        >
-                          {reserved ? item.reserved_by : ""}
-                        </p>
-                        <button data-unreserve-btn class="mt-1 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-rose-600 shadow-sm hover:bg-white hidden">
-                          {t("list.cancelReservation")}
-                        </button>
-                      </div>
-                    </div>
                   </Wrapper>
                   {/* "Most wanted" star — kept OUTSIDE the image link so tapping it never navigates. Indicator for visitors. */}
                   {item.priority ? (
                     <span
-                      class="priority-star is-priority absolute left-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full"
+                      class="absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-white text-accent-500 shadow-soft"
                       title={t("list.mostWanted")}
-                      aria-label={t("list.mostWanted")}
                     >
-                      <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]">
-                        <path d={STAR_PATH} />
-                      </svg>
+                      <Icon name="star" weight="fill" class="h-5 w-5" label={t("list.mostWanted")} />
                     </span>
                   ) : null}
-                  <div class="card-divider"></div>
-                  <div class="flex flex-1 flex-col gap-3 p-4">
-                    <div class="min-w-0">
+                  <div class="flex flex-1 flex-col px-1.5 pb-1 pt-3">
+                    <div class="min-w-0 px-0.5">
                       {item.price ? (
                         <>
-                          <p class="font-display text-xl font-bold tracking-tight">{item.price}</p>
-                          {site && <p class="truncate font-medium text-ink-soft mt-0.5 text-xs text-ink-soft/70">{site}</p>}
+                          <p class="text-xl font-extrabold tracking-tight">{item.price}</p>
+                          {site && <p class="mt-0.5 truncate text-xs font-medium text-ink-soft">{site}</p>}
                         </>
                       ) : (
-                        site && <p class="truncate font-medium text-ink-soft text-sm">{site}</p>
+                        site && <p class="truncate text-sm font-semibold text-ink-soft">{site}</p>
                       )}
                     </div>
-                    <div class="mt-auto flex flex-col gap-2.5 pt-1">
-                      <button data-reserve-btn class:list={["btn btn-primary w-full !py-3 text-sm font-semibold", { hidden: reserved }]}>
+                    <div class="mt-auto pt-3">
+                      <button data-reserve-btn class:list={["btn btn-soft w-full !py-3 text-sm", { hidden: reserved }]}>
                         {t("list.reserve")}
                       </button>
-                      {item.product_url && (
-                        <>
-                          <span class="mx-auto h-px w-5/6 bg-black/10" aria-hidden="true"></span>
-                          <a
-                            href={item.product_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="inline-flex items-center justify-center gap-1 text-xs font-medium text-ink-soft transition hover:text-accent-600"
+                      <div class:list={["text-center", { hidden: !reserved }]} data-reserved-overlay>
+                        <p class="flex min-h-11 min-w-0 items-center justify-center rounded-2xl bg-mint px-3 py-2 text-sm font-bold leading-tight text-mint-ink">
+                          {/* With a name: "Reserved by Ana ✓" (prefix and check drawn by CSS, the script only sets the name); without one: "✓ Reserved". */}
+                          <span
+                            class:list={[
+                              "peer min-w-0 break-words before:mr-1 before:content-[attr(data-prefix)] after:ml-1 after:content-['✓']",
+                              { hidden: !(reserved && item.reserved_by) },
+                            ]}
+                            data-prefix={t("list.reservedBy")}
+                            data-reserved-name
                           >
-                            {t("list.viewProduct")} <span aria-hidden="true">↗</span>
-                          </a>
-                        </>
+                            {reserved ? item.reserved_by : ""}
+                          </span>
+                          <span class="peer-[:not(.hidden)]:hidden">{t("list.reserved")}</span>
+                        </p>
+                        <button data-unreserve-btn class="mt-1.5 text-xs font-semibold text-ink-soft transition hover:text-rose-600 hidden">
+                          {t("list.cancelReservation")}
+                        </button>
+                      </div>
+                      {item.product_url && (
+                        <a
+                          href={item.product_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="mt-2 flex items-center justify-center gap-1 py-1 text-xs font-semibold text-ink-soft transition hover:text-accent-700"
+                        >
+                          {t("list.viewProduct")} <Icon name="arrow-square-out" class="h-3.5 w-3.5" />
+                        </a>
                       )}
                     </div>
                   </div>
@@ -258,11 +264,13 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
 
       {!user && <GuestCta lang={lang} />}
 
-      <div id="reserve-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="reserve-modal-title">
+      <div id="reserve-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="reserve-modal-title">
         <!-- Step 1: reservation form -->
-        <div class="card w-full max-w-md p-6" id="reserve-step-1">
-          <div class="text-3xl">🎀</div>
-          <h2 id="reserve-modal-title" class="mt-2 font-display text-2xl font-bold">{t("modal.title")}</h2>
+        <div class="card w-full max-w-md !rounded-3xl p-6 shadow-lift" id="reserve-step-1">
+          <span class="grid h-12 w-12 place-items-center rounded-2xl bg-accent-100 text-accent-600">
+            <Icon name="hand-heart" class="h-6 w-6" />
+          </span>
+          <h2 id="reserve-modal-title" class="mt-4 text-2xl font-extrabold tracking-tight">{t("modal.title")}</h2>
           <p class="mt-1 text-sm text-ink-soft">{t("modal.text")}</p>
           <p class="mt-5 text-sm font-semibold text-ink">{t("modal.nameQuestion")}</p>
           <div class="mt-2 grid grid-cols-2 gap-2.5">
@@ -274,29 +282,30 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
           </div>
           <p id="reserve-error" class="mt-2 hidden text-sm font-medium text-rose-600"></p>
           <div class="mt-6 flex flex-col gap-2.5">
-            <button id="reserve-confirm" class="btn btn-primary w-full !py-3 text-sm" disabled>
+            <button id="reserve-confirm" class="btn btn-primary w-full !py-3.5 text-sm" disabled>
               <span data-confirm-label>{t("modal.confirm")}</span>
             </button>
-            <button id="reserve-cancel" class="btn btn-ghost w-full !py-2.5 text-sm">{t("modal.cancel")}</button>
+            <button id="reserve-cancel" class="btn btn-ghost w-full !py-3 text-sm">{t("modal.cancel")}</button>
           </div>
         </div>
         <!-- Step 2: CTA after successful reservation (only for guests) -->
-        <div class="card hidden w-full max-w-md p-6 text-center" id="reserve-step-2">
-          <div class="text-4xl">🎁</div>
-          <h2 class="mt-3 font-display text-xl font-bold">{t("step2.title")}</h2>
+        <div class="card hidden w-full max-w-md !rounded-3xl p-6 text-center shadow-lift" id="reserve-step-2">
+          <span class="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-mint text-mint-ink">
+            <Icon name="check-circle" class="h-8 w-8" />
+          </span>
+          <h2 class="mt-4 text-xl font-extrabold tracking-tight">{t("step2.title")}</h2>
           <p class="mt-2 text-sm text-ink-soft">{t("step2.text")}</p>
           <div class="mt-6 flex flex-col gap-2.5">
-            <a id="reserve-cta-btn" href={RM.registerUrl} class="btn btn-primary w-full !py-3 text-sm">
+            <a id="reserve-cta-btn" href={RM.registerUrl} class="btn btn-primary w-full !py-3.5 text-sm">
               {t("step2.create")}
             </a>
-            <a id="reserve-cta-login" href={RM.loginUrl} class="btn btn-ghost w-full !py-2.5 text-sm">
+            <a id="reserve-cta-login" href={RM.loginUrl} class="btn btn-ghost w-full !py-3 text-sm">
               {t("step2.login")}
             </a>
-            <button id="reserve-cta-skip" class="btn btn-ghost w-full !py-2 text-xs text-ink-soft/60">{t("step2.skip")}</button>
+            <button id="reserve-cta-skip" class="btn w-full !py-2 text-xs font-semibold text-ink-soft hover:text-ink">{t("step2.skip")}</button>
           </div>
         </div>
       </div>
-
 
       <script is:inline define:vars={{ RM }}>
         // A tiny dependency-free confetti burst, fired when a gift is reserved.
@@ -312,7 +321,8 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
             canvas.height = window.innerHeight * dpr;
           };
           resize();
-          const colors = ["#7c3aed", "#d946ef", "#f59e0b", "#10b981", "#f472b6"];
+          // Pastel: coral, light coral, lavender, sun, mint (mid-tones so they show on the warm page).
+          const colors = ["#f0726a", "#f7aca5", "#9d8cf0", "#f5c26b", "#6fcfb4"];
           const parts = [];
           for (let i = 0; i < 130; i++) {
             parts.push({
@@ -435,7 +445,7 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
 
         function markReserved(card, name) {
           card.dataset.reserved = "true";
-          card.querySelector("[data-card-img]")?.classList.add("opacity-40", "grayscale");
+          card.querySelector("[data-card-img]")?.classList.add("opacity-50", "grayscale");
           card.querySelector("[data-reserve-btn]")?.classList.add("hidden");
           card.querySelector("[data-reserved-overlay]")?.classList.remove("hidden");
           const nameEl = card.querySelector("[data-reserved-name]");
@@ -516,7 +526,7 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
         }
         function markAvailable(card) {
           card.dataset.reserved = "false";
-          card.querySelector("[data-card-img]")?.classList.remove("opacity-40", "grayscale");
+          card.querySelector("[data-card-img]")?.classList.remove("opacity-50", "grayscale");
           card.querySelector("[data-reserve-btn]")?.classList.remove("hidden");
           card.querySelector("[data-reserved-overlay]")?.classList.add("hidden");
           card.querySelector("[data-unreserve-btn]")?.classList.add("hidden");

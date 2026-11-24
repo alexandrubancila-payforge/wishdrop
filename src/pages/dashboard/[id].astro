@@ -11,6 +11,7 @@ import strings from "@/i18n/editor";
 import social from "@/i18n/social";
 import { getItems, getWishlist } from "@/lib/db";
 import { imageUrl } from "@/lib/storage";
+import Icon from "@/components/Icon.astro";
 
 const { lang } = Astro.locals;
 const user = Astro.locals.user!;
@@ -30,6 +31,9 @@ const domain = (url: string | null) => {
     return "";
   }
 };
+
+/** Strings that start with an emoji ("📷 Tap to…") get an icon instead. */
+const noEmoji = (s: string) => s.replace(/^\p{Extended_Pictographic}\uFE0F?\s*/u, "");
 
 const addStrings = {
   submit: t("js.submit"),
@@ -62,39 +66,39 @@ const wishlistId = list.id;
 ---
 
 <Layout title={`${list.name} — WishDrop`} noindex mainClass="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
-  <a href={localePath(lang, "/dashboard")} class="text-sm font-medium text-ink-soft hover:text-ink">{t("back")}</a>
+  <a href={localePath(lang, "/dashboard")} class="inline-flex items-center text-sm font-semibold text-ink-soft transition hover:text-accent-700">{t("back")}</a>
 
   <div class="mt-3">
     <div id="title-view" class="flex items-center gap-2">
-      <h1 id="wl-title" title={list.name} class="min-w-0 truncate font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
+      <h1 id="wl-title" title={list.name} class="min-w-0 truncate text-3xl font-extrabold tracking-tight sm:text-4xl">
         {list.name}
       </h1>
       <button
         id="rename-btn"
         aria-label={t("rename")}
-        class="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-ink-soft/60 transition hover:bg-gray-100 hover:text-accent-600"
+        class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-ink-soft shadow-soft transition hover:text-accent-700"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
-          <path d="M12 20h9" />
-          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-        </svg>
+        <Icon name="pencil-simple" class="h-[18px] w-[18px]" />
       </button>
     </div>
     <form id="rename-form" class="hidden items-center gap-2" data-wishlist-id={list.id}>
-      <input id="rename-input" type="text" maxlength="60" required value={list.name} class="field !py-1.5 font-display text-xl font-bold" />
-      <button type="submit" class="btn btn-primary shrink-0 !px-3 !py-1.5 text-sm">{t("save")}</button>
-      <button type="button" id="rename-cancel" class="btn btn-ghost shrink-0 !px-3 !py-1.5 text-sm">{t("cancel")}</button>
+      <input id="rename-input" type="text" maxlength="60" required value={list.name} class="field !py-2 text-xl font-extrabold tracking-tight" />
+      <button type="submit" class="btn btn-primary shrink-0 !px-4 !py-2.5 text-sm">{t("save")}</button>
+      <button type="button" id="rename-cancel" class="btn btn-ghost shrink-0 !px-4 !py-2.5 text-sm">{t("cancel")}</button>
     </form>
 
     <!-- Compact share row: link · copy · open -->
-    <div class="mt-3 flex items-center gap-2">
-      <input
-        readonly
-        value={shareUrl}
-        id="share-url"
-        class="min-w-0 flex-1 truncate rounded-lg border border-black/10 bg-accent-50/50 px-3 py-2 text-xs text-ink-soft sm:max-w-md"
-      />
-      <button id="copy-share" class="shrink-0 rounded-lg bg-accent-100 px-3 py-2 text-xs font-semibold text-accent-700 transition hover:bg-accent-200">
+    <div class="mt-4 flex items-center gap-2">
+      <div class="relative min-w-0 flex-1 sm:max-w-md">
+        <Icon name="link" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-accent-500" />
+        <input
+          readonly
+          value={shareUrl}
+          id="share-url"
+          class="field truncate !rounded-full !bg-white !py-2.5 !pl-10 text-sm text-ink-soft shadow-soft"
+        />
+      </div>
+      <button id="copy-share" class="btn btn-soft shrink-0 !px-4 !py-3 text-sm">
         {t("copyLink")}
       </button>
       <a
@@ -103,39 +107,40 @@ const wishlistId = list.id;
         rel="noopener"
         aria-label={t("viewPublic")}
         title={t("viewPublic")}
-        class="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-black/10 bg-white text-ink-soft transition hover:border-accent-300 hover:text-accent-600"
+        class="btn btn-ghost h-10 w-10 shrink-0 !p-0"
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
-          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-          <polyline points="15 3 21 3 21 9" />
-          <line x1="10" y1="14" x2="21" y2="3" />
-        </svg>
+        <Icon name="arrow-square-out" class="h-[18px] w-[18px]" />
       </a>
     </div>
   </div>
 
   <!-- Surprise mode (compact) -->
-  <div class="card mt-5 flex items-center justify-between gap-3 p-3.5">
-    <div class="flex min-w-0 items-start gap-2.5">
-      <span class="text-xl leading-none">🤫</span>
+  <div class="card mt-6 flex items-center justify-between gap-3 p-4">
+    <div class="flex min-w-0 items-center gap-3">
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-lav text-lav-ink">
+        <Icon name="eye-slash" class="h-5 w-5" />
+      </span>
       <div class="min-w-0">
-        <p class="font-semibold leading-tight">{t("surprise")}</p>
+        <p class="font-bold leading-tight">{t("surprise")}</p>
         <p class="mt-1 text-xs leading-snug text-ink-soft">{t("surpriseText")}</p>
       </div>
     </div>
     <label class="inline-flex shrink-0 cursor-pointer items-center gap-2">
       <input type="checkbox" id="surprise-toggle" class="peer sr-only" data-wishlist-id={list.id} checked={surprise} />
       <span
-        class="relative h-6 w-11 rounded-full bg-gray-300 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:bg-accent-600 peer-checked:after:translate-x-5"
+        class="relative h-6 w-11 rounded-full bg-ink-soft/30 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-soft after:transition peer-checked:bg-accent-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20"
       ></span>
-      <span class="hidden text-sm font-semibold sm:inline" data-surprise-label>{surprise ? t("on") : t("off")}</span>
+      <span class="hidden text-sm font-semibold text-ink-soft sm:inline" data-surprise-label>{surprise ? t("on") : t("off")}</span>
     </label>
   </div>
 
   <!-- Where the list appears (profile visibility). The link works in every case. -->
-  <div class="card mt-3 p-3.5" id="visibility" data-wishlist-id={list.id} data-saved={t("vis.saved")} data-fail={t("vis.fail")}>
+  <div class="card mt-3 p-4 sm:p-5" id="visibility" data-wishlist-id={list.id} data-saved={t("vis.saved")} data-fail={t("vis.fail")}>
     <div class="flex items-center justify-between gap-3">
-      <p class="font-semibold leading-tight">👀 {t("vis.title")}</p>
+      <p class="flex items-center gap-2 font-extrabold leading-tight tracking-tight">
+        <Icon name="eye" class="h-5 w-5 text-accent-500" />
+        {t("vis.title")}
+      </p>
       <p id="visibility-status" class="hidden text-xs font-medium"></p>
     </div>
     <div class="mt-3 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={t("vis.title")}>
@@ -143,9 +148,19 @@ const wishlistId = list.id;
         (["public", "followers", "link"] as const).map((v) => (
           <label class="cursor-pointer">
             <input type="radio" name="visibility" value={v} checked={list.visibility === v} class="peer sr-only" />
-            <span class="block h-full rounded-xl border-[1.5px] border-black/10 bg-white p-3 transition hover:border-accent-300 peer-checked:border-accent-600 peer-checked:bg-accent-50 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20">
-              <span class="block text-sm font-semibold text-ink">{v === "public" ? "🌍 " : v === "followers" ? "👥 " : "🔗 "}{t(`vis.${v}`)}</span>
-              <span class="mt-0.5 block text-xs leading-snug text-ink-soft">{t(`vis.${v}Text`)}</span>
+            <span class="flex h-full items-start gap-3 rounded-2xl border-[1.5px] border-line bg-white p-3 transition hover:border-accent-300 peer-checked:border-accent-500 peer-checked:bg-accent-100 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20">
+              <span
+                class:list={[
+                  "grid h-9 w-9 shrink-0 place-items-center rounded-xl",
+                  v === "public" ? "bg-mint text-mint-ink" : v === "followers" ? "bg-lav text-lav-ink" : "bg-sand text-ink-soft",
+                ]}
+              >
+                <Icon name={v === "public" ? "globe" : v === "followers" ? "users" : "link"} class="h-[18px] w-[18px]" />
+              </span>
+              <span class="min-w-0">
+                <span class="block text-sm font-bold text-ink">{t(`vis.${v}`)}</span>
+                <span class="mt-0.5 block text-xs leading-snug text-ink-soft">{t(`vis.${v}Text`)}</span>
+              </span>
             </span>
           </label>
         ))
@@ -153,9 +168,12 @@ const wishlistId = list.id;
     </div>
     {
       !user.username && (
-        <p class="mt-3 text-xs text-ink-soft">
-          {t("vis.noUsername")}{" "}
-          <a href={localePath(lang, "/settings") + "#public-profile"} class="font-semibold text-accent-600 hover:underline">→</a>
+        <p class="mt-3 flex items-center gap-1.5 rounded-xl bg-lav px-3 py-2 text-xs text-lav-ink">
+          <Icon name="info" class="h-4 w-4 shrink-0" />
+          <span>
+            {t("vis.noUsername")}{" "}
+            <a href={localePath(lang, "/settings") + "#public-profile"} class="font-bold hover:underline">→</a>
+          </span>
         </p>
       )
     }
@@ -177,7 +195,7 @@ const wishlistId = list.id;
           if (!res.ok) throw new Error();
           box.dataset.current = radio.value;
           status!.textContent = box.dataset.saved!;
-          status!.className = "text-xs font-medium text-emerald-600";
+          status!.className = "text-xs font-medium text-mint-ink";
         } catch {
           if (previous) box.querySelector<HTMLInputElement>(`input[value="${previous}"]`)!.checked = true;
           status!.textContent = box.dataset.fail!;
@@ -191,34 +209,44 @@ const wishlistId = list.id;
 
   <div class="mt-6 grid gap-6 lg:grid-cols-[360px_1fr] lg:gap-8">
     <div class="lg:sticky lg:top-20 lg:self-start">
-      <form id="add-item-form" data-wishlist-id={list.id} class="card p-6">
-        <h2 class="font-display text-lg font-bold">{t("addTitle")}</h2>
+      <form id="add-item-form" data-wishlist-id={list.id} class="card p-5 sm:p-6">
+        <h2 class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
+          <Icon name="gift" class="h-5 w-5 text-accent-500" />
+          {t("addTitle")}
+        </h2>
 
         <!-- Auto-fill from link -->
         <div class="mt-4">
           <label for="item-url" class="block text-sm font-semibold text-ink">{t("productLink")}</label>
           <div class="relative mt-1">
-            <input id="item-url" name="product_url" type="url" placeholder="https://..." class="field !pr-11" />
+            <Icon name="link" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
+            <input id="item-url" name="product_url" type="url" placeholder="https://..." class="field !pl-10 !pr-11" />
             <span id="autofill-spinner" class="absolute right-3 top-1/2 hidden -translate-y-1/2 text-accent-500">
               <span class="btn-spinner"></span>
             </span>
           </div>
-          <p class="mt-1 text-xs text-ink-soft/70">{t("autofillHint")}</p>
+          <p class="mt-1.5 flex items-start gap-1.5 text-xs text-ink-soft">
+            <Icon name="sparkle" class="mt-px h-3.5 w-3.5 shrink-0 text-accent-500" />
+            <span>{noEmoji(t("autofillHint"))}</span>
+          </p>
         </div>
 
         <!-- Image picker with preview -->
         <div class="mt-4">
           <label class="block text-sm font-semibold text-ink">
-            {t("image")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+            {t("image")} <span class="font-normal text-ink-soft">{t("optional")}</span>
           </label>
           <label
             for="item-image"
-            class="mt-1 flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-accent-200 bg-gradient-to-br from-violet-50/60 to-fuchsia-50/60 text-center text-sm text-ink-soft transition hover:border-accent-400"
+            class="mt-1 flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-line bg-sand text-center text-sm text-ink-soft transition hover:border-accent-300 hover:bg-accent-50"
           >
             <img data-preview class="hidden h-full w-full object-contain" alt="" />
             <span data-preview-placeholder class="px-4">
-              {t("choose")}<br />
-              <span class="text-xs text-ink-soft/70">{t("chooseHint")}</span>
+              <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white text-accent-500 shadow-soft">
+                <Icon name="camera" class="h-6 w-6" />
+              </span>
+              <span class="mt-2 block font-semibold text-ink">{noEmoji(t("choose"))}</span>
+              <span class="mt-0.5 block text-xs text-ink-soft">{t("chooseHint")}</span>
             </span>
           </label>
           <input id="item-image" name="image" type="file" accept="image/*" class="hidden" />
@@ -227,14 +255,18 @@ const wishlistId = list.id;
         <!-- Price -->
         <div class="mt-4">
           <label for="item-price" class="block text-sm font-semibold text-ink">
-            {t("price")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+            {t("price")} <span class="font-normal text-ink-soft">{t("optional")}</span>
           </label>
-          <input id="item-price" name="price" type="text" maxlength="40" placeholder={t("pricePlaceholder")} class="field mt-1" />
+          <div class="relative mt-1">
+            <Icon name="tag" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-soft" />
+            <input id="item-price" name="price" type="text" maxlength="40" placeholder={t("pricePlaceholder")} class="field !pl-10" />
+          </div>
         </div>
 
         <p id="add-item-error" class="mt-3 hidden text-sm font-medium text-rose-600"></p>
-        <div class="mt-4 flex justify-end">
-          <button type="submit" id="add-item-submit" class="btn btn-primary py-2.5">
+        <div class="mt-5">
+          <button type="submit" id="add-item-submit" class="btn btn-primary w-full !py-3.5">
+            <Icon name="plus" weight="bold" class="h-4 w-4" />
             <span data-submit-label>{t("addGift")}</span>
           </button>
         </div>
@@ -294,7 +326,7 @@ const wishlistId = list.id;
         }
         function showHint(msg) {
           errorEl.textContent = msg;
-          errorEl.className = "mt-3 text-sm font-medium text-amber-700";
+          errorEl.className = "mt-3 text-sm font-medium text-sun-ink";
         }
         function clearError() {
           errorEl.className = "mt-3 hidden text-sm font-medium text-rose-600";
@@ -413,16 +445,24 @@ const wishlistId = list.id;
     </div>
 
     <div>
-      <h2 class="font-display text-lg font-bold">{t("gifts", { n: items.length })}</h2>
+      <h2 class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
+        <Icon name="list-heart" class="h-5 w-5 text-accent-500" />
+        {t("gifts", { n: items.length })}
+      </h2>
       {
         items.length === 0 ? (
-          <div class="mt-4 rounded-3xl border-2 border-dashed border-accent-200 bg-white/60 p-10 text-center">
-            <div class="text-4xl">🎁</div>
-            <p class="mt-3 font-display text-lg font-bold">{t("emptyTitle")}</p>
+          <div class="card mt-3 flex flex-col items-center px-6 py-10 text-center">
+            <span class="grid h-16 w-16 place-items-center rounded-3xl bg-accent-100 text-accent-600">
+              <Icon name="gift" class="h-8 w-8" />
+            </span>
+            <p class="mt-4 text-lg font-extrabold tracking-tight">{t("emptyTitle")}</p>
             <p class="mx-auto mt-1 max-w-sm text-sm text-ink-soft">{t("emptyText")}</p>
+            <label for="item-url" class="btn btn-primary mt-5 !py-3 text-sm">
+              <Icon name="plus" weight="bold" class="h-4 w-4" />{t("addTitle")}
+            </label>
           </div>
         ) : (
-          <div id="items-grid" data-surprise={surprise ? "on" : "off"} class="mt-4 grid grid-cols-2 gap-4 sm:gap-5 xl:grid-cols-3">
+          <div id="items-grid" data-surprise={surprise ? "on" : "off"} class="mt-3 grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
             {items.map((item) => {
               const reserved = item.reserved_at != null;
               const img = imageUrl(item.image_key);
@@ -430,7 +470,7 @@ const wishlistId = list.id;
               const href = item.product_url || undefined;
               return (
                 <article
-                  class="card group relative flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1.5 hover:shadow-[0_24px_44px_-26px_rgba(124,58,237,0.5)]"
+                  class="card group relative flex flex-col p-2 transition duration-200 hover:-translate-y-0.5 hover:shadow-lift sm:p-2.5"
                   data-item-id={item.id}
                   data-reserved={reserved ? "true" : "false"}
                   data-my-reservation="false"
@@ -439,7 +479,7 @@ const wishlistId = list.id;
                   data-image-url={img}
                 >
                   <a
-                    class="relative block aspect-square overflow-hidden bg-gradient-to-br from-violet-50 to-fuchsia-50"
+                    class="relative block aspect-square overflow-hidden rounded-2xl bg-accent-50"
                     href={href}
                     target={href ? "_blank" : undefined}
                     rel={href ? "noopener noreferrer" : undefined}
@@ -452,7 +492,7 @@ const wishlistId = list.id;
                         loading="lazy"
                         class:list={[
                           "h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]",
-                          reserved && "opacity-40 grayscale",
+                          reserved && "opacity-50 grayscale",
                         ]}
                         data-card-img
                       />
@@ -460,20 +500,22 @@ const wishlistId = list.id;
                       <div
                         class:list={[
                           "flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center",
-                          reserved && "opacity-40 grayscale",
+                          reserved && "opacity-50 grayscale",
                         ]}
                         data-card-img
                       >
-                        <span class="text-5xl">🎁</span>
+                        <span class="grid h-14 w-14 place-items-center rounded-2xl bg-accent-100 text-accent-600">
+                          <Icon name="gift" class="h-7 w-7" />
+                        </span>
                         {host && <span class="max-w-full truncate text-sm font-semibold text-accent-700">{host}</span>}
                       </div>
                     )}
-                    <div class:list={["absolute inset-0 grid place-items-center bg-emerald-500/10", !reserved && "hidden"]} data-reserved-overlay>
+                    <div class:list={["absolute inset-0 grid place-items-center bg-mint/40", !reserved && "hidden"]} data-reserved-overlay>
                       <div class="flex flex-col items-center gap-1.5">
-                        <span class="gift-tag -rotate-6">{t("reserved")}</span>
+                        <span class="gift-tag -rotate-6 shadow-soft">{t("reserved")}</span>
                         <p
                           class:list={[
-                            "max-w-[80%] truncate rounded-full bg-white/80 px-2.5 py-0.5 text-center text-xs font-semibold text-emerald-700",
+                            "max-w-[80%] truncate rounded-full bg-white/90 px-2.5 py-0.5 text-center text-xs font-semibold text-mint-ink",
                             !(reserved && item.reserved_by) && "hidden",
                           ]}
                           data-reserved-name
@@ -490,7 +532,7 @@ const wishlistId = list.id;
                     aria-label={t("favourite")}
                     title={t("favourite")}
                     class:list={[
-                      "priority-star absolute left-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full transition",
+                      "priority-star absolute right-4 top-4 z-10 grid h-8 w-8 place-items-center rounded-full transition sm:right-5 sm:top-5",
                       item.priority && "is-priority",
                     ]}
                   >
@@ -498,19 +540,18 @@ const wishlistId = list.id;
                       <path d="M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2l3.086 6.253 6.9 1.002-4.993 4.867 1.179 6.873z" />
                     </svg>
                   </button>
-                  <div class="card-divider" />
-                  <div class="flex flex-1 flex-col gap-3 p-4">
+                  <div class="flex flex-1 flex-col gap-2 px-1.5 pb-1 pt-3">
                     <div class="min-w-0">
                       {item.price ? (
                         <>
-                          <p class="font-display text-xl font-bold tracking-tight">{item.price}</p>
-                          {host && <p class="truncate font-medium text-ink-soft mt-0.5 text-xs text-ink-soft/70">{host}</p>}
+                          <p class="truncate text-lg font-extrabold tracking-tight">{item.price}</p>
+                          {host && <p class="mt-0.5 truncate text-xs font-medium text-ink-soft">{host}</p>}
                         </>
                       ) : (
-                        host && <p class="truncate font-medium text-ink-soft text-sm">{host}</p>
+                        host && <p class="truncate text-sm font-semibold text-ink-soft">{host}</p>
                       )}
                     </div>
-                    <div class="mt-auto flex items-center justify-end gap-1.5 border-t border-black/5 pt-3">
+                    <div class="mt-auto flex items-center justify-end gap-1.5 pt-1">
                       {href && (
                         <a
                           href={href}
@@ -518,37 +559,26 @@ const wishlistId = list.id;
                           rel="noopener noreferrer"
                           aria-label={t("viewProduct")}
                           title={t("viewProduct")}
-                          class="mr-auto grid h-9 w-9 place-items-center rounded-lg border border-black/10 bg-white text-ink-soft transition hover:border-accent-300 hover:text-accent-600"
+                          class="mr-auto grid h-9 w-9 place-items-center rounded-full bg-sand text-ink-soft transition hover:bg-accent-100 hover:text-accent-700"
                         >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
-                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                            <polyline points="15 3 21 3 21 9" />
-                            <line x1="10" y1="14" x2="21" y2="3" />
-                          </svg>
+                          <Icon name="arrow-square-out" class="h-[18px] w-[18px]" />
                         </a>
                       )}
                       <button
                         data-edit-btn
                         aria-label={t("edit")}
                         title={t("edit")}
-                        class="grid h-9 w-9 place-items-center rounded-lg border border-black/10 bg-white text-ink-soft transition hover:border-accent-300 hover:text-accent-600"
+                        class="grid h-9 w-9 place-items-center rounded-full bg-sand text-ink-soft transition hover:bg-accent-100 hover:text-accent-700"
                       >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
-                          <path d="M12 20h9" />
-                          <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-                        </svg>
+                        <Icon name="pencil-simple" class="h-[18px] w-[18px]" />
                       </button>
                       <button
                         data-delete-btn
                         aria-label={t("delete")}
                         title={t("delete")}
-                        class="grid h-9 w-9 place-items-center rounded-lg border border-black/10 bg-white text-ink-soft transition hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600"
+                        class="grid h-9 w-9 place-items-center rounded-full bg-sand text-ink-soft transition hover:bg-accent-50 hover:text-rose-600"
                       >
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
-                          <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6" />
-                          <line x1="10" y1="11" x2="10" y2="17" />
-                          <line x1="14" y1="11" x2="14" y2="17" />
-                        </svg>
+                        <Icon name="trash" class="h-[18px] w-[18px]" />
                       </button>
                     </div>
                   </div>
@@ -562,29 +592,35 @@ const wishlistId = list.id;
   </div>
 
   <!-- Edit item modal -->
-  <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
-    <div class="card w-full max-w-md p-6">
-      <h2 class="font-display text-xl font-bold">{t("edit")}</h2>
+  <div id="edit-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
+    <div class="card w-full max-w-md !rounded-3xl p-6 shadow-lift">
+      <h2 class="flex items-center gap-2 text-xl font-extrabold tracking-tight">
+        <Icon name="pencil-simple" class="h-5 w-5 text-accent-500" />
+        {t("edit")}
+      </h2>
       <div class="mt-4">
         <label class="block text-sm font-semibold text-ink">
-          {t("image")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+          {t("image")} <span class="font-normal text-ink-soft">{t("optional")}</span>
         </label>
         <label
           for="edit-image"
-          class="mt-1 flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-accent-200 bg-gradient-to-br from-violet-50/60 to-fuchsia-50/60 text-center text-sm text-ink-soft transition hover:border-accent-400"
+          class="mt-1 flex aspect-video cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-line bg-sand text-center text-sm text-ink-soft transition hover:border-accent-300 hover:bg-accent-50"
         >
           <img id="edit-preview" class="hidden h-full w-full object-contain" alt="" />
           <span id="edit-preview-ph" class="px-4">
-            {t("change")}<br />
-            <span class="text-xs text-ink-soft/70">{t("changeHint")}</span>
+            <span class="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-white text-accent-500 shadow-soft">
+              <Icon name="camera" class="h-6 w-6" />
+            </span>
+            <span class="mt-2 block font-semibold text-ink">{noEmoji(t("change"))}</span>
+            <span class="mt-0.5 block text-xs text-ink-soft">{t("changeHint")}</span>
           </span>
         </label>
         <input id="edit-image" type="file" accept="image/*" class="hidden" />
-        <button type="button" id="edit-remove-image" class="mt-1 hidden text-xs font-medium text-rose-600 hover:underline">{t("removePhoto")}</button>
+        <button type="button" id="edit-remove-image" class="mt-1.5 hidden text-xs font-semibold text-rose-600 hover:underline">{t("removePhoto")}</button>
       </div>
       <div class="mt-4">
         <label for="edit-price" class="block text-sm font-semibold text-ink">
-          {t("price")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+          {t("price")} <span class="font-normal text-ink-soft">{t("optional")}</span>
         </label>
         <input id="edit-price" type="text" maxlength="40" class="field mt-1" />
       </div>
@@ -593,9 +629,9 @@ const wishlistId = list.id;
         <input id="edit-url" type="url" placeholder="https://..." class="field mt-1" />
       </div>
       <p id="edit-error" class="mt-3 hidden text-sm font-medium text-rose-600"></p>
-      <div class="mt-6 flex justify-end gap-3">
-        <button id="edit-cancel" class="btn btn-ghost !px-4 !py-2 text-sm">{t("cancel")}</button>
-        <button id="edit-save" class="btn btn-primary !px-4 !py-2 text-sm">
+      <div class="mt-6 flex justify-end gap-2">
+        <button id="edit-cancel" class="btn btn-ghost !px-5 !py-2.5 text-sm">{t("cancel")}</button>
+        <button id="edit-save" class="btn btn-primary !px-5 !py-2.5 text-sm">
           <span data-save-label>{t("save")}</span>
         </button>
       </div>

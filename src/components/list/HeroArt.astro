@@ -1,64 +1,21 @@
 ---
-/** Floating gift, balloon, star and party cone on the right of a public list's hero (desktop only). */
+/** Floating pastel icon tiles on the right of a public list's hero (desktop only). Flat colors, no gradients. */
+import Icon from "@/components/Icon.astro";
+
+const TILES = [
+  { icon: "gift", tint: "bg-accent-100 text-accent-600", box: "h-24 w-24 rounded-[1.75rem]", size: "h-12 w-12", style: "top:34%;left:38%;--tilt:-8deg;animation-duration:5.5s" },
+  { icon: "balloon", tint: "bg-lav text-lav-ink", box: "h-16 w-16 rounded-3xl", size: "h-8 w-8", style: "top:4%;left:70%;--tilt:8deg;animation-duration:4.6s;animation-delay:0.6s" },
+  { icon: "star", tint: "bg-sun text-sun-ink", box: "h-14 w-14 rounded-2xl", size: "h-7 w-7", style: "top:10%;left:14%;--tilt:12deg;animation-duration:4.2s;animation-delay:1.1s" },
+  { icon: "confetti", tint: "bg-mint text-mint-ink", box: "h-16 w-16 rounded-3xl", size: "h-8 w-8", style: "top:66%;left:72%;--tilt:6deg;animation-duration:6.3s;animation-delay:0.3s" },
+];
 ---
 
-<!-- Compoziție decorativă pe dreapta — umple golul pe desktop -->
-<div class="pointer-events-none absolute inset-y-0 right-4 hidden w-2/5 select-none sm:block" aria-hidden="true"> <span class="hero-float" style="position:absolute;top:40%;left:34%;width:130px;height:130px;opacity:1;line-height:0;--rot:-8deg;animation-duration:5.5s;animation-delay:0s"><svg viewBox="0 0 80 80" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="hg-box" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#a855f7"/><stop offset="1" stop-color="#6d28d9"/>
-      </linearGradient>
-      <linearGradient id="hg-lid" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#c084fc"/><stop offset="1" stop-color="#9333ea"/>
-      </linearGradient>
-    </defs>
-    <ellipse cx="40" cy="73" rx="24" ry="4" fill="#000" opacity="0.08"/>
-    <rect x="16" y="36" width="48" height="34" rx="5" fill="url(#hg-box)"/>
-    <rect x="34" y="36" width="12" height="34" fill="#f472b6"/>
-    <rect x="12" y="27" width="56" height="13" rx="5" fill="url(#hg-lid)"/>
-    <rect x="34" y="27" width="12" height="13" fill="#ec4899"/>
-    <path d="M40 27 C31 11 13 15 22 26 C27 32 36 28 40 27Z" fill="#f472b6"/>
-    <path d="M40 27 C49 11 67 15 58 26 C53 32 44 28 40 27Z" fill="#f472b6"/>
-    <path d="M40 27 C35 19 27 20 31 26 C34 30 38 28 40 27Z" fill="#ec4899"/>
-    <path d="M40 27 C45 19 53 20 49 26 C46 30 42 28 40 27Z" fill="#ec4899"/>
-    <circle cx="40" cy="26" r="5" fill="#db2777"/>
-    <circle cx="24" cy="50" r="2.5" fill="#fff" opacity="0.55"/>
-    <circle cx="58" cy="60" r="2" fill="#fff" opacity="0.5"/>
-  </svg></span><span class="hero-float" style="position:absolute;top:20%;left:66%;width:60px;height:60px;opacity:0.95;line-height:0;--rot:8deg;animation-duration:4.6s;animation-delay:0.6s"><svg viewBox="0 0 60 92" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <radialGradient id="hg-bal" cx="0.36" cy="0.3" r="0.85">
-        <stop offset="0" stop-color="#f9a8d4"/><stop offset="0.6" stop-color="#ec4899"/><stop offset="1" stop-color="#be185d"/>
-      </radialGradient>
-    </defs>
-    <path d="M30 63 Q37 76 30 90 Q23 78 30 63Z" stroke="#9d174d" stroke-width="2" fill="none"/>
-    <ellipse cx="30" cy="33" rx="24" ry="30" fill="url(#hg-bal)"/>
-    <path d="M26 62 L34 62 L30 69 Z" fill="#be185d"/>
-    <ellipse cx="21" cy="23" rx="6" ry="10" fill="#fff" opacity="0.4" transform="rotate(-18 21 23)"/>
-  </svg></span><span class="hero-float" style="position:absolute;top:30%;left:22%;width:42px;height:42px;opacity:0.9;line-height:0;--rot:12deg;animation-duration:4.2s;animation-delay:1.1s"><svg viewBox="0 0 64 64" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="hg-star" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#fde047"/><stop offset="1" stop-color="#f59e0b"/>
-      </linearGradient>
-    </defs>
-    <path d="M32 3 L40 24 L62 26 L45 40 L51 62 L32 49 L13 62 L19 40 L2 26 L24 24 Z" fill="url(#hg-star)"/>
-    <circle cx="32" cy="33" r="6" fill="#fffbeb" opacity="0.7"/>
-    <path d="M52 6 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#fbbf24" opacity="0.8"/>
-  </svg></span><span class="hero-float" style="position:absolute;top:66%;left:62%;width:54px;height:54px;opacity:0.9;line-height:0;--rot:6deg;animation-duration:6.3s;animation-delay:0.3s"><svg viewBox="0 0 68 68" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="hg-cone" x1="0" y1="1" x2="1" y2="0">
-        <stop offset="0" stop-color="#7c3aed"/><stop offset="1" stop-color="#c026d3"/>
-      </linearGradient>
-    </defs>
-    <path d="M6 62 L30 34 L38 42 Z" fill="url(#hg-cone)"/>
-    <path d="M6 62 L18 47 L24 53 Z" fill="#fff" opacity="0.18"/>
-    <circle cx="44" cy="14" r="3.5" fill="#ec4899"/>
-    <circle cx="56" cy="26" r="3" fill="#fbbf24"/>
-    <circle cx="40" cy="30" r="2.5" fill="#22d3ee"/>
-    <rect x="48" y="38" width="9" height="4.5" rx="2.25" fill="#d946ef" transform="rotate(35 52 40)"/>
-    <rect x="30" y="14" width="9" height="4.5" rx="2.25" fill="#34d399" transform="rotate(-25 34 16)"/>
-    <path d="M38 6 l2 4 M60 12 l-3 3 M62 40 l4 1" stroke="#f472b6" stroke-width="2.5" stroke-linecap="round"/>
-  </svg></span> </div>
-
-<style is:global>
-  @keyframes heroFloat{0%,to{transform:translateY(0) rotate(var(--rot, 0deg))}50%{transform:translateY(-12px) rotate(var(--rot, 0deg))}}.hero-float{animation-name:heroFloat;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-fill-mode:backwards;transform:rotate(var(--rot, 0deg));will-change:transform}@media(prefers-reduced-motion:reduce){.hero-float{animation:none;transform:rotate(var(--rot, 0deg))}}
-</style>
+<div class="pointer-events-none absolute inset-y-0 right-0 hidden w-2/5 select-none sm:block" aria-hidden="true">
+  {
+    TILES.map((tile) => (
+      <span class:list={["float-soft absolute grid place-items-center shadow-soft", tile.tint, tile.box]} style={tile.style}>
+        <Icon name={tile.icon} class={tile.size} />
+      </span>
+    ))
+  }
+</div>

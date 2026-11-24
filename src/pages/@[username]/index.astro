@@ -6,6 +6,7 @@
  */
 import Layout from "@/layouts/Layout.astro";
 import Avatar from "@/components/Avatar.astro";
+import Icon from "@/components/Icon.astro";
 import FollowButton from "@/components/social/FollowButton.astro";
 import ProfileListCard from "@/components/social/ProfileListCard.astro";
 import { localePath, makeT } from "@/lib/i18n";
@@ -30,9 +31,10 @@ const birthday = owner.birthday
   ? new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(owner.birthday + "T00:00:00Z"))
   : null;
 
-const stat = (n: number, label: string, link: string | null) => ({ n, label, link });
+const stat = (n: number, label: string, link: string | null, current = false) => ({ n, label, link, current });
+// Tabs under the header: this page is "Lists"; the other two open their own pages.
 const stats = [
-  stat(lists.length, t("profile.stat.lists"), null),
+  stat(lists.length, t("profile.stat.lists"), href(`/@${owner.username}`), true),
   stat(counts.followers, t("profile.stat.followers"), visible ? href(`/@${owner.username}/followers`) : null),
   stat(counts.following, t("profile.stat.following"), visible ? href(`/@${owner.username}/following`) : null),
 ];
@@ -42,92 +44,96 @@ const stats = [
   title={t("profile.title", { name: owner.name || owner.username, username: owner.username })}
   description={t("profile.description", { name: owner.name || `@${owner.username}` })}
   noindex={!!owner.is_private}
-  mainClass="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10"
+  mainClass="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10"
 >
   <!-- Profile header -->
-  <section class="card overflow-hidden">
-    <div class="h-24 gift-gradient sm:h-28"></div>
-    <div class="px-6 pb-6 sm:px-8">
-      <div class="-mt-10 flex flex-wrap items-end justify-between gap-4">
-        <div class="flex min-w-0 items-end gap-4">
-          <div class="rounded-full ring-4 ring-white">
-            <Avatar user={owner} size={96} class="h-24 w-24" alt={name} />
-          </div>
-          <div class="min-w-0 pb-1">
-            <h1 class="flex items-center gap-2 truncate font-display text-2xl font-extrabold tracking-tight sm:text-3xl">
-              <span class="truncate">{owner.name || `@${owner.username}`}</span>
-              {
-                !!owner.is_private && (
-                  <span class="shrink-0 text-ink-soft/60" title={t("profile.privateBadge")}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5" aria-label={t("profile.privateBadge")}><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-                  </span>
-                )
-              }
-            </h1>
-            {owner.name && <p class="truncate text-sm text-ink-soft">@{owner.username}</p>}
-          </div>
-        </div>
-        <div class="flex items-center gap-2 pb-1">
-          {
-            rel === "self" ? (
-              <a href={href("/settings")} class="btn btn-ghost !px-5 !py-2.5 text-sm">{t("profile.edit")}</a>
-            ) : (
-              <FollowButton username={owner.username} relation={rel} isPrivate={!!owner.is_private} reload />
-            )
-          }
-          <button
-            type="button"
-            id="share-profile"
-            data-url={profileUrl}
-            data-copied={t("profile.copied")}
-            aria-label={t("profile.share")}
-            title={t("profile.share")}
-            class="btn btn-ghost !px-3 !py-2.5"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-          </button>
-        </div>
-      </div>
+  <section class="card relative px-5 pt-8 text-center sm:px-8">
+    <button
+      type="button"
+      id="share-profile"
+      data-url={profileUrl}
+      data-copied={t("profile.copied")}
+      aria-label={t("profile.share")}
+      title={t("profile.share")}
+      class="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-white text-ink shadow-soft ring-1 ring-line transition hover:text-accent-700"
+    >
+      <Icon name="share-network" class="h-5 w-5" />
+    </button>
 
-      {owner.bio && <p class="mt-4 max-w-2xl whitespace-pre-line text-ink">{owner.bio}</p>}
-      {visible && birthday && <p class="mt-2 text-sm text-ink-soft">🎂 {t("profile.birthday", { date: birthday })}</p>}
-
-      <dl class="mt-5 flex gap-8 border-t border-black/5 pt-4">
-        {
-          stats.map((s) => {
-            const Tag = s.link ? "a" : "div";
-            return (
-              <Tag href={s.link} class:list={["flex flex-col", s.link && "transition hover:text-accent-600"]}>
-                <dd class="font-display text-xl font-extrabold">{s.n}</dd>
-                <dt class="text-xs text-ink-soft">{s.label}</dt>
-              </Tag>
-            );
-          })
-        }
-      </dl>
+    <div class="mx-auto w-fit rounded-full shadow-[0_0_0_10px_var(--color-accent-100)] ring-4 ring-white">
+      <Avatar user={owner} size={96} class="h-24 w-24" alt={name} />
     </div>
+    <h1 class="mt-5 flex items-center justify-center gap-2 text-2xl font-extrabold tracking-tight sm:text-3xl">
+      <span class="truncate">{owner.name || `@${owner.username}`}</span>
+      {
+        !!owner.is_private && (
+          <span class="shrink-0 text-ink-soft" title={t("profile.privateBadge")}>
+            <Icon name="lock" class="h-5 w-5" label={t("profile.privateBadge")} />
+          </span>
+        )
+      }
+    </h1>
+    {owner.name && <p class="mt-0.5 truncate text-sm text-ink-soft">@{owner.username}</p>}
+    {
+      visible && birthday && (
+        <p class="mt-2 inline-flex items-center gap-1.5 text-sm text-ink-soft">
+          <Icon name="cake" class="h-4 w-4 text-accent-500" />
+          {t("profile.birthday", { date: birthday })}
+        </p>
+      )
+    }
+    {owner.bio && <p class="mx-auto mt-3 max-w-xl whitespace-pre-line text-ink">{owner.bio}</p>}
+
+    <div class="mt-5 flex justify-center">
+      {
+        rel === "self" ? (
+          <a href={href("/settings")} class="btn btn-ghost !px-5 !py-2.5 text-sm">
+            <Icon name="pencil-simple" class="h-4 w-4" />
+            {t("profile.edit")}
+          </a>
+        ) : (
+          <FollowButton username={owner.username} relation={rel} isPrivate={!!owner.is_private} reload />
+        )
+      }
+    </div>
+
+    <nav class="-mx-5 mt-6 flex justify-around border-t border-line px-2 sm:-mx-8">
+      {
+        stats.map((s) => {
+          const Tag = s.link ? "a" : "span";
+          return (
+            <Tag href={s.link} aria-current={s.current ? "page" : undefined} class="tab flex items-baseline gap-1.5 !px-1 sm:!px-3">
+              <span>{s.label}</span>
+              <span class="font-extrabold text-ink">{s.n}</span>
+            </Tag>
+          );
+        })
+      }
+    </nav>
   </section>
 
   <!-- Lists -->
   {
     !visible ? (
-      <div class="card mt-8 p-10 text-center">
-        <div class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-accent-50 text-accent-600">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
-        </div>
-        <h2 class="mt-4 font-display text-xl font-bold">{t("profile.private")}</h2>
+      <div class="card mt-6 flex flex-col items-center px-6 py-10 text-center">
+        <span class="grid h-16 w-16 place-items-center rounded-3xl bg-lav text-lav-ink">
+          <Icon name="lock" class="h-8 w-8" />
+        </span>
+        <h2 class="mt-4 text-lg font-extrabold tracking-tight">{t("profile.private")}</h2>
         <p class="mx-auto mt-1 max-w-sm text-sm text-ink-soft">
           {rel === "requested" ? t("profile.privateRequested") : t("profile.privateText")}
         </p>
       </div>
     ) : lists.length === 0 ? (
-      <div class="card mt-8 p-10 text-center">
-        <div class="text-4xl">🎁</div>
-        <p class="mx-auto mt-3 max-w-md text-sm text-ink-soft">{rel === "self" ? t("profile.noListsSelf") : t("profile.noLists")}</p>
-        {rel === "self" && <a href={href("/dashboard")} class="btn btn-primary mt-5 !py-2.5 text-sm">{t("profile.myLists")}</a>}
+      <div class="card mt-6 flex flex-col items-center px-6 py-10 text-center">
+        <span class="grid h-16 w-16 place-items-center rounded-3xl bg-accent-100 text-accent-600">
+          <Icon name="gift" class="h-8 w-8" />
+        </span>
+        <p class="mx-auto mt-4 max-w-md text-sm text-ink-soft">{rel === "self" ? t("profile.noListsSelf") : t("profile.noLists")}</p>
+        {rel === "self" && <a href={href("/dashboard")} class="btn btn-primary mt-5 !py-3 text-sm">{t("profile.myLists")}</a>}
       </div>
     ) : (
-      <ul class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <ul class="mt-6 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
         {lists.map((list) => <ProfileListCard list={list} showVisibility={rel === "self"} />)}
       </ul>
     )
@@ -147,8 +153,8 @@ const stats = [
         await navigator.clipboard.writeText(url);
       } catch {}
       btn.setAttribute("title", btn.dataset.copied!);
-      btn.classList.add("!text-emerald-600");
-      setTimeout(() => btn.classList.remove("!text-emerald-600"), 1500);
+      btn.classList.add("!text-mint-ink");
+      setTimeout(() => btn.classList.remove("!text-mint-ink"), 1500);
     });
   </script>
 </Layout>

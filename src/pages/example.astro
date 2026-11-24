@@ -4,6 +4,7 @@
  * plays the animation — nothing is saved.
  */
 import Layout from "@/layouts/Layout.astro";
+import Icon from "@/components/Icon.astro";
 import { localePath, makeT, pick } from "@/lib/i18n";
 import common from "@/i18n/common";
 import example from "@/i18n/example";
@@ -25,30 +26,37 @@ const RM = pick(t, { confirm: "ex.confirm" });
 
 <Layout title={t("ex.title")} description={t("ex.description")} mainClass="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
   <!-- Example banner -->
-  <div class="card mb-6 flex flex-col items-start gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-    <div class="min-w-0">
-      <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-800">
-        {t("ex.badge")}
+  <div class="card mb-8 flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+    <div class="flex min-w-0 items-start gap-4">
+      <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sun text-sun-ink">
+        <Icon name="sparkle" class="h-6 w-6" />
       </span>
-      <h2 class="mt-2 font-display text-lg font-bold">{t("ex.bannerTitle")}</h2>
-      <p class="mt-0.5 text-sm text-ink-soft">{t("ex.description")}</p>
+      <div class="min-w-0">
+        <span class="chip bg-sun text-sun-ink">{t("ex.badge")}</span>
+        <h2 class="mt-1.5 text-lg font-extrabold tracking-tight">{t("ex.bannerTitle")}</h2>
+        <p class="mt-0.5 text-sm text-ink-soft">{t("ex.description")}</p>
+      </div>
     </div>
-    <a href={createHref} class="btn btn-primary shrink-0 !py-2.5 text-sm">{t("ex.cta")}</a>
+    <a href={createHref} class="btn btn-primary w-full shrink-0 !py-3 text-sm sm:w-auto">
+      {t("ex.cta")}
+      <Icon name="arrow-right" weight="bold" class="h-4 w-4" />
+    </a>
   </div>
 
   <!-- Demo list header (mirrors a real public page) -->
-  <header class="text-center">
-    <h1 class="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{t("ex.h1")}</h1>
+  <header class="flex flex-col items-center text-center">
+    <span class="grid h-16 w-16 place-items-center rounded-full bg-accent-500 text-2xl font-extrabold text-white shadow-coral" aria-hidden="true">M</span>
+    <h1 class="mt-4 text-3xl font-extrabold tracking-tight sm:text-4xl">{t("ex.h1")}</h1>
     <p class="mx-auto mt-2 max-w-md text-ink-soft">{t("ex.lead")}</p>
   </header>
 
-  <div id="items-grid" class="mt-8 grid grid-cols-2 gap-4 sm:gap-5 lg:grid-cols-3">
+  <div id="items-grid" class="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3">
     {
       ITEMS.map((item) => {
         const reserved = !!item.reservedBy;
         return (
           <article
-            class="card group relative flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1.5 hover:shadow-[0_24px_44px_-26px_rgba(124,58,237,0.5)]"
+            class="card group relative flex flex-col overflow-hidden transition duration-200 hover:-translate-y-1 hover:shadow-lift"
             data-item-id={item.id}
             data-reserved={reserved ? "true" : "false"}
             data-my-reservation="false"
@@ -57,7 +65,7 @@ const RM = pick(t, { confirm: "ex.confirm" });
             data-image-url={item.image}
           >
             <a
-              class="relative block aspect-square overflow-hidden bg-gradient-to-br from-violet-50 to-fuchsia-50"
+              class="relative block aspect-square overflow-hidden bg-sand"
               href={PRODUCT_URL}
               target="_blank"
               rel="noopener noreferrer"
@@ -69,16 +77,16 @@ const RM = pick(t, { confirm: "ex.confirm" });
                 loading="lazy"
                 class:list={[
                   "h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]",
-                  { "opacity-40 grayscale": reserved },
+                  { "opacity-50 grayscale": reserved },
                 ]}
                 data-card-img
               />
-              <div class:list={["absolute inset-0 grid place-items-center bg-emerald-500/10", { hidden: !reserved }]} data-reserved-overlay>
+              <div class:list={["absolute inset-0 grid place-items-center bg-mint/30", { hidden: !reserved }]} data-reserved-overlay>
                 <div class="flex flex-col items-center gap-1.5">
-                  <span class="gift-tag -rotate-6">{t("ex.reserved")}</span>
+                  <span class="gift-tag -rotate-6 shadow-soft">{t("ex.reserved")}</span>
                   <p
                     class:list={[
-                      "max-w-[80%] truncate rounded-full bg-white/80 px-2.5 py-0.5 text-center text-xs font-semibold text-emerald-700",
+                      "max-w-[80%] truncate rounded-full bg-white/95 px-2.5 py-0.5 text-center text-xs font-bold text-mint-ink shadow-soft",
                       { hidden: !item.reservedBy },
                     ]}
                     data-reserved-name
@@ -87,7 +95,7 @@ const RM = pick(t, { confirm: "ex.confirm" });
                   </p>
                   <button
                     data-unreserve-btn
-                    class="mt-1 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-rose-600 shadow-sm hover:bg-white hidden"
+                    class="mt-1 rounded-full bg-white/95 px-3 py-1 text-xs font-semibold text-rose-600 shadow-soft hover:bg-white hidden"
                   >
                     {t("ex.cancelReservation")}
                   </button>
@@ -97,32 +105,31 @@ const RM = pick(t, { confirm: "ex.confirm" });
             {/* "Most wanted" star — kept OUTSIDE the image link so tapping it never navigates. Indicator for visitors. */}
             {item.priority && (
               <span
-                class="absolute left-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-amber-400 text-white shadow-sm"
+                class="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-white text-accent-500 shadow-soft"
                 aria-hidden="true"
               >
-                <svg viewBox="0 0 24 24" fill="currentColor" class="h-[18px] w-[18px]">
-                  <path d="M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2l3.086 6.253 6.9 1.002-4.993 4.867 1.179 6.873z" />
-                </svg>
+                <Icon name="star" weight="fill" class="h-[18px] w-[18px]" />
               </span>
             )}
             <div class="card-divider" />
-            <div class="flex flex-1 flex-col gap-3 p-4">
+            <div class="flex flex-1 flex-col gap-3 p-3.5 sm:p-4">
               <div class="min-w-0">
-                <p class="font-display text-xl font-bold tracking-tight">{item.price}</p>
-                <p class="truncate font-medium text-ink-soft mt-0.5 text-xs text-ink-soft/70">example.com</p>
+                <p class="text-xl font-extrabold tracking-tight">{item.price}</p>
+                <p class="mt-0.5 truncate text-xs font-medium text-ink-soft">example.com</p>
               </div>
               <div class="mt-auto flex flex-col gap-2.5 pt-1">
-                <button data-reserve-btn class:list={["btn btn-primary w-full !py-3 text-sm font-semibold", { hidden: reserved }]}>
+                <button data-reserve-btn class:list={["btn btn-soft w-full !py-3 text-sm", { hidden: reserved }]}>
+                  <Icon name="gift" class="h-4 w-4" />
                   {t("ex.reserve")}
                 </button>
-                <span class="mx-auto h-px w-5/6 bg-black/10" aria-hidden="true" />
+                <span class="mx-auto h-px w-5/6 bg-line" aria-hidden="true" />
                 <a
                   href={PRODUCT_URL}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="inline-flex items-center justify-center gap-1 text-xs font-medium text-ink-soft transition hover:text-accent-600"
+                  class="inline-flex items-center justify-center gap-1 text-xs font-semibold text-ink-soft transition hover:text-accent-700"
                 >
-                  {t("ex.viewProduct")} <span aria-hidden="true">↗</span>
+                  {t("ex.viewProduct")} <Icon name="arrow-square-out" class="h-3.5 w-3.5" />
                 </a>
               </div>
             </div>
@@ -134,15 +141,17 @@ const RM = pick(t, { confirm: "ex.confirm" });
 
   <div
     id="reserve-modal"
-    class="fixed inset-0 z-50 hidden items-center justify-center bg-gray-900/50 p-4 backdrop-blur-sm"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/40 p-4 backdrop-blur-sm"
     role="dialog"
     aria-modal="true"
     aria-labelledby="reserve-modal-title"
   >
     <!-- Step 1: reservation form -->
     <div class="card w-full max-w-md p-6" id="reserve-step-1">
-      <div class="text-3xl">🎀</div>
-      <h2 id="reserve-modal-title" class="mt-2 font-display text-2xl font-bold">{t("ex.modalTitle")}</h2>
+      <span class="grid h-12 w-12 place-items-center rounded-2xl bg-accent-100 text-accent-600">
+        <Icon name="hand-heart" class="h-6 w-6" />
+      </span>
+      <h2 id="reserve-modal-title" class="mt-4 text-2xl font-extrabold tracking-tight">{t("ex.modalTitle")}</h2>
       <p class="mt-1 text-sm text-ink-soft">{t("ex.modalText")}</p>
       <p class="mt-5 text-sm font-semibold text-ink">{t("ex.showName")}</p>
       <div class="mt-2 grid grid-cols-2 gap-2.5">
@@ -154,21 +163,23 @@ const RM = pick(t, { confirm: "ex.confirm" });
       </div>
       <p id="reserve-error" class="mt-2 hidden text-sm font-medium text-rose-600"></p>
       <div class="mt-6 flex flex-col gap-2.5">
-        <button id="reserve-confirm" class="btn btn-primary w-full !py-3 text-sm" disabled>
+        <button id="reserve-confirm" class="btn btn-primary w-full !py-3.5 text-sm" disabled>
           <span data-confirm-label>{t("ex.confirm")}</span>
         </button>
-        <button id="reserve-cancel" class="btn btn-ghost w-full !py-2.5 text-sm">{t("ex.cancel")}</button>
+        <button id="reserve-cancel" class="btn btn-ghost w-full !py-3 text-sm">{t("ex.cancel")}</button>
       </div>
     </div>
     <!-- Step 2: CTA after successful reservation (only for guests) -->
     <div class="card hidden w-full max-w-md p-6 text-center" id="reserve-step-2">
-      <div class="text-4xl">🎁</div>
-      <h2 class="mt-3 font-display text-xl font-bold">{t("ex.ctaTitle")}</h2>
+      <span class="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-mint text-mint-ink">
+        <Icon name="bookmark-simple" class="h-8 w-8" />
+      </span>
+      <h2 class="mt-4 text-xl font-extrabold tracking-tight">{t("ex.ctaTitle")}</h2>
       <p class="mt-2 text-sm text-ink-soft">{t("ex.ctaText")}</p>
       <div class="mt-6 flex flex-col gap-2.5">
-        <a id="reserve-cta-btn" href={localePath(lang, "/register")} class="btn btn-primary w-full !py-3 text-sm">{t("ex.ctaRegister")}</a>
-        <a id="reserve-cta-login" href={localePath(lang, "/login")} class="btn btn-ghost w-full !py-2.5 text-sm">{t("ex.ctaLogin")}</a>
-        <button id="reserve-cta-skip" class="btn btn-ghost w-full !py-2 text-xs text-ink-soft/60">{t("ex.ctaSkip")}</button>
+        <a id="reserve-cta-btn" href={localePath(lang, "/register")} class="btn btn-primary w-full !py-3.5 text-sm">{t("ex.ctaRegister")}</a>
+        <a id="reserve-cta-login" href={localePath(lang, "/login")} class="btn btn-ghost w-full !py-3 text-sm">{t("ex.ctaLogin")}</a>
+        <button id="reserve-cta-skip" class="mt-1 text-sm font-semibold text-ink-soft transition hover:text-ink">{t("ex.ctaSkip")}</button>
       </div>
     </div>
   </div>
@@ -183,7 +194,7 @@ const RM = pick(t, { confirm: "ex.confirm" });
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       canvas.width = window.innerWidth * dpr;
       canvas.height = window.innerHeight * dpr;
-      const colors = ["#7c3aed", "#d946ef", "#f59e0b", "#10b981", "#f472b6"];
+      const colors = ["#f0726a", "#f7aca5", "#8fd9c4", "#b9a8ff", "#ffcf70"];
       const parts = [];
       for (let i = 0; i < 130; i++)
         parts.push({
@@ -268,7 +279,7 @@ const RM = pick(t, { confirm: "ex.confirm" });
     confirmBtn.addEventListener("click", () => {
       if (!activeCard) return;
       const name = choice === "named" ? nameInput.value.trim() : "";
-      activeCard.querySelector("[data-card-img]")?.classList.add("opacity-40", "grayscale");
+      activeCard.querySelector("[data-card-img]")?.classList.add("opacity-50", "grayscale");
       activeCard.querySelector("[data-reserve-btn]")?.classList.add("hidden");
       activeCard.querySelector("[data-reserved-overlay]")?.classList.remove("hidden");
       const nameEl = activeCard.querySelector("[data-reserved-name]");

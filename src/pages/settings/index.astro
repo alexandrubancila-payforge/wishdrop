@@ -8,6 +8,7 @@ import strings from "@/i18n/settings";
 import social from "@/i18n/social";
 import { db } from "@/lib/db";
 import { plural } from "@/components/dashboard/plural";
+import Icon from "@/components/Icon.astro";
 
 const { lang } = Astro.locals;
 const user = Astro.locals.user!;
@@ -52,9 +53,13 @@ const P = {
 
   <!-- Profile hero -->
   <section class="card mt-8 overflow-hidden">
-    <div class="h-24 gift-gradient"></div>
-    <div class="px-6 pb-6">
-      <div class="-mt-8 flex items-end gap-4">
+    <div class="relative h-24 overflow-hidden bg-accent-100 sm:h-28">
+      <Icon name="gift" class="absolute -right-3 -top-4 h-24 w-24 rotate-12 text-accent-200" />
+      <Icon name="sparkle" class="absolute right-28 top-4 h-7 w-7 text-accent-300" />
+      <Icon name="heart" class="absolute right-20 bottom-3 h-5 w-5 text-accent-300" />
+    </div>
+    <div class="px-5 pb-5 sm:px-6 sm:pb-6">
+      <div class="-mt-10 flex items-end gap-4">
         <div class="relative shrink-0">
           <img
             id="avatar-preview"
@@ -66,7 +71,7 @@ const P = {
           <span
             id="avatar-initial"
             class:list={[
-              "grid h-24 w-24 place-items-center rounded-full gift-gradient text-3xl font-bold text-white ring-4 ring-white",
+              "grid h-24 w-24 place-items-center rounded-full gift-gradient text-3xl font-extrabold text-white ring-4 ring-white",
               user.avatar_url && "hidden",
             ]}
           >
@@ -76,21 +81,21 @@ const P = {
             for="avatar-input"
             aria-label={t("changePhoto")}
             title={t("changePhoto")}
-            class="absolute -bottom-0.5 -right-0.5 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-black/5 bg-white text-ink-soft shadow-md transition hover:text-accent-600"
+            class="absolute -bottom-0.5 -right-0.5 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-line bg-white text-accent-600 shadow-soft transition hover:bg-accent-50 hover:text-accent-700"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true">
-              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-              <circle cx="12" cy="13" r="3" />
-            </svg>
+            <Icon name="camera" class="h-[18px] w-[18px]" />
           </label>
           <input id="avatar-input" type="file" accept="image/*" class="hidden" />
         </div>
         <div class="min-w-0 pb-1">
-          <p class="truncate font-display text-xl font-bold">{displayName}</p>
+          <p class="truncate text-xl font-extrabold tracking-tight">{displayName}</p>
           <p class="truncate text-sm text-ink-soft">{user.email}</p>
         </div>
       </div>
-      <p class="mt-4 text-xs text-ink-soft">{t("memberSince", { year: memberSince })}</p>
+      <p class="chip mt-4 bg-sun text-sun-ink">
+        <Icon name="calendar-blank" class="h-3.5 w-3.5" />
+        {t("memberSince", { year: memberSince })}
+      </p>
     </div>
   </section>
 
@@ -98,8 +103,11 @@ const P = {
   <div class="mt-6 grid gap-6 lg:grid-cols-3">
     <!-- Main column: edit fields -->
     <form id="settings-form" class="lg:col-span-2">
-      <section class="card space-y-5 p-6 sm:p-8">
-        <h2 class="font-display text-lg font-bold">{t("profile")}</h2>
+      <section class="card space-y-5 p-5 sm:p-6">
+        <h2 class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
+          <Icon name="user" class="h-5 w-5 text-accent-500" />
+          {t("profile")}
+        </h2>
         <div>
           <label for="set-name" class="block text-sm font-semibold text-ink">{t("name")}</label>
           <input
@@ -114,22 +122,25 @@ const P = {
         </div>
         <div>
           <label for="set-birthday" class="block text-sm font-semibold text-ink">
-            {t("birthday")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+            {t("birthday")} <span class="font-normal text-ink-soft">{t("optional")}</span>
           </label>
           <input id="set-birthday" name="birthday" type="date" value={user.birthday ?? ""} class="field mt-1" />
         </div>
       </section>
 
       <!-- Public profile: username, bio, private -->
-      <section id="public-profile" class="card mt-6 scroll-mt-24 space-y-5 p-6 sm:p-8">
+      <section id="public-profile" class="card mt-6 scroll-mt-24 space-y-5 p-5 sm:p-6">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <h2 class="font-display text-lg font-bold">{t("set.publicProfile")}</h2>
+            <h2 class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
+              <Icon name="users" class="h-5 w-5 text-accent-500" />
+              {t("set.publicProfile")}
+            </h2>
             <p class="mt-0.5 text-sm text-ink-soft">{t("set.publicProfileText")}</p>
           </div>
           {
             user.username && (
-              <a href={localePath(lang, `/@${user.username}`)} class="shrink-0 text-sm font-semibold text-accent-600 hover:underline">
+              <a href={localePath(lang, `/@${user.username}`)} class="btn btn-ghost shrink-0 !px-3.5 !py-2 text-xs">
                 {t("set.viewProfile")}
               </a>
             )
@@ -138,7 +149,7 @@ const P = {
         <div>
           <label for="set-username" class="block text-sm font-semibold text-ink">{t("set.username")}</label>
           <div class="relative mt-1">
-            <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-ink-soft">@</span>
+            <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center font-bold text-accent-500">@</span>
             <input
               id="set-username"
               name="username"
@@ -148,7 +159,7 @@ const P = {
               autocapitalize="none"
               spellcheck="false"
               value={user.username ?? ""}
-              class="field !pl-8"
+              class="field !pl-9"
             />
           </div>
           <p id="username-help" class="mt-1 text-xs text-ink-soft" data-origin={origin}>
@@ -157,20 +168,29 @@ const P = {
         </div>
         <div>
           <label for="set-bio" class="block text-sm font-semibold text-ink">
-            {t("set.bio")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+            {t("set.bio")} <span class="font-normal text-ink-soft">{t("optional")}</span>
           </label>
           <textarea id="set-bio" name="bio" rows="2" maxlength="160" placeholder={t("set.bioPlaceholder")} class="field mt-1 resize-none">{user.bio ?? ""}</textarea>
         </div>
-        <label class="flex cursor-pointer items-start justify-between gap-4 rounded-2xl border border-black/5 bg-accent-50/40 p-4">
-          <span class="min-w-0">
-            <span class="block font-semibold text-ink">🔒 {t("set.private")}</span>
-            <span class="mt-0.5 block text-sm text-ink-soft">{t("set.privateText")}</span>
+        <label class="flex cursor-pointer items-center justify-between gap-4 rounded-2xl bg-lav p-4">
+          <span class="flex min-w-0 items-start gap-3">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white text-lav-ink shadow-soft">
+              <Icon name="lock" class="h-5 w-5" />
+            </span>
+            <span class="min-w-0">
+              <span class="block font-bold text-lav-ink">{t("set.private")}</span>
+              <span class="mt-0.5 block text-sm text-lav-ink/80">{t("set.privateText")}</span>
+            </span>
           </span>
-          <input id="set-private" type="checkbox" checked={!!user.is_private} class="mt-1 h-5 w-5 shrink-0 accent-accent-600" />
+          <input id="set-private" type="checkbox" checked={!!user.is_private} class="peer sr-only" />
+          <span
+            class="relative h-6 w-11 shrink-0 rounded-full bg-ink-soft/30 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-soft after:transition peer-checked:bg-accent-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20"
+            aria-hidden="true"
+          ></span>
         </label>
-        <div class="flex items-center justify-end gap-3 border-t border-black/5 pt-5">
+        <div class="flex items-center justify-end gap-3 border-t border-line pt-5">
           <p id="settings-status" class="hidden text-sm font-medium"></p>
-          <button type="submit" id="settings-save" class="btn btn-primary py-2.5">
+          <button type="submit" id="settings-save" class="btn btn-primary !py-3">
             <span data-save-label>{t("save")}</span>
           </button>
         </div>
@@ -180,34 +200,42 @@ const P = {
     <!-- Sidebar: stats + seasonal toggle -->
     <div class="space-y-6 lg:col-span-1">
       <div class="grid grid-cols-3 gap-3 lg:grid-cols-1">
-        <div class="card flex items-center gap-3 p-4 lg:justify-start">
-          <p class="font-display text-2xl font-extrabold lg:text-3xl">{stats.lists}</p>
-          <p class="text-xs text-ink-soft">{plural(t, lang, "stat.lists", stats.lists)}</p>
+        <div class="flex flex-col gap-1 rounded-[1.375rem] bg-accent-100 p-4 text-accent-700 lg:flex-row lg:items-center lg:gap-3">
+          <Icon name="list-heart" class="h-5 w-5 lg:h-6 lg:w-6" />
+          <p class="text-2xl font-extrabold tracking-tight text-ink lg:text-3xl">{stats.lists}</p>
+          <p class="text-xs font-semibold">{plural(t, lang, "stat.lists", stats.lists)}</p>
         </div>
-        <div class="card flex items-center gap-3 p-4 lg:justify-start">
-          <p class="font-display text-2xl font-extrabold lg:text-3xl">{stats.gifts}</p>
-          <p class="text-xs text-ink-soft">{plural(t, lang, "stat.gifts", stats.gifts)}</p>
+        <div class="flex flex-col gap-1 rounded-[1.375rem] bg-sun p-4 text-sun-ink lg:flex-row lg:items-center lg:gap-3">
+          <Icon name="gift" class="h-5 w-5 lg:h-6 lg:w-6" />
+          <p class="text-2xl font-extrabold tracking-tight text-ink lg:text-3xl">{stats.gifts}</p>
+          <p class="text-xs font-semibold">{plural(t, lang, "stat.gifts", stats.gifts)}</p>
         </div>
-        <div class="card flex items-center gap-3 p-4 lg:justify-start">
-          <p class="font-display text-2xl font-extrabold text-emerald-600 lg:text-3xl">{stats.reserved}</p>
-          <p class="text-xs text-ink-soft">{plural(t, lang, "stat.reserved", stats.reserved)}</p>
+        <div class="flex flex-col gap-1 rounded-[1.375rem] bg-mint p-4 text-mint-ink lg:flex-row lg:items-center lg:gap-3">
+          <Icon name="check-circle" class="h-5 w-5 lg:h-6 lg:w-6" />
+          <p class="text-2xl font-extrabold tracking-tight text-ink lg:text-3xl">{stats.reserved}</p>
+          <p class="text-xs font-semibold">{plural(t, lang, "stat.reserved", stats.reserved)}</p>
         </div>
       </div>
 
       <!-- Seasonal themes toggle -->
-      <section class="card p-6">
+      <section class="card p-5 sm:p-6">
         <div class="flex items-start justify-between gap-4">
-          <div class="min-w-0">
-            <p class="font-semibold text-ink">{t("seasons")}</p>
-            <p class="mt-0.5 text-sm text-ink-soft">{t("seasonsText")}</p>
+          <div class="flex min-w-0 items-start gap-3">
+            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-lav text-lav-ink">
+              <Icon name="snowflake" class="h-5 w-5" />
+            </span>
+            <div class="min-w-0">
+              <p class="font-bold text-ink">{t("seasons")}</p>
+              <p class="mt-0.5 text-sm text-ink-soft">{t("seasonsText")}</p>
+            </div>
           </div>
           <button
             id="seasons-toggle"
             type="button"
             data-enabled={seasonsEnabled ? "true" : "false"}
             class:list={[
-              "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
-              seasonsEnabled ? "bg-accent-500" : "bg-black/20",
+              "relative mt-1 inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
+              seasonsEnabled ? "bg-accent-500" : "bg-ink-soft/30",
             ]}
             aria-checked={seasonsEnabled ? "true" : "false"}
             aria-label={t("seasons")}
@@ -215,7 +243,7 @@ const P = {
           >
             <span
               class:list={[
-                "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform duration-200",
+                "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-soft ring-0 transition-transform duration-200",
                 seasonsEnabled ? "translate-x-5" : "translate-x-0",
               ]}
             ></span>
@@ -251,7 +279,7 @@ const P = {
 
     function setStatus(msg, ok) {
       status.textContent = msg;
-      status.className = "text-sm font-medium " + (ok ? "text-emerald-600" : "text-rose-600");
+      status.className = "text-sm font-medium " + (ok ? "text-mint-ink" : "text-rose-600");
       status.classList.remove("hidden");
     }
 
@@ -350,7 +378,7 @@ const P = {
           const data = await res.json();
           if (unameInput.value !== clean) return;
           if (data.ok) {
-            unameHelp.className = "mt-1 text-xs font-medium text-emerald-600";
+            unameHelp.className = "mt-1 text-xs font-medium text-mint-ink";
             unameHelp.textContent = P.ok + " · " + P.hint.replace("{url}", `${host}/@${clean}`);
           } else {
             unameHelp.className = "mt-1 text-xs font-medium text-rose-600";
@@ -368,7 +396,7 @@ const P = {
       seasonsToggle.dataset.enabled = String(nowEnabled);
       seasonsToggle.setAttribute("aria-checked", String(nowEnabled));
       seasonsToggle.classList.toggle("bg-accent-500", nowEnabled);
-      seasonsToggle.classList.toggle("bg-black/20", !nowEnabled);
+      seasonsToggle.classList.toggle("bg-ink-soft/30", !nowEnabled);
       const thumb = seasonsToggle.querySelector("span");
       thumb?.classList.toggle("translate-x-5", nowEnabled);
       thumb?.classList.toggle("translate-x-0", !nowEnabled);
@@ -383,7 +411,7 @@ const P = {
         seasonsToggle.dataset.enabled = String(wasEnabled);
         seasonsToggle.setAttribute("aria-checked", String(wasEnabled));
         seasonsToggle.classList.toggle("bg-accent-500", wasEnabled);
-        seasonsToggle.classList.toggle("bg-black/20", !wasEnabled);
+        seasonsToggle.classList.toggle("bg-ink-soft/30", !wasEnabled);
         thumb?.classList.toggle("translate-x-5", wasEnabled);
         thumb?.classList.toggle("translate-x-0", !wasEnabled);
       }
