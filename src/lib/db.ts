@@ -165,7 +165,7 @@ export function makeSlug(name: string) {
 export async function createWishlist(userId: string, name: string): Promise<Wishlist> {
   const id = newId();
   await db()
-    .prepare("INSERT INTO wishlists (id, user_id, name, slug, created_at) VALUES (?, ?, ?, ?, ?)")
+    .prepare("INSERT INTO wishlists (id, user_id, name, slug, created_at, visibility) VALUES (?, ?, ?, ?, ?, 'public')")
     .bind(id, userId, name, makeSlug(name), now())
     .run();
   return (await getWishlist(id))!;

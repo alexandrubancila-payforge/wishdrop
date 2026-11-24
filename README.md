@@ -34,7 +34,7 @@ Instagram-style, one-way following (`src/lib/social.ts`, migration `0010_social.
 
 - **Profile** at `/@username` once a user picks a username in Settings → Public profile. Without one there's no profile and no search result.
 - **Public by default**: every account gets a generated username and a public profile (migration `0011`). Anyone can switch to **private** in Settings: then following sends a request, accepted or declined on `/requests`. Switching back to public accepts everyone waiting.
-- **List visibility** (in the list editor): *Everyone* (on the profile for anyone who can see it), *Followers* (accepted followers only), *Link only* (nowhere; the default). The `/w/<slug>` link always works, so guests can still reserve without an account.
+- **List visibility** (in the list editor): *Everyone* (on the profile for anyone who can see it), *Followers* (accepted followers only), *Link only* (nowhere). New lists start as *Everyone* (migration `0012` opened the existing ones too). The `/w/<slug>` link always works, so guests can still reserve without an account.
 - **Search** at `/search` by name or @username; followers/following at `/@username/followers|following`.
 
 The migration only adds columns with defaults and a new table, so the old live site keeps working if it runs before the switch.
