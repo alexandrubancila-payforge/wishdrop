@@ -8,12 +8,13 @@ import Layout from "@/layouts/Layout.astro";
 import { makeT, localePath } from "@/lib/i18n";
 import common from "@/i18n/common";
 import strings from "@/i18n/editor";
+import social from "@/i18n/social";
 import { getItems, getWishlist } from "@/lib/db";
 import { imageUrl } from "@/lib/storage";
 
 const { lang } = Astro.locals;
 const user = Astro.locals.user!;
-const t = makeT(lang, common, strings);
+const t = makeT(lang, common, strings, social);
 
 const list = Astro.params.id ? await getWishlist(Astro.params.id) : null;
 if (!list || list.user_id !== user.id) return Astro.redirect(localePath(lang, "/dashboard"));
@@ -130,6 +131,63 @@ const wishlistId = list.id;
       <span class="hidden text-sm font-semibold sm:inline" data-surprise-label>{surprise ? t("on") : t("off")}</span>
     </label>
   </div>
+
+  <!-- Where the list appears (profile visibility). The link works in every case. -->
+  <div class="card mt-3 p-3.5" id="visibility" data-wishlist-id={list.id} data-saved={t("vis.saved")} data-fail={t("vis.fail")}>
+    <div class="flex items-center justify-between gap-3">
+      <p class="font-semibold leading-tight">👀 {t("vis.title")}</p>
+      <p id="visibility-status" class="hidden text-xs font-medium"></p>
+    </div>
+    <div class="mt-3 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={t("vis.title")}>
+      {
+        (["public", "followers", "link"] as const).map((v) => (
+          <label class="cursor-pointer">
+            <input type="radio" name="visibility" value={v} checked={list.visibility === v} class="peer sr-only" />
+            <span class="block h-full rounded-xl border-[1.5px] border-black/10 bg-white p-3 transition hover:border-accent-300 peer-checked:border-accent-600 peer-checked:bg-accent-50 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20">
+              <span class="block text-sm font-semibold text-ink">{v === "public" ? "🌍 " : v === "followers" ? "👥 " : "🔗 "}{t(`vis.${v}`)}</span>
+              <span class="mt-0.5 block text-xs leading-snug text-ink-soft">{t(`vis.${v}Text`)}</span>
+            </span>
+          </label>
+        ))
+      }
+    </div>
+    {
+      !user.username && (
+        <p class="mt-3 text-xs text-ink-soft">
+          {t("vis.noUsername")}{" "}
+          <a href={localePath(lang, "/settings") + "#public-profile"} class="font-semibold text-accent-600 hover:underline">→</a>
+        </p>
+      )
+    }
+  </div>
+
+  <script>
+    // Save the visibility as soon as an option is picked.
+    const box = document.getElementById("visibility");
+    const status = document.getElementById("visibility-status");
+    box?.querySelectorAll<HTMLInputElement>('input[name="visibility"]').forEach((radio) => {
+      radio.addEventListener("change", async () => {
+        const previous = box.dataset.current;
+        try {
+          const res = await fetch(`/api/wishlists/${box.dataset.wishlistId}`, {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ visibility: radio.value }),
+          });
+          if (!res.ok) throw new Error();
+          box.dataset.current = radio.value;
+          status!.textContent = box.dataset.saved!;
+          status!.className = "text-xs font-medium text-emerald-600";
+        } catch {
+          if (previous) box.querySelector<HTMLInputElement>(`input[value="${previous}"]`)!.checked = true;
+          status!.textContent = box.dataset.fail!;
+          status!.className = "text-xs font-medium text-rose-600";
+        }
+        setTimeout(() => status!.classList.add("hidden"), 2000);
+      });
+    });
+    if (box) box.dataset.current = box.querySelector<HTMLInputElement>('input[name="visibility"]:checked')?.value;
+  </script>
 
   <div class="mt-6 grid gap-6 lg:grid-cols-[360px_1fr] lg:gap-8">
     <div class="lg:sticky lg:top-20 lg:self-start">

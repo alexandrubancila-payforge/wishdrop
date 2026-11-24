@@ -1,0 +1,85 @@
+---
+/** Body of /@username/followers and /@username/following (the pages check access first). */
+import Layout from "@/layouts/Layout.astro";
+import PersonRow from "./PersonRow.astro";
+import FollowButton from "./FollowButton.astro";
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import social from "@/i18n/social";
+import { db, type User } from "@/lib/db";
+import { followersOf, followingOf, type Relation } from "@/lib/social";
+
+interface Props {
+  kind: "followers" | "following";
+  /** Checked by the page (exists, has a username, viewer may see it). */
+  owner: User & { username: string };
+  rel: Relation;
+}
+const { kind, owner, rel } = Astro.props;
+const { lang, user } = Astro.locals;
+const t = makeT(lang, common, social);
+
+const people = kind === "followers" ? await followersOf(owner.id) : await followingOf(owner.id);
+
+// The viewer's own relation to each person, for their follow buttons.
+const mine = new Map<string, Relation>();
+if (user && people.length) {
+  const { results } = await db()
+    .prepare(`SELECT followee_id, status FROM follows WHERE follower_id = ? AND followee_id IN (${people.map(() => "?").join(",")})`)
+    .bind(user.id, ...people.map((p) => p.id))
+    .all<{ followee_id: string; status: string }>();
+  for (const r of results) mine.set(r.followee_id, r.status === "accepted" ? "following" : "requested");
+}
+const relTo = (id: string): Relation => (user?.id === id ? "self" : (mine.get(id) ?? "none"));
+const title = kind === "followers" ? t("people.followers") : t("people.following");
+const canRemove = kind === "followers" && rel === "self";
+---
+
+<Layout title={`${title} · @${owner.username} — WishDrop`} noindex mainClass="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+  <a href={localePath(lang, `/@${owner.username}`)} class="text-sm font-medium text-ink-soft hover:text-ink">{t("people.back")}</a>
+  <h1 class="mt-3 font-display text-3xl font-extrabold tracking-tight">{title}</h1>
+  <p class="mt-1 text-ink-soft">@{owner.username}</p>
+
+  {
+    people.length === 0 ? (
+      <div class="card mt-6 p-8 text-center text-sm text-ink-soft">{t("people.empty")}</div>
+    ) : (
+      <ul class="card mt-6 divide-y divide-black/5 px-5">
+        {people.map((p) => (
+          <PersonRow person={p}>
+            {canRemove ? (
+              <button
+                type="button"
+                data-remove-follower={p.id}
+                data-confirm={t("people.removeConfirm")}
+                data-ok={t("people.removeOk")}
+                class="btn btn-ghost !px-3.5 !py-2 text-xs"
+              >
+                {t("people.remove")}
+              </button>
+            ) : (
+              p.username && <FollowButton username={p.username} relation={relTo(p.id)} isPrivate={!!p.is_private} size="sm" />
+            )}
+          </PersonRow>
+        ))}
+      </ul>
+    )
+  }
+
+  <script>
+    document.querySelectorAll<HTMLButtonElement>("[data-remove-follower]").forEach((b) => {
+      b.addEventListener("click", async () => {
+        const ok = await window.wdConfirm(b.dataset.confirm, b.dataset.ok);
+        if (!ok) return;
+        b.disabled = true;
+        const res = await fetch("/api/follows/followers", {
+          method: "DELETE",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ user_id: b.dataset.removeFollower }),
+        });
+        if (res.ok) b.closest("li")?.remove();
+        else b.disabled = false;
+      });
+    });
+  </script>
+</Layout>

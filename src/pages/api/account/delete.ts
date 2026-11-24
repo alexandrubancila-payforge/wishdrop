@@ -17,6 +17,7 @@ export const POST: APIRoute = async (ctx) => {
     .all<{ image_key: string }>();
   await db().batch([
     db().prepare("UPDATE items SET reserver_user_id = NULL WHERE reserver_user_id = ?").bind(user.id),
+    db().prepare("DELETE FROM follows WHERE follower_id = ?1 OR followee_id = ?1").bind(user.id),
     db().prepare("DELETE FROM items WHERE wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)").bind(user.id),
     db().prepare("DELETE FROM wishlists WHERE user_id = ?").bind(user.id),
     db().prepare("DELETE FROM users WHERE id = ?").bind(user.id),

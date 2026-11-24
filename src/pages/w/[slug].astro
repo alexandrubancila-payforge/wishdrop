@@ -17,9 +17,10 @@ import { getItems, getUserById, getWishlistBySlug } from "@/lib/db";
 import { imageUrl } from "@/lib/storage";
 import common from "@/i18n/common";
 import publiclist from "@/i18n/publiclist";
+import social from "@/i18n/social";
 
 const { lang, user } = Astro.locals;
-const t = makeT(lang, common, publiclist);
+const t = makeT(lang, common, publiclist, social);
 
 const list = await getWishlistBySlug(Astro.params.slug ?? "");
 if (!list) Astro.response.status = 404;
@@ -95,6 +96,13 @@ const STAR_PATH = "M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2
           <div class="mt-6 text-center sm:mt-8 sm:text-left">
             <h1 class="font-display text-4xl font-extrabold tracking-tight sm:text-6xl">{list.name}</h1>
             <p class="mx-auto mt-4 max-w-md text-ink-soft sm:mx-0">{isOwner ? t("list.ownerSubtitle") : t("list.subtitle")}</p>
+            {
+              owner?.username && (
+                <a href={localePath(lang, `/@${owner.username}`)} class="mt-2 inline-block text-sm font-semibold text-accent-600 hover:underline">
+                  {t("list.ownerProfile", { username: owner.username })}
+                </a>
+              )
+            }
           </div>
           <!-- Footer hero: acțiuni owner + disponibilitate, centrate jos -->
           <div class="mt-6 flex flex-col items-center gap-4 sm:mt-8">

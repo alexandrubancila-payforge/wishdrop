@@ -19,6 +19,11 @@ export interface User {
   reset_expires: number | null;
   birthday: string | null;
   disable_seasons: number;
+  /** Public address /@username; null until the user picks one. */
+  username: string | null;
+  bio: string | null;
+  /** 1 = following needs approval (the default). */
+  is_private: number;
 }
 
 export interface Wishlist {
@@ -28,6 +33,8 @@ export interface Wishlist {
   slug: string;
   created_at: number;
   hide_reservations: number;
+  /** Where the list appears: 'public' | 'followers' | 'link' (see lib/social.ts). */
+  visibility: "public" | "followers" | "link";
 }
 
 export interface Item {
@@ -94,6 +101,7 @@ export async function createUser(u: {
 const USER_COLUMNS = new Set([
   "password_hash", "google_id", "name", "avatar_url", "email_verified", "verify_token",
   "verify_expires", "reset_token", "reset_expires", "birthday", "disable_seasons",
+  "username", "bio", "is_private",
 ]);
 
 export async function updateUser(id: string, fields: Partial<User>) {

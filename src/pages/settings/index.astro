@@ -2,15 +2,16 @@
 /** Settings → Profile: photo, name, birthday, account stats and seasonal themes. */
 import Layout from "@/layouts/Layout.astro";
 import SettingsTabs from "@/components/dashboard/SettingsTabs.astro";
-import { makeT } from "@/lib/i18n";
+import { makeT, localePath } from "@/lib/i18n";
 import common from "@/i18n/common";
 import strings from "@/i18n/settings";
+import social from "@/i18n/social";
 import { db } from "@/lib/db";
 import { plural } from "@/components/dashboard/plural";
 
 const { lang } = Astro.locals;
 const user = Astro.locals.user!;
-const t = makeT(lang, common, strings);
+const t = makeT(lang, common, strings, social);
 
 const stats = (await db()
   .prepare(
@@ -36,6 +37,12 @@ const M = {
   seasonsOff: t("js.seasonsOff"),
 };
 const initialAvatar = user.avatar_url ?? "";
+const origin = Astro.url.origin;
+const P = {
+  ok: t("set.usernameOk"),
+  hint: t("set.usernameHint", { url: "{url}" }),
+  empty: t("set.usernameEmpty"),
+};
 ---
 
 <Layout title={t("titleProfile")} noindex mainClass="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
@@ -111,6 +118,56 @@ const initialAvatar = user.avatar_url ?? "";
           </label>
           <input id="set-birthday" name="birthday" type="date" value={user.birthday ?? ""} class="field mt-1" />
         </div>
+      </section>
+
+      <!-- Public profile: username, bio, private -->
+      <section id="public-profile" class="card mt-6 scroll-mt-24 space-y-5 p-6 sm:p-8">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <h2 class="font-display text-lg font-bold">{t("set.publicProfile")}</h2>
+            <p class="mt-0.5 text-sm text-ink-soft">{t("set.publicProfileText")}</p>
+          </div>
+          {
+            user.username && (
+              <a href={localePath(lang, `/@${user.username}`)} class="shrink-0 text-sm font-semibold text-accent-600 hover:underline">
+                {t("set.viewProfile")}
+              </a>
+            )
+          }
+        </div>
+        <div>
+          <label for="set-username" class="block text-sm font-semibold text-ink">{t("set.username")}</label>
+          <div class="relative mt-1">
+            <span class="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-ink-soft">@</span>
+            <input
+              id="set-username"
+              name="username"
+              type="text"
+              maxlength="24"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              value={user.username ?? ""}
+              class="field !pl-8"
+            />
+          </div>
+          <p id="username-help" class="mt-1 text-xs text-ink-soft" data-origin={origin}>
+            {user.username ? t("set.usernameHint", { url: `${origin.replace(/^https?:\/\//, "")}/@${user.username}` }) : t("set.usernameEmpty")}
+          </p>
+        </div>
+        <div>
+          <label for="set-bio" class="block text-sm font-semibold text-ink">
+            {t("set.bio")} <span class="font-normal text-ink-soft/70">{t("optional")}</span>
+          </label>
+          <textarea id="set-bio" name="bio" rows="2" maxlength="160" placeholder={t("set.bioPlaceholder")} class="field mt-1 resize-none">{user.bio ?? ""}</textarea>
+        </div>
+        <label class="flex cursor-pointer items-start justify-between gap-4 rounded-2xl border border-black/5 bg-accent-50/40 p-4">
+          <span class="min-w-0">
+            <span class="block font-semibold text-ink">🔒 {t("set.private")}</span>
+            <span class="mt-0.5 block text-sm text-ink-soft">{t("set.privateText")}</span>
+          </span>
+          <input id="set-private" type="checkbox" checked={!!user.is_private} class="mt-1 h-5 w-5 shrink-0 accent-accent-600" />
+        </label>
         <div class="flex items-center justify-end gap-3 border-t border-black/5 pt-5">
           <p id="settings-status" class="hidden text-sm font-medium"></p>
           <button type="submit" id="settings-save" class="btn btn-primary py-2.5">
@@ -168,7 +225,7 @@ const initialAvatar = user.avatar_url ?? "";
     </div>
   </div>
 
-  <script is:inline define:vars={{ M, initialAvatar }}>
+  <script is:inline define:vars={{ M, initialAvatar, P }}>
     const form = document.getElementById("settings-form");
     const fileInput = document.getElementById("avatar-input");
     const preview = document.getElementById("avatar-preview");
@@ -250,6 +307,9 @@ const initialAvatar = user.avatar_url ?? "";
       const body = {
         name: document.getElementById("set-name").value.trim(),
         birthday: document.getElementById("set-birthday").value,
+        username: document.getElementById("set-username").value.trim().replace(/^@+/, "").toLowerCase(),
+        bio: document.getElementById("set-bio").value.trim(),
+        is_private: document.getElementById("set-private").checked,
       };
       if (avatarChanged) body.avatar_url = avatarUrl ? avatarUrl.split("?")[0] : null;
       try {
@@ -258,15 +318,46 @@ const initialAvatar = user.avatar_url ?? "";
           headers: { "content-type": "application/json" },
           body: JSON.stringify(body),
         });
-        if (!res.ok) throw new Error();
+        if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "");
         avatarChanged = false;
         setStatus(M.saved, true);
-      } catch {
-        setStatus(M.saveFail, false);
+        showUsernameHint(body.username);
+      } catch (err) {
+        setStatus((err instanceof Error && err.message) || M.saveFail, false);
       } finally {
         saveBtn.disabled = false;
         saveLabel.textContent = M.save;
       }
+    });
+
+    // Username: lowercase as you type, check availability after a pause.
+    const unameInput = document.getElementById("set-username");
+    const unameHelp = document.getElementById("username-help");
+    const host = unameHelp.dataset.origin.replace(/^https?:\/\//, "");
+    let unameTimer;
+    function showUsernameHint(u) {
+      unameHelp.className = "mt-1 text-xs text-ink-soft";
+      unameHelp.textContent = u ? P.hint.replace("{url}", `${host}/@${u}`) : P.empty;
+    }
+    unameInput.addEventListener("input", () => {
+      const clean = unameInput.value.replace(/^@+/, "").toLowerCase().replace(/[^a-z0-9._]/g, "");
+      if (clean !== unameInput.value) unameInput.value = clean;
+      clearTimeout(unameTimer);
+      if (!clean) return showUsernameHint("");
+      unameTimer = setTimeout(async () => {
+        try {
+          const res = await fetch("/api/users/username?u=" + encodeURIComponent(clean));
+          const data = await res.json();
+          if (unameInput.value !== clean) return;
+          if (data.ok) {
+            unameHelp.className = "mt-1 text-xs font-medium text-emerald-600";
+            unameHelp.textContent = P.ok + " · " + P.hint.replace("{url}", `${host}/@${clean}`);
+          } else {
+            unameHelp.className = "mt-1 text-xs font-medium text-rose-600";
+            unameHelp.textContent = data.error;
+          }
+        } catch {}
+      }, 350);
     });
 
     // Seasonal themes toggle

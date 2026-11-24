@@ -1,0 +1,83 @@
+---
+/** Find people by name or @username. Only people who picked a username can be found. */
+import Layout from "@/layouts/Layout.astro";
+import PersonRow from "@/components/social/PersonRow.astro";
+import FollowButton from "@/components/social/FollowButton.astro";
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import social from "@/i18n/social";
+import { db } from "@/lib/db";
+import { searchUsers, type Relation } from "@/lib/social";
+import { plural } from "@/components/dashboard/plural";
+
+const { lang, user } = Astro.locals;
+const t = makeT(lang, common, social);
+const q = (Astro.url.searchParams.get("q") ?? "").trim();
+const results = q.length >= 2 ? await searchUsers(q) : [];
+
+const mine = new Map<string, Relation>();
+if (user && results.length) {
+  const { results: rows } = await db()
+    .prepare(`SELECT followee_id, status FROM follows WHERE follower_id = ? AND followee_id IN (${results.map(() => "?").join(",")})`)
+    .bind(user.id, ...results.map((r) => r.id))
+    .all<{ followee_id: string; status: string }>();
+  for (const r of rows) mine.set(r.followee_id, r.status === "accepted" ? "following" : "requested");
+}
+const relTo = (id: string): Relation => (user?.id === id ? "self" : (mine.get(id) ?? "none"));
+---
+
+<Layout title={`${t("search.title")} — WishDrop`} noindex mainClass="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
+  <h1 class="font-display text-3xl font-extrabold tracking-tight sm:text-4xl">{t("search.heading")}</h1>
+  <p class="mt-1 text-ink-soft">{t("search.intro")}</p>
+
+  <form method="get" class="card mt-6 flex gap-3 p-4 sm:p-5" role="search">
+    <label for="q" class="sr-only">{t("search.placeholder")}</label>
+    <input
+      id="q"
+      name="q"
+      type="search"
+      value={q}
+      minlength="2"
+      maxlength="50"
+      autocomplete="off"
+      autofocus={!q}
+      placeholder={t("search.placeholder")}
+      class="field flex-1"
+    />
+    <button type="submit" class="btn btn-primary py-2.5">{t("search.button")}</button>
+  </form>
+  <p class="mt-2 text-xs text-ink-soft/70">{t("search.hint")}</p>
+
+  {
+    user && !user.username && (
+      <div class="mt-6 flex flex-col gap-3 rounded-2xl border border-accent-200 bg-accent-50/70 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="font-semibold text-ink">{t("search.claimTitle")}</p>
+          <p class="text-sm text-ink-soft">{t("search.claimText")}</p>
+        </div>
+        <a href={localePath(lang, "/settings") + "#public-profile"} class="btn btn-ghost shrink-0 !px-4 !py-2 text-sm">{t("search.claimBtn")}</a>
+      </div>
+    )
+  }
+
+  {
+    q && q.length < 2 ? (
+      <p class="mt-8 text-center text-sm text-ink-soft">{t("search.short")}</p>
+    ) : q && results.length === 0 ? (
+      <div class="card mt-8 p-8 text-center">
+        <div class="text-4xl">🔍</div>
+        <p class="mt-3 text-sm text-ink-soft">{t("search.empty", { q })}</p>
+      </div>
+    ) : (
+      results.length > 0 && (
+        <ul class="card mt-8 divide-y divide-black/5 px-5">
+          {results.map((p) => (
+            <PersonRow person={p} meta={plural(t, lang, "search.followers", p.followers)}>
+              <FollowButton username={p.username!} relation={relTo(p.id)} isPrivate={!!p.is_private} size="sm" />
+            </PersonRow>
+          ))}
+        </ul>
+      )
+    )
+  }
+</Layout>

@@ -2,20 +2,21 @@ import type { APIRoute } from "astro";
 import { db, getItems, getWishlist } from "@/lib/db";
 import { apiT, fail, json, readJson, requireUser } from "@/lib/http";
 import { deleteImage } from "@/lib/storage";
+import { isVisibility } from "@/lib/social";
 
 async function ownList(id: string | undefined, userId: string) {
   const list = id ? await getWishlist(id) : null;
   return list && list.user_id === userId ? list : null;
 }
 
-/** Rename, or switch surprise mode (hide who reserved what from the owner). */
+/** Rename, switch surprise mode (hide who reserved what from the owner), or change where the list appears. */
 export const PATCH: APIRoute = async (ctx) => {
   const user = requireUser(ctx);
   if (user instanceof Response) return user;
   const t = apiT(ctx);
   const list = await ownList(ctx.params.id, user.id);
   if (!list) return fail(t("notFound"), 404);
-  const body = await readJson<{ name?: string; hide_reservations?: boolean }>(ctx.request);
+  const body = await readJson<{ name?: string; hide_reservations?: boolean; visibility?: string }>(ctx.request);
 
   if (typeof body.name === "string") {
     const name = body.name.trim();
@@ -25,6 +26,10 @@ export const PATCH: APIRoute = async (ctx) => {
   }
   if (typeof body.hide_reservations === "boolean") {
     await db().prepare("UPDATE wishlists SET hide_reservations = ? WHERE id = ?").bind(body.hide_reservations ? 1 : 0, list.id).run();
+  }
+  if (body.visibility !== undefined) {
+    if (!isVisibility(body.visibility)) return fail(t("error"));
+    await db().prepare("UPDATE wishlists SET visibility = ? WHERE id = ?").bind(body.visibility, list.id).run();
   }
   return json({ ok: true });
 };

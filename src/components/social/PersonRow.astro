@@ -1,0 +1,42 @@
+---
+/** One person in a list (search results, followers, requests): avatar, name, @username, then actions in the slot. */
+import Avatar from "@/components/Avatar.astro";
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import social from "@/i18n/social";
+
+interface Props {
+  person: { username: string | null; name: string | null; email: string; avatar_url: string | null; is_private?: number };
+  /** Small grey line under the name, e.g. "12 followers". */
+  meta?: string;
+}
+const { person, meta } = Astro.props;
+const { lang } = Astro.locals;
+const t = makeT(lang, common, social);
+const name = person.name || (person.username ? `@${person.username}` : person.email.split("@")[0]);
+const href = person.username ? localePath(lang, `/@${person.username}`) : null;
+const Tag = href ? "a" : "div";
+---
+
+<li class="flex items-center gap-3 py-3">
+  <Tag href={href} class="flex min-w-0 flex-1 items-center gap-3 rounded-xl transition hover:opacity-80">
+    <Avatar user={person} size={48} class="h-12 w-12 shrink-0" />
+    <div class="min-w-0">
+      <p class="flex items-center gap-1.5 truncate font-semibold text-ink">
+        <span class="truncate">{name}</span>
+        {
+          !!person.is_private && (
+            <span class="shrink-0 text-ink-soft/60" title={t("profile.privateBadge")} aria-label={t("profile.privateBadge")}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-3.5 w-3.5" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
+            </span>
+          )
+        }
+      </p>
+      <p class="truncate text-sm text-ink-soft">
+        {person.username && <span>@{person.username}</span>}
+        {meta && <span class="text-ink-soft/70"> · {meta}</span>}
+      </p>
+    </div>
+  </Tag>
+  <div class="flex shrink-0 items-center gap-2"><slot /></div>
+</li>

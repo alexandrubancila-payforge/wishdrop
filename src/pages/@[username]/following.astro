@@ -1,0 +1,14 @@
+---
+/** /@username/following — behind the same privacy as the profile's lists. */
+import PeoplePage from "@/components/social/PeoplePage.astro";
+import { localePath } from "@/lib/i18n";
+import { canSeeProfile, getUserByUsername, relation } from "@/lib/social";
+
+const { lang, user } = Astro.locals;
+const owner = await getUserByUsername(Astro.params.username ?? "");
+if (!owner || !owner.username) return Astro.rewrite("/404");
+const rel = await relation(user, owner);
+if (!canSeeProfile(owner, rel)) return Astro.redirect(localePath(lang, `/@${owner.username}`));
+---
+
+<PeoplePage kind="following" owner={{ ...owner, username: owner.username }} rel={rel} />

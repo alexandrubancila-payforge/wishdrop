@@ -3,6 +3,10 @@ import type { Bundle } from "@/lib/i18n";
 /** Error messages returned by /api/* (the page shows them as-is). */
 export default {
   ro: {
+    usernameInvalid: "Numele de utilizator: 3–24 caractere, doar litere mici, cifre, punct și _.",
+    usernameTaken: "Numele de utilizator e deja luat.",
+    bioTooLong: "Descrierea poate avea cel mult 160 de caractere.",
+    cantFollowSelf: "Nu te poți urmări pe tine.",
     invalidEmail: "Introdu o adresă de email validă (ex: nume@exemplu.com).",
     passwordShort: "Parola trebuie să aibă minim 8 caractere.",
     emailTaken: "Există deja un cont cu acest email. Autentifică-te.",
@@ -23,6 +27,10 @@ export default {
     error: "A apărut o eroare.",
   },
   en: {
+    usernameInvalid: "Username: 3–24 characters, only lowercase letters, digits, dot and _.",
+    usernameTaken: "That username is already taken.",
+    bioTooLong: "The bio can be at most 160 characters.",
+    cantFollowSelf: "You can't follow yourself.",
     invalidEmail: "Enter a valid email address (e.g. name@example.com).",
     passwordShort: "The password must be at least 8 characters.",
     emailTaken: "An account with this email already exists. Log in instead.",
@@ -43,6 +51,10 @@ export default {
     error: "An error occurred.",
   },
   de: {
+    usernameInvalid: "Benutzername: 3–24 Zeichen, nur Kleinbuchstaben, Ziffern, Punkt und _.",
+    usernameTaken: "Dieser Benutzername ist schon vergeben.",
+    bioTooLong: "Die Bio darf höchstens 160 Zeichen haben.",
+    cantFollowSelf: "Du kannst dir nicht selbst folgen.",
     invalidEmail: "Gib eine gültige E-Mail-Adresse ein (z. B. name@beispiel.de).",
     passwordShort: "Das Passwort muss mindestens 8 Zeichen haben.",
     emailTaken: "Es gibt bereits ein Konto mit dieser E-Mail. Melde dich an.",
@@ -63,6 +75,10 @@ export default {
     error: "Ein Fehler ist aufgetreten.",
   },
   ru: {
+    usernameInvalid: "Имя пользователя: 3–24 символа, только строчные латинские буквы, цифры, точка и _.",
+    usernameTaken: "Это имя пользователя уже занято.",
+    bioTooLong: "Описание — не более 160 символов.",
+    cantFollowSelf: "Нельзя подписаться на себя.",
     invalidEmail: "Введите корректный email (например, name@example.com).",
     passwordShort: "Пароль должен содержать не менее 8 символов.",
     emailTaken: "Аккаунт с этим email уже существует. Войдите.",

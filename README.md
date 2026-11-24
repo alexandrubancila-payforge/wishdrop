@@ -28,6 +28,17 @@ Locally, emails are printed to the terminal instead of being sent. Google sign-i
 | `migrations/` | The database schema, under the same migration names already applied to `wishdrop-db`. |
 | `_recovered/` | What was pulled from the live site. `wishdrop-db.sql`, `r2/` and `logged-in/` hold user data and are git-ignored. |
 
+## Profiles and following
+
+Instagram-style, one-way following (`src/lib/social.ts`, migration `0010_social.sql`):
+
+- **Profile** at `/@username` once a user picks a username in Settings → Public profile. Without one there's no profile and no search result.
+- **Private profiles** (the default for everyone, including all accounts that existed before this feature): following sends a request, accepted or declined on `/requests`. Switching to public accepts everyone waiting.
+- **List visibility** (in the list editor): *Everyone* (on the profile for anyone who can see it), *Followers* (accepted followers only), *Link only* (nowhere; the default). The `/w/<slug>` link always works, so guests can still reserve without an account.
+- **Search** at `/search` by name or @username; followers/following at `/@username/followers|following`.
+
+The migration only adds columns with defaults and a new table, so the old live site keeps working if it runs before the switch.
+
 ## Deploy
 
 Secrets (once): `npx wrangler secret put JWT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `CF_EMAIL_TOKEN`.

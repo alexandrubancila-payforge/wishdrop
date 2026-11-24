@@ -6,6 +6,8 @@
 import "@/styles/global.css";
 import { LANGS, LANG_NAMES, OG_LOCALE, localePath, makeT, DEFAULT_LANG } from "@/lib/i18n";
 import common from "@/i18n/common";
+import social from "@/i18n/social";
+import { pendingCount } from "@/lib/social";
 import Icon from "@/components/Icon.astro";
 import Avatar from "@/components/Avatar.astro";
 import DonateModal from "@/components/DonateModal.astro";
@@ -26,7 +28,9 @@ interface Props {
 }
 
 const { lang, path, user } = Astro.locals;
-const t = makeT(lang, common);
+const t = makeT(lang, common, social);
+const requests = user ? await pendingCount(user.id) : 0;
+const profileHref = user?.username ? localePath(lang, `/@${user.username}`) : localePath(lang, "/settings") + "#public-profile";
 const {
   title = t("meta.title"),
   description = t("meta.description"),
@@ -112,6 +116,18 @@ const year = new Date().getFullYear();
           <span>Wish<span class="gradient-text">Drop</span></span>
         </a>
         <div class="flex shrink-0 items-center gap-1.5 sm:gap-3">
+          <!-- Find people -->
+          <a
+            href={href("/search")}
+            aria-label={t("nav.search")}
+            title={t("nav.search")}
+            class:list={[
+              "grid h-9 w-9 place-items-center rounded-full border border-black/5 bg-white/70 shadow-sm transition hover:shadow-md",
+              path === "/search" ? "text-accent-600" : "text-ink",
+            ]}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          </a>
           <!-- Language switcher (dropdown) -->
           <div class="relative" id="lang-menu">
             <button
@@ -154,7 +170,10 @@ const year = new Date().getFullYear();
                   aria-expanded="false"
                   class="flex items-center gap-2 rounded-full border border-black/5 bg-white/70 py-1 pl-1 pr-2 shadow-sm transition hover:shadow-md"
                 >
-                  <Avatar user={user} size={32} class="h-8 w-8" alt={displayName} />
+                  <span class="relative">
+                    <Avatar user={user} size={32} class="h-8 w-8" alt={displayName} />
+                    {requests > 0 && <span class="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-white bg-rose-500" />}
+                  </span>
                   <span class="hidden max-w-[14ch] truncate text-sm font-medium text-ink sm:block">{displayName}</span>
                   <Icon name="chevronDown" class="h-4 w-4 text-ink-soft/60" />
                 </button>
@@ -167,6 +186,17 @@ const year = new Date().getFullYear();
                     </div>
                   </div>
                   <div class="my-1 h-px bg-black/5" />
+                  <a href={profileHref} class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-medium text-ink transition hover:bg-gray-50">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-accent-600" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    {t("nav.profile")}
+                  </a>
+                  {(user.is_private || requests > 0) && (
+                    <a href={href("/requests")} class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-medium text-ink transition hover:bg-gray-50">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 text-accent-600" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+                      <span class="flex-1">{t("nav.requests")}</span>
+                      {requests > 0 && <span class="rounded-full bg-rose-500 px-2 py-0.5 text-xs font-bold text-white">{requests}</span>}
+                    </a>
+                  )}
                   <a href={href("/dashboard")} class="flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-medium text-ink transition hover:bg-gray-50">
                     <Icon name="list" class="h-4 w-4 text-accent-600" /> {t("nav.myLists")}
                   </a>

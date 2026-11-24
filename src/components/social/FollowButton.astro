@@ -1,0 +1,101 @@
+---
+/**
+ * Follow / Requested / Following, for one person. Clicking toggles through the
+ * API without a reload; on "Following" and "Requested" the hover label shows
+ * what a click will do (unfollow / cancel). Logged-out visitors get a login link.
+ */
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import social from "@/i18n/social";
+import type { Relation } from "@/lib/social";
+
+interface Props {
+  username: string;
+  relation: Relation;
+  /** Private profiles turn "Follow" into a request. */
+  isPrivate: boolean;
+  /** Reload the page after a change (the profile shows more once you follow). */
+  reload?: boolean;
+  size?: "sm" | "md";
+}
+const { username, relation, isPrivate, reload = false, size = "md" } = Astro.props;
+const { lang, user, path } = Astro.locals;
+const t = makeT(lang, common, social);
+const sizing = size === "sm" ? "!px-3.5 !py-2 text-xs" : "!px-5 !py-2.5 text-sm";
+---
+
+{
+  relation === "self" ? null : !user ? (
+    <a href={`${localePath(lang, "/login")}?next=${encodeURIComponent(path)}`} class:list={["btn btn-primary", sizing]}>
+      {t("profile.loginToFollow")}
+    </a>
+  ) : (
+    <button
+      type="button"
+      data-follow-btn
+      data-username={username}
+      data-relation={relation}
+      data-private={isPrivate ? "true" : "false"}
+      data-reload={reload ? "true" : "false"}
+      data-l-follow={t("profile.follow")}
+      data-l-following={t("profile.following")}
+      data-l-requested={t("profile.requested")}
+      data-l-unfollow={t("profile.unfollow")}
+      data-l-cancel={t("profile.cancelRequest")}
+      class:list={["btn", sizing, relation === "none" ? "btn-primary" : "btn-ghost"]}
+    >
+      {relation === "none" ? t("profile.follow") : relation === "following" ? t("profile.following") : t("profile.requested")}
+    </button>
+  )
+}
+
+<script>
+  // One handler for every follow button on the page.
+  if (!(window as any).__wdFollow) {
+    (window as any).__wdFollow = true;
+
+    const label = (b: HTMLElement, hover = false) => {
+      const rel = b.dataset.relation;
+      if (rel === "none") return b.dataset.lFollow!;
+      if (rel === "following") return hover ? b.dataset.lUnfollow! : b.dataset.lFollowing!;
+      return hover ? b.dataset.lCancel! : b.dataset.lRequested!;
+    };
+    const paint = (b: HTMLElement) => {
+      b.textContent = label(b);
+      b.classList.toggle("btn-primary", b.dataset.relation === "none");
+      b.classList.toggle("btn-ghost", b.dataset.relation !== "none");
+    };
+
+    document.addEventListener("mouseover", (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>("[data-follow-btn]");
+      if (b && b.dataset.relation !== "none") b.textContent = label(b, true);
+    });
+    document.addEventListener("mouseout", (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>("[data-follow-btn]");
+      if (b) b.textContent = label(b);
+    });
+
+    document.addEventListener("click", async (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-follow-btn]");
+      if (!b || b.disabled) return;
+      const wasNone = b.dataset.relation === "none";
+      b.disabled = true;
+      try {
+        const res = await fetch("/api/follows", {
+          method: wasNone ? "POST" : "DELETE",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ username: b.dataset.username }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        b.dataset.relation = data.relation;
+        paint(b);
+        if (b.dataset.reload === "true") window.location.reload();
+      } catch {
+        paint(b);
+      } finally {
+        b.disabled = false;
+      }
+    });
+  }
+</script>

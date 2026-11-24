@@ -2,13 +2,21 @@ import type { APIRoute } from "astro";
 import { updateUser } from "@/lib/db";
 import { apiT, fail, json, readJson, requireUser } from "@/lib/http";
 import { deleteImage, keyFromUrl } from "@/lib/storage";
+import { acceptAllPending, getUserByUsername, normalizeUsername, usernameProblem } from "@/lib/social";
 
-/** Settings form: name, birthday, and (when changed) the avatar URL. */
+/** Settings form: name, birthday, avatar, and the public profile (username, bio, private). */
 export const PATCH: APIRoute = async (ctx) => {
   const user = requireUser(ctx);
   if (user instanceof Response) return user;
   const t = apiT(ctx);
-  const body = await readJson<{ name?: string; birthday?: string; avatar_url?: string | null }>(ctx.request);
+  const body = await readJson<{
+    name?: string;
+    birthday?: string;
+    avatar_url?: string | null;
+    username?: string | null;
+    bio?: string | null;
+    is_private?: boolean;
+  }>(ctx.request);
 
   const fields: Record<string, unknown> = {};
   if (typeof body.name === "string") {
@@ -25,6 +33,29 @@ export const PATCH: APIRoute = async (ctx) => {
     if (keyFromUrl(user.avatar_url) && user.avatar_url !== url) await deleteImage(keyFromUrl(user.avatar_url));
     fields.avatar_url = url || null;
   }
-  await updateUser(user.id, fields);
+  if ("username" in body) {
+    const username = normalizeUsername(body.username);
+    if (username) {
+      const problem = usernameProblem(username);
+      if (problem) return fail(t(problem));
+      const owner = await getUserByUsername(username);
+      if (owner && owner.id !== user.id) return fail(t("usernameTaken"), 409);
+    }
+    fields.username = username || null;
+  }
+  if ("bio" in body) {
+    const bio = String(body.bio ?? "").trim();
+    if (bio.length > 160) return fail(t("bioTooLong"));
+    fields.bio = bio || null;
+  }
+  if (typeof body.is_private === "boolean") {
+    fields.is_private = body.is_private ? 1 : 0;
+    if (!body.is_private && user.is_private) await acceptAllPending(user.id);
+  }
+  try {
+    await updateUser(user.id, fields);
+  } catch {
+    return fail(t("usernameTaken"), 409); // unique index race
+  }
   return json({ ok: true });
 };
