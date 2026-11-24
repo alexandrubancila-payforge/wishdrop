@@ -59,6 +59,7 @@ export default {
     "season.easter": "🐣 Paște fericit!",
     "season.birthday": "🎂 Ziua de naștere: {date}",
     "season.birthdayToday": "🎂 Azi e ziua de naștere!",
+    "list.back": "Înapoi",
   },
   en: {
     "list.description": "Create beautiful wishlists and share them with your loved ones.",
@@ -117,6 +118,7 @@ export default {
     "season.easter": "🐣 Happy Easter!",
     "season.birthday": "🎂 Birthday: {date}",
     "season.birthdayToday": "🎂 Birthday today!",
+    "list.back": "Back",
   },
   de: {
     "list.description": "Erstelle schöne Wunschlisten und teile sie mit deinen Liebsten.",
@@ -175,6 +177,7 @@ export default {
     "season.easter": "🐣 Frohe Ostern!",
     "season.birthday": "🎂 Geburtstag: {date}",
     "season.birthdayToday": "🎂 Heute ist Geburtstag!",
+    "list.back": "Zurück",
   },
   ru: {
     "list.description": "Создавайте красивые вишлисты и делитесь ими с близкими.",
@@ -233,5 +236,6 @@ export default {
     "season.easter": "🐣 Светлой Пасхи!",
     "season.birthday": "🎂 День рождения: {date}",
     "season.birthdayToday": "🎂 Сегодня день рождения!",
+    "list.back": "Назад",
   },
 } satisfies Bundle;

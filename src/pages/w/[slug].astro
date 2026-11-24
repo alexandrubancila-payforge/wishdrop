@@ -110,12 +110,24 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
         <HeroArt />
         <!-- Top row: logo left · seasonal greeting right -->
         <div class="relative z-10 flex items-center justify-between gap-3">
-          <a href={localePath(lang, "/")} class="flex shrink-0 items-center gap-2 text-base font-extrabold tracking-tight text-ink">
-            <span class="grid h-8 w-8 place-items-center rounded-xl bg-accent-500 text-white shadow-coral">
-              <Icon name="gift" weight="fill" class="h-4 w-4" />
-            </span>
-            <span>Wish<span class="text-accent-600">Drop</span></span>
-          </a>
+          <div class="flex shrink-0 items-center gap-3">
+            {/* Back to where you came from on this site, otherwise home (the feed when signed in). */}
+            <a
+              href={localePath(lang, "/")}
+              data-back
+              aria-label={t("list.back")}
+              title={t("list.back")}
+              class="grid h-10 w-10 place-items-center rounded-full bg-white text-ink shadow-soft transition hover:text-accent-700"
+            >
+              <Icon name="caret-left" weight="bold" class="h-5 w-5" />
+            </a>
+            <a href={localePath(lang, "/")} class="flex items-center gap-2 text-base font-extrabold tracking-tight text-ink">
+              <span class="grid h-8 w-8 place-items-center rounded-xl bg-accent-500 text-white shadow-coral">
+                <Icon name="gift" weight="fill" class="h-4 w-4" />
+              </span>
+              <span>Wish<span class="text-accent-600">Drop</span></span>
+            </a>
+          </div>
           {owner && !owner.disable_seasons && <SeasonGreeting lang={lang} birthday={owner.birthday} />}
         </div>
 
@@ -749,6 +761,18 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
               btn.disabled = false;
             }
           });
+        });
+
+        // "Back": the previous page when it was on WishDrop, otherwise the link's home page.
+        document.querySelector("[data-back]")?.addEventListener("click", (e) => {
+          let sameSite = false;
+          try {
+            sameSite = !!document.referrer && new URL(document.referrer).origin === location.origin;
+          } catch {}
+          if (sameSite && history.length > 1) {
+            e.preventDefault();
+            history.back();
+          }
         });
 
         // Owner surprise mode: peek at reservations
