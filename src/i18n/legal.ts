@@ -286,7 +286,7 @@ export const terms: Record<Lang, LegalDoc> = {
     "sections": [
       {
         "h": "Serviciul",
-        "p": "WishDrop este un serviciu gratuit care îți permite să creezi liste de cadouri și să le împarți printr-un link public. Vizitatorii pot rezerva cadouri fără cont."
+        "p": "WishDrop este un serviciu gratuit care îți permite să creezi liste de cadouri și să le împarți printr-un link public. Oricine are linkul poate vedea lista; pentru a rezerva un cadou e nevoie de un cont gratuit."
       },
       {
         "h": "Contul tău",
@@ -335,7 +335,7 @@ export const terms: Record<Lang, LegalDoc> = {
     "sections": [
       {
         "h": "The service",
-        "p": "WishDrop is a free service that lets you create gift lists and share them via a public link. Visitors can reserve gifts without an account."
+        "p": "WishDrop is a free service that lets you create gift lists and share them via a public link. Anyone with the link can view the list; reserving a gift requires a free account."
       },
       {
         "h": "Your account",
@@ -384,7 +384,7 @@ export const terms: Record<Lang, LegalDoc> = {
     "sections": [
       {
         "h": "Der Dienst",
-        "p": "WishDrop ist ein kostenloser Dienst, mit dem du Geschenklisten erstellen und über einen öffentlichen Link teilen kannst. Besucher können Geschenke ohne Konto reservieren."
+        "p": "WishDrop ist ein kostenloser Dienst, mit dem du Geschenklisten erstellen und über einen öffentlichen Link teilen kannst. Jeder mit dem Link kann die Liste sehen; zum Reservieren braucht man ein kostenloses Konto."
       },
       {
         "h": "Dein Konto",
@@ -433,7 +433,7 @@ export const terms: Record<Lang, LegalDoc> = {
     "sections": [
       {
         "h": "Сервис",
-        "p": "WishDrop — бесплатный сервис, позволяющий создавать списки подарков и делиться ими по публичной ссылке. Гости могут бронировать подарки без аккаунта."
+        "p": "WishDrop — бесплатный сервис, позволяющий создавать списки подарков и делиться ими по публичной ссылке. Список может открыть любой, у кого есть ссылка; чтобы забронировать подарок, нужен бесплатный аккаунт."
       },
       {
         "h": "Ваш аккаунт",

@@ -74,7 +74,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           h: "Cum faci lista de Crăciun cu WishDrop",
-          p: "1. Creează o listă gratuită și pune data de 25 decembrie, ca invitații să vadă numărătoarea inversă. 2. Adaugă cadourile cu poză, preț aproximativ și link spre magazin; marchează-le pe cele mai dorite. 3. Trimite un singur link pe WhatsApp sau în grupul familiei. 4. Rudele rezervă ce vor să cumpere, fără cont, iar ceilalți văd imediat ce a fost deja ales.",
+          p: "1. Creează o listă gratuită și pune data de 25 decembrie, ca invitații să vadă numărătoarea inversă. 2. Adaugă cadourile cu poză, preț aproximativ și link spre magazin; marchează-le pe cele mai dorite. 3. Trimite un singur link pe WhatsApp sau în grupul familiei. 4. Rudele rezervă ce vor să cumpere, iar ceilalți văd imediat ce a fost deja ales.",
         },
         {
           h: "Sfaturi pentru o listă de Crăciun reușită",
@@ -106,10 +106,10 @@ export const guides: Record<Lang, GuideDoc[]> = {
       slug: "lista-de-nunta-online",
       title: "Listă de nuntă online gratuită — WishDrop",
       description:
-        "Fă o listă de nuntă online gratuită: adaugi cadourile dorite, trimiți un singur link, iar invitații rezervă darurile fără cont și fără dubluri.",
+        "Fă o listă de nuntă online gratuită: adaugi cadourile dorite, trimiți un singur link, iar invitații rezervă darurile fără dubluri.",
       h1: "Lista de nuntă online, simplu și fără dubluri",
       intro:
-        "O listă de nuntă îi scapă pe invitați de ghicit și pe voi de trei prăjitoare de pâine. Puneți ce vă trebuie cu adevărat pentru casa nouă, trimiteți un link și gata. Invitații rezervă darul fără să-și facă cont.",
+        "O listă de nuntă îi scapă pe invitați de ghicit și pe voi de trei prăjitoare de pâine. Puneți ce vă trebuie cu adevărat pentru casa nouă, trimiteți un link și gata. Invitații rezervă darul cu un cont gratuit, în câteva secunde.",
       sections: [
         {
           h: "Idei pentru casa nouă",
@@ -151,7 +151,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Este gratuit?",
-          a: "Da, WishDrop e gratuit pentru voi și pentru invitați. Invitații rezervă cadourile fără cont.",
+          a: "Da, WishDrop e gratuit pentru voi și pentru invitați. Lista o poate vedea oricine, iar pentru rezervare invitații își fac un cont gratuit.",
         },
         {
           q: "Putem vedea cine a rezervat fiecare cadou?",
@@ -222,7 +222,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Trebuie prietenii să-și facă cont?",
-          a: "Nu. Deschid linkul, aleg un cadou și îl rezervă fără cont.",
+          a: "Ca să vadă lista, nu. Ca să rezerve un cadou, da: un cont gratuit, făcut într-un minut. Așa știi sigur cine ce a rezervat.",
         },
       ],
       cta: "Creează lista de ziua ta",
@@ -276,7 +276,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Este gratuit?",
-          a: "Da. Lista e gratuită, iar invitații rezervă cadourile fără cont.",
+          a: "Da. Lista e gratuită, iar invitații rezervă cadourile cu un cont gratuit.",
         },
         {
           q: "Pot vedea cine a rezervat?",
@@ -341,7 +341,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           h: "How to make your Christmas list on WishDrop",
-          p: "1. Create a free list and set the date to December 25 so everyone sees the countdown. 2. Add gifts with a photo, an approximate price and a link to the shop, and mark your favorites as most wanted. 3. Share one link in the family group chat. 4. Relatives reserve what they plan to buy, no account needed, and everyone else sees it's taken.",
+          p: "1. Create a free list and set the date to December 25 so everyone sees the countdown. 2. Add gifts with a photo, an approximate price and a link to the shop, and mark your favorites as most wanted. 3. Share one link in the family group chat. 4. Relatives reserve what they plan to buy, and everyone else sees it's taken.",
         },
         {
           h: "Tips for a good Christmas list",
@@ -373,10 +373,10 @@ export const guides: Record<Lang, GuideDoc[]> = {
       slug: "wedding-registry-online",
       title: "Free Online Wedding Registry — WishDrop",
       description:
-        "Make a free online wedding registry: add the gifts you want from any shop, share one link, and guests reserve gifts without an account or duplicates.",
+        "Make a free online wedding registry: add the gifts you want from any shop, share one link, and guests reserve gifts with no duplicates.",
       h1: "A free online wedding registry, from any shop",
       intro:
-        "A wedding registry saves your guests from guessing and saves you from three identical toasters. Add what you actually need for your new home, from any shop, and share one link. Guests reserve a gift without signing up.",
+        "A wedding registry saves your guests from guessing and saves you from three identical toasters. Add what you actually need for your new home, from any shop, and share one link. Guests reserve a gift with a free account in seconds.",
       sections: [
         {
           h: "Ideas for your new home",
@@ -418,7 +418,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Is it free?",
-          a: "Yes, WishDrop is free for you and your guests. Guests reserve gifts without an account.",
+          a: "Yes, WishDrop is free for you and your guests. Anyone can view the list, and guests reserve with a free account.",
         },
         {
           q: "Can we see who reserved each gift?",
@@ -489,7 +489,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Do my friends need an account?",
-          a: "No. They open the link, pick a gift and reserve it without signing up.",
+          a: "To view the list, no. To reserve a gift, yes: a free account that takes a minute. This way you know exactly who reserved what.",
         },
       ],
       cta: "Create your birthday list",
@@ -543,7 +543,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Is it free?",
-          a: "Yes. The list is free, and guests reserve gifts without an account.",
+          a: "Yes. The list is free, and guests reserve gifts with a free account.",
         },
         {
           q: "Can I see who reserved what?",
@@ -608,7 +608,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           h: "So erstellst du deine Weihnachtsliste mit WishDrop",
-          p: "1. Lege eine kostenlose Liste an und trage den 24. Dezember als Datum ein, dann sehen alle den Countdown. 2. Füge Geschenke mit Foto, ungefährem Preis und Link zum Shop hinzu und markiere deine Favoriten als besonders gewünscht. 3. Teile einen einzigen Link in der Familiengruppe. 4. Verwandte reservieren, was sie kaufen wollen, ganz ohne Konto, und alle anderen sehen, was schon vergeben ist.",
+          p: "1. Lege eine kostenlose Liste an und trage den 24. Dezember als Datum ein, dann sehen alle den Countdown. 2. Füge Geschenke mit Foto, ungefährem Preis und Link zum Shop hinzu und markiere deine Favoriten als besonders gewünscht. 3. Teile einen einzigen Link in der Familiengruppe. 4. Verwandte reservieren, was sie kaufen wollen, und alle anderen sehen, was schon vergeben ist.",
         },
         {
           h: "Tipps für eine gute Weihnachtsliste",
@@ -640,10 +640,10 @@ export const guides: Record<Lang, GuideDoc[]> = {
       slug: "hochzeitsliste-online",
       title: "Hochzeitsliste online kostenlos — WishDrop",
       description:
-        "Hochzeitsliste online und kostenlos: Wunschgeschenke aus jedem Shop eintragen, einen Link teilen, Gäste reservieren ohne Konto und ohne Dopplungen.",
+        "Hochzeitsliste online und kostenlos: Wunschgeschenke aus jedem Shop eintragen, einen Link teilen, Gäste reservieren ohne Dopplungen.",
       h1: "Die Hochzeitsliste online, aus jedem Shop",
       intro:
-        "Eine Hochzeitsliste erspart euren Gästen das Raten und euch drei gleiche Toaster. Tragt ein, was ihr für euer gemeinsames Zuhause wirklich braucht, und teilt einen Link. Gäste reservieren ihr Geschenk ohne Anmeldung.",
+        "Eine Hochzeitsliste erspart euren Gästen das Raten und euch drei gleiche Toaster. Tragt ein, was ihr für euer gemeinsames Zuhause wirklich braucht, und teilt einen Link. Gäste reservieren ihr Geschenk mit einem kostenlosen Konto in Sekunden.",
       sections: [
         {
           h: "Ideen für das gemeinsame Zuhause",
@@ -685,7 +685,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Ist das kostenlos?",
-          a: "Ja, WishDrop ist für euch und eure Gäste kostenlos. Gäste reservieren ohne Konto.",
+          a: "Ja, WishDrop ist für euch und eure Gäste kostenlos. Die Liste kann jeder sehen, zum Reservieren legen Gäste ein kostenloses Konto an.",
         },
         {
           q: "Sehen wir, wer welches Geschenk reserviert hat?",
@@ -756,7 +756,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Brauchen meine Freunde ein Konto?",
-          a: "Nein. Sie öffnen den Link, wählen ein Geschenk und reservieren es ohne Anmeldung.",
+          a: "Zum Ansehen der Liste nicht. Zum Reservieren ja: ein kostenloses Konto, in einer Minute erstellt. So weißt du genau, wer was reserviert hat.",
         },
       ],
       cta: "Geburtstagsliste erstellen",
@@ -810,7 +810,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Ist das kostenlos?",
-          a: "Ja. Die Liste ist kostenlos, und Gäste reservieren ohne Konto.",
+          a: "Ja. Die Liste ist kostenlos, und Gäste reservieren mit einem kostenlosen Konto.",
         },
         {
           q: "Sehen wir, wer was reserviert hat?",
@@ -875,7 +875,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           h: "Как сделать новогодний список в WishDrop",
-          p: "1. Создайте бесплатный список и поставьте дату 31 декабря — гости увидят обратный отсчёт. 2. Добавьте подарки с фото, примерной ценой и ссылкой на магазин, отметьте самые желанные. 3. Отправьте одну ссылку в семейный чат. 4. Родные бронируют подарки без регистрации, а остальные сразу видят, что уже занято.",
+          p: "1. Создайте бесплатный список и поставьте дату 31 декабря — гости увидят обратный отсчёт. 2. Добавьте подарки с фото, примерной ценой и ссылкой на магазин, отметьте самые желанные. 3. Отправьте одну ссылку в семейный чат. 4. Родные бронируют подарки, а остальные сразу видят, что уже занято.",
         },
         {
           h: "Советы для удачного вишлиста",
@@ -907,10 +907,10 @@ export const guides: Record<Lang, GuideDoc[]> = {
       slug: "spisok-podarkov-na-svadbu",
       title: "Список подарков на свадьбу онлайн — WishDrop",
       description:
-        "Бесплатный список подарков на свадьбу: добавьте желания из любых магазинов, отправьте одну ссылку, а гости бронируют без регистрации и без повторов.",
+        "Бесплатный список подарков на свадьбу: добавьте желания из любых магазинов, отправьте одну ссылку, а гости бронируют без повторов.",
       h1: "Свадебный список подарков онлайн",
       intro:
-        "Список подарков избавит гостей от догадок, а вас — от трёх одинаковых тостеров. Добавьте то, что действительно нужно для общего дома, и отправьте одну ссылку. Гости бронируют подарок без регистрации.",
+        "Список подарков избавит гостей от догадок, а вас — от трёх одинаковых тостеров. Добавьте то, что действительно нужно для общего дома, и отправьте одну ссылку. Гости бронируют подарок с бесплатным аккаунтом за пару секунд.",
       sections: [
         {
           h: "Идеи для общего дома",
@@ -952,7 +952,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Это бесплатно?",
-          a: "Да, WishDrop бесплатен и для вас, и для гостей. Гости бронируют подарки без регистрации.",
+          a: "Да, WishDrop бесплатен и для вас, и для гостей. Список может открыть любой, а для брони гости создают бесплатный аккаунт.",
         },
         {
           q: "Мы увидим, кто какой подарок забронировал?",
@@ -1023,7 +1023,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Друзьям нужно регистрироваться?",
-          a: "Нет. Они открывают ссылку, выбирают подарок и бронируют его без регистрации.",
+          a: "Чтобы посмотреть список — нет. Чтобы забронировать подарок — да: бесплатный аккаунт, создаётся за минуту. Так вы точно знаете, кто что забронировал.",
         },
       ],
       cta: "Создать список на день рождения",
@@ -1077,7 +1077,7 @@ export const guides: Record<Lang, GuideDoc[]> = {
         },
         {
           q: "Это бесплатно?",
-          a: "Да. Список бесплатный, а гости бронируют подарки без регистрации.",
+          a: "Да. Список бесплатный, а гости бронируют подарки с бесплатным аккаунтом.",
         },
         {
           q: "Можно увидеть, кто что забронировал?",

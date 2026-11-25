@@ -5,9 +5,9 @@ import { apiT, fail, json, readJson } from "@/lib/http";
 import { contributorCount, syncGroupReserved } from "@/lib/gifts";
 
 /**
- * Join a group gift — guests too, like a reservation. The response carries a
- * token the browser keeps (localStorage "wd_join") so the same person can
- * leave later; a signed-in contributor is also remembered by account.
+ * Join a group gift — signed-in people only, like a reservation; kept by
+ * account. (Older guest joins still carry a token in localStorage "wd_join",
+ * which can leave them.)
  */
 export const POST: APIRoute = async (ctx) => {
   const t = apiT(ctx);
@@ -15,14 +15,13 @@ export const POST: APIRoute = async (ctx) => {
   if (!item) return fail(t("notFound"), 404);
   if (!item.group_size) return fail(t("notGroupGift"), 409);
   const user = ctx.locals.user;
-  if (user && user.id === item.owner_id) return fail(t("ownList"), 403);
-  if (user) {
-    const already = await db()
-      .prepare("SELECT 1 FROM item_contributors WHERE item_id = ? AND user_id = ?")
-      .bind(item.id, user.id)
-      .first();
-    if (already) return fail(t("alreadyJoined"), 409);
-  }
+  if (!user) return fail(t("loginToReserve"), 401);
+  if (user.id === item.owner_id) return fail(t("ownList"), 403);
+  const already = await db()
+    .prepare("SELECT 1 FROM item_contributors WHERE item_id = ? AND user_id = ?")
+    .bind(item.id, user.id)
+    .first();
+  if (already) return fail(t("alreadyJoined"), 409);
 
   const { name: raw } = await readJson<{ name?: string | null }>(ctx.request);
   const name = typeof raw === "string" ? raw.trim().slice(0, 60) : "";
@@ -34,7 +33,7 @@ export const POST: APIRoute = async (ctx) => {
        SELECT ?1, ?2, ?3, ?4, ?5, ?6
         WHERE (SELECT COUNT(*) FROM item_contributors WHERE item_id = ?2) < (SELECT group_size FROM items WHERE id = ?2)`,
     )
-    .bind(newId(), item.id, name || null, user?.id ?? null, token, now())
+    .bind(newId(), item.id, name || null, user.id, token, now())
     .run();
   if (!res.meta.changes) return fail(t("groupFull"), 409);
   await syncGroupReserved(item.id);

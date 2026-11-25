@@ -4,16 +4,17 @@ import { randomToken } from "@/lib/auth";
 import { apiT, fail, json, readJson } from "@/lib/http";
 
 /**
- * Reserve a gift — guests too. The response carries a token the browser keeps
- * (localStorage "wd_resv") so the same person can cancel later; a signed-in
- * reserver is also remembered by account.
+ * Reserve a gift — signed-in people only, so the owner always knows who
+ * reserved. The reservation is kept by account. (Older guest reservations
+ * still carry a token in localStorage "wd_resv", which can cancel them.)
  */
 export const PATCH: APIRoute = async (ctx) => {
   const t = apiT(ctx);
   const item = ctx.params.id ? await getItemWithList(ctx.params.id) : null;
   if (!item) return fail(t("notFound"), 404);
   const user = ctx.locals.user;
-  if (user && user.id === item.owner_id) return fail(t("ownList"), 403);
+  if (!user) return fail(t("loginToReserve"), 401);
+  if (user.id === item.owner_id) return fail(t("ownList"), 403);
   if (item.group_size) return fail(t("isGroupGift"), 409);
 
   const { reserved_by } = await readJson<{ reserved_by?: string | null }>(ctx.request);
@@ -24,7 +25,7 @@ export const PATCH: APIRoute = async (ctx) => {
       `UPDATE items SET reserved_by = ?, reserved_at = ?, reserve_token = ?, reserver_user_id = ?
         WHERE id = ? AND reserved_at IS NULL`,
     )
-    .bind(name || null, Date.now(), token, user?.id ?? null, item.id)
+    .bind(name || null, Date.now(), token, user.id, item.id)
     .run();
   if (!res.meta.changes) return fail(t("alreadyReserved"), 409);
   return json({ ok: true, token });

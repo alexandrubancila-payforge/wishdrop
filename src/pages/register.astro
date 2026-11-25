@@ -33,7 +33,7 @@ const M = {
       {t("register.haveAccount")}{" "}
       <a href={localePath(lang, "/login")} class="font-semibold text-accent-700 hover:underline">{t("register.login")}</a>
     </p>
-    <GoogleButton href="/api/auth/google" label={t("auth.continueGoogle")} divider={t("auth.orEmail")} />
+    <GoogleButton href={next ? `/api/auth/google?next=${encodeURIComponent(next)}` : "/api/auth/google"} label={t("auth.continueGoogle")} divider={t("auth.orEmail")} />
     <form id="auth-form" class="space-y-4" data-verify-url={localePath(lang, next || "/verify-email")}>
       <div>
         <label for="email" class="block text-sm font-semibold text-ink">{t("auth.email")}</label>

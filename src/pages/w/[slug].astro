@@ -1,6 +1,8 @@
 ---
 /**
- * A public wishlist: anyone with the link can reserve a gift (guests too).
+ * A public wishlist: anyone with the link can see it; reserving a gift or
+ * joining a group gift needs an account (guests get a sign-in prompt that
+ * brings them back with ?reserve=<item id>, which reopens the dialog).
  *
  * - The owner sees "← Manage list"; in surprise mode (wishlists.hide_reservations)
  *   reservations are hidden from them until they press "Reveal".
@@ -83,6 +85,8 @@ const RM = {
   myName: user ? (user.name || user.username || "").trim().slice(0, 60) : "",
   registerUrl: localePath(lang, "/register"),
   loginUrl: localePath(lang, "/login"),
+  /** This list's path without the language prefix, for ?next= after signing in. */
+  listPath: list ? `/w/${list.slug}` : "",
 };
 
 // Countdown to the list's event (hidden once it's past).
@@ -411,10 +415,10 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
             <button id="reserve-cancel" class="btn btn-ghost w-full !py-3 text-sm">{t("modal.cancel")}</button>
           </div>
         </div>
-        <!-- Step 2: CTA after successful reservation (only for guests) -->
+        <!-- Sign-in prompt for guests who tap Reserve / Join -->
         <div class="card hidden w-full max-w-md !rounded-3xl p-6 text-center shadow-lift" id="reserve-step-2">
-          <span class="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-mint text-mint-ink">
-            <Icon name="check-circle" class="h-8 w-8" />
+          <span class="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-accent-100 text-accent-600">
+            <Icon name="gift" class="h-8 w-8" />
           </span>
           <h2 class="mt-4 text-xl font-extrabold tracking-tight">{t("step2.title")}</h2>
           <p class="mt-2 text-sm text-ink-soft">{t("step2.text")}</p>
@@ -493,7 +497,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
         const modalError = document.getElementById("reserve-error");
         const choiceBtns = Array.from(modal.querySelectorAll("[data-choice]"));
 
-        // Step 2 CTA (for guests after a successful reservation)
+        // Sign-in prompt (guests can't reserve or join)
         const step1 = document.getElementById("reserve-step-1");
         const step2 = document.getElementById("reserve-step-2");
         const ctaBtn = document.getElementById("reserve-cta-btn");
@@ -543,6 +547,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
         function openModal(card, nextMode = "reserve") {
           activeCard = card;
           mode = nextMode;
+          if (!RM.isLoggedIn) return showSignIn(card);
           const join = mode === "join";
           modalTitle.textContent = join ? RM.joinTitle : RM.title;
           modalText.textContent = join ? RM.joinText : RM.text;
@@ -605,12 +610,16 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
         }
 
         ctaSkip?.addEventListener("click", closeModal);
-        if (ctaBtn) ctaBtn.href = RM.registerUrl;
-        if (ctaLoginBtn) ctaLoginBtn.href = RM.loginUrl;
 
-        function showCTA() {
+        function showSignIn(card) {
+          // Come back to this list with the same gift's dialog open.
+          const next = encodeURIComponent(`${RM.listPath}?reserve=${card.dataset.itemId}`);
+          ctaBtn.href = `${RM.registerUrl}?next=${next}`;
+          ctaLoginBtn.href = `${RM.loginUrl}?next=${next}`;
           step1.classList.add("hidden");
           step2.classList.remove("hidden");
+          modal.classList.remove("hidden");
+          modal.classList.add("flex");
         }
 
         confirmBtn.addEventListener("click", async () => {
@@ -641,11 +650,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
             if (data.token) saveToken(itemId, data.token);
             showCancel(activeCard);
             fireConfetti();
-            if (RM.isLoggedIn) {
-              closeModal();
-            } else {
-              showCTA();
-            }
+            closeModal();
           } catch (err) {
             modalError.textContent = err instanceof Error ? err.message : RM.err;
             modalError.classList.remove("hidden");
@@ -767,8 +772,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
             }
             paintGroup(activeCard, data.count, data.size, true);
             fireConfetti();
-            if (RM.isLoggedIn) closeModal();
-            else showCTA();
+            closeModal();
           } catch (err) {
             modalError.textContent = err instanceof Error ? err.message : RM.err;
             modalError.classList.remove("hidden");
@@ -803,6 +807,22 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
             }
           });
         });
+
+        // Back from signing in (?reserve=<item id>): reopen that gift's dialog if it's still free.
+        const wanted = new URLSearchParams(location.search).get("reserve");
+        if (wanted) {
+          const url = new URL(location.href);
+          url.searchParams.delete("reserve");
+          history.replaceState(null, "", url.pathname + url.search + url.hash);
+          const card = RM.isLoggedIn ? document.querySelector(`[data-item-id="${CSS.escape(wanted)}"]`) : null;
+          if (card && card.dataset.reserved !== "true") {
+            card.scrollIntoView({ block: "center" });
+            const isGroup = !!card.querySelector("[data-group]");
+            const mineAlready = card.dataset.myJoin === "true" || !!getJoins()[wanted];
+            if (!isGroup) openModal(card);
+            else if (!mineAlready) openModal(card, "join");
+          }
+        }
 
         // "Back": the previous page when it was on WishDrop, otherwise the link's home page.
         document.querySelector("[data-back]")?.addEventListener("click", (e) => {

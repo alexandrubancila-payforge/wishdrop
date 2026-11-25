@@ -42,6 +42,7 @@ export default {
     santaDrawn: "S-a tras deja la sorți în acest grup.",
     santaFull: "Grupul e plin.",
     santaTooFew: "Sunt necesari cel puțin 3 participanți.",
+    loginToReserve: "Intră în cont ca să rezervi un cadou.",
   },
   en: {
     usernameInvalid: "Username: 3–24 characters, only lowercase letters, digits, dot and _.",
@@ -83,6 +84,7 @@ export default {
     santaDrawn: "Names have already been drawn in this group.",
     santaFull: "The group is full.",
     santaTooFew: "You need at least 3 people.",
+    loginToReserve: "Sign in to reserve a gift.",
   },
   de: {
     usernameInvalid: "Benutzername: 3–24 Zeichen, nur Kleinbuchstaben, Ziffern, Punkt und _.",
@@ -124,6 +126,7 @@ export default {
     santaDrawn: "In dieser Gruppe wurde schon gelost.",
     santaFull: "Die Gruppe ist voll.",
     santaTooFew: "Es braucht mindestens 3 Personen.",
+    loginToReserve: "Melde dich an, um ein Geschenk zu reservieren.",
   },
   ru: {
     usernameInvalid: "Имя пользователя: 3–24 символа, только строчные латинские буквы, цифры, точка и _.",
@@ -165,5 +168,6 @@ export default {
     santaDrawn: "В этой группе жеребьёвка уже прошла.",
     santaFull: "Группа заполнена.",
     santaTooFew: "Нужно минимум 3 участника.",
+    loginToReserve: "Войдите, чтобы забронировать подарок.",
   },
 } satisfies Bundle;
