@@ -18,7 +18,7 @@ export const privacy: Record<Lang, LegalDoc> = {
     "title": "Politica de confidențialitate — WishDrop",
     "description": "WishDrop este un serviciu gratuit prin care îți creezi liste de cadouri și le împarți printr-un link public. Respectăm datele tale și colectăm strict minimul necesar pentru funcționarea serviciului.",
     "h1": "Politica de confidențialitate",
-    "updated": "Ultima actualizare: 24 noiembrie 2026",
+    "updated": "Ultima actualizare: 25 noiembrie 2026",
     "intro": "WishDrop este un serviciu gratuit prin care îți creezi liste de cadouri și le împarți printr-un link public. Respectăm datele tale și colectăm strict minimul necesar pentru funcționarea serviciului.",
     "sections": [
       {
@@ -50,13 +50,14 @@ export const privacy: Record<Lang, LegalDoc> = {
         "list": [
           "Cloudflare — găzduire, bază de date și stocarea imaginilor.",
           "Google — doar dacă folosești „Conectare cu Google”.",
+          "Google Tag Manager și Google Ads — doar dacă accepți cookie-urile Google; ne arată dacă reclamele noastre aduc oameni.",
           "Serviciile de notificări ale browserului (Google, Apple, Mozilla) — doar dacă pornești notificările pe telefon; primesc mesajul criptat.",
           "Trimitem emailuri tranzacționale (confirmare cont, resetare parolă) de la adresa {noreply@wishdrop.site}."
         ]
       },
       {
         "h": "Cookie-uri",
-        "p": "Folosim doar cookie-uri esențiale: unul pentru sesiunea ta de autentificare și unul pentru a reține limba aleasă. Nu folosim cookie-uri de publicitate. Pentru statistici de vizite folosim Cloudflare Web Analytics, care nu folosește cookie-uri și nu te urmărește de la un site la altul."
+        "p": "Cookie-urile esențiale (unul pentru sesiunea ta de autentificare și unul pentru limba aleasă) sunt mereu active. Cookie-urile Google (prin Google Tag Manager și Google Ads) le folosim doar dacă le accepți în bannerul de cookie-uri: ne arată dacă cineva a ajuns pe WishDrop dintr-o reclamă și și-a făcut cont. Dacă refuzi, codul Google nu se încarcă deloc. Îți poți schimba alegerea oricând din linkul „Cookie-uri” din subsolul paginii. Pentru statistici de vizite folosim Cloudflare Web Analytics, care nu folosește cookie-uri și nu te urmărește de la un site la altul."
       },
       {
         "h": "Cât timp păstrăm datele",
@@ -82,7 +83,7 @@ export const privacy: Record<Lang, LegalDoc> = {
     "title": "Privacy Policy — WishDrop",
     "description": "WishDrop is a free service for creating gift lists and sharing them via a public link. We respect your data and collect only the minimum needed to run the service.",
     "h1": "Privacy Policy",
-    "updated": "Last updated: 24 November 2026",
+    "updated": "Last updated: 25 November 2026",
     "intro": "WishDrop is a free service for creating gift lists and sharing them via a public link. We respect your data and collect only the minimum needed to run the service.",
     "sections": [
       {
@@ -114,13 +115,14 @@ export const privacy: Record<Lang, LegalDoc> = {
         "list": [
           "Cloudflare — hosting, database and image storage.",
           "Google — only if you use “Sign in with Google”.",
+          "Google Tag Manager and Google Ads — only if you accept Google cookies; they show us whether our ads bring people here.",
           "Your browser's push services (Google, Apple, Mozilla) — only if you turn on phone notifications; they receive the message encrypted.",
           "We send transactional emails (account confirmation, password reset) from {noreply@wishdrop.site}."
         ]
       },
       {
         "h": "Cookies",
-        "p": "We use only essential cookies: one for your login session and one to remember your chosen language. We do not use advertising cookies. For visit statistics we use Cloudflare Web Analytics, which uses no cookies and doesn't track you across sites."
+        "p": "Essential cookies (one for your login session and one for your chosen language) are always on. Google cookies (through Google Tag Manager and Google Ads) are used only if you accept them in the cookie banner: they show us whether someone came to WishDrop from one of our ads and created an account. If you decline, Google's code isn't loaded at all. You can change your choice any time with the “Cookies” link at the bottom of the page. For visit statistics we use Cloudflare Web Analytics, which uses no cookies and doesn't track you across sites."
       },
       {
         "h": "How long we keep data",
@@ -146,7 +148,7 @@ export const privacy: Record<Lang, LegalDoc> = {
     "title": "Datenschutzerklärung — WishDrop",
     "description": "WishDrop ist ein kostenloser Dienst, mit dem du Geschenklisten erstellst und über einen öffentlichen Link teilst. Wir respektieren deine Daten und erheben nur das Nötigste für den Betrieb des Dienstes.",
     "h1": "Datenschutzerklärung",
-    "updated": "Zuletzt aktualisiert: 24. November 2026",
+    "updated": "Zuletzt aktualisiert: 25. November 2026",
     "intro": "WishDrop ist ein kostenloser Dienst, mit dem du Geschenklisten erstellst und über einen öffentlichen Link teilst. Wir respektieren deine Daten und erheben nur das Nötigste für den Betrieb des Dienstes.",
     "sections": [
       {
@@ -178,13 +180,14 @@ export const privacy: Record<Lang, LegalDoc> = {
         "list": [
           "Cloudflare — Hosting, Datenbank und Bildspeicherung.",
           "Google — nur wenn du „Mit Google anmelden“ nutzt.",
+          "Google Tag Manager und Google Ads — nur wenn du Google-Cookies akzeptierst; sie zeigen uns, ob unsere Werbung Besucher bringt.",
           "Die Push-Dienste deines Browsers (Google, Apple, Mozilla) — nur wenn du Handy-Benachrichtigungen einschaltest; sie erhalten die Nachricht verschlüsselt.",
           "Wir senden transaktionale E-Mails (Kontobestätigung, Passwort-Reset) von {noreply@wishdrop.site}."
         ]
       },
       {
         "h": "Cookies",
-        "p": "Wir verwenden nur essenzielle Cookies: eines für deine Anmeldesitzung und eines, um deine Sprache zu merken. Keine Werbe-Cookies. Für Besuchsstatistiken nutzen wir Cloudflare Web Analytics, das keine Cookies setzt und dich nicht seitenübergreifend verfolgt."
+        "p": "Essenzielle Cookies (eines für deine Anmeldesitzung und eines für deine Sprache) sind immer aktiv. Google-Cookies (über Google Tag Manager und Google Ads) setzen wir nur, wenn du sie im Cookie-Banner akzeptierst: Sie zeigen uns, ob jemand über unsere Werbung zu WishDrop gekommen ist und ein Konto erstellt hat. Wenn du ablehnst, wird der Google-Code gar nicht geladen. Du kannst deine Wahl jederzeit über den Link „Cookies“ unten auf der Seite ändern. Für Besuchsstatistiken nutzen wir Cloudflare Web Analytics, das keine Cookies setzt und dich nicht seitenübergreifend verfolgt."
       },
       {
         "h": "Wie lange wir Daten speichern",
@@ -210,7 +213,7 @@ export const privacy: Record<Lang, LegalDoc> = {
     "title": "Политика конфиденциальности — WishDrop",
     "description": "WishDrop — бесплатный сервис для создания списков подарков и обмена ими по публичной ссылке. Мы уважаем ваши данные и собираем только необходимый минимум для работы сервиса.",
     "h1": "Политика конфиденциальности",
-    "updated": "Последнее обновление: 24 ноября 2026",
+    "updated": "Последнее обновление: 25 ноября 2026",
     "intro": "WishDrop — бесплатный сервис для создания списков подарков и обмена ими по публичной ссылке. Мы уважаем ваши данные и собираем только необходимый минимум для работы сервиса.",
     "sections": [
       {
@@ -242,13 +245,14 @@ export const privacy: Record<Lang, LegalDoc> = {
         "list": [
           "Cloudflare — хостинг, база данных и хранение изображений.",
           "Google — только если вы используете «Вход через Google».",
+          "Google Tag Manager и Google Ads — только если вы приняли cookie Google; они показывают нам, приводит ли наша реклама людей.",
           "Push-сервисы вашего браузера (Google, Apple, Mozilla) — только если вы включите уведомления на телефоне; они получают сообщение в зашифрованном виде.",
           "Мы отправляем транзакционные письма (подтверждение аккаунта, сброс пароля) с адреса {noreply@wishdrop.site}."
         ]
       },
       {
         "h": "Cookie-файлы",
-        "p": "Мы используем только необходимые cookie: для вашей сессии входа и для запоминания выбранного языка. Рекламных cookie нет. Для статистики посещений мы используем Cloudflare Web Analytics — без cookie и без отслеживания между сайтами."
+        "p": "Необходимые cookie (одна для сессии входа и одна для выбранного языка) работают всегда. Cookie Google (через Google Tag Manager и Google Ads) мы используем только если вы примете их в баннере cookie: они показывают нам, пришёл ли человек на WishDrop из нашей рекламы и создал ли аккаунт. Если вы откажетесь, код Google вообще не загружается. Изменить выбор можно в любой момент по ссылке «Cookie» внизу страницы. Для статистики посещений мы используем Cloudflare Web Analytics — без cookie и без отслеживания между сайтами."
       },
       {
         "h": "Сколько мы храним данные",

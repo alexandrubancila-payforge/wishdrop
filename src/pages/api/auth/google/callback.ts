@@ -2,6 +2,7 @@
 import type { APIRoute } from "astro";
 import { env } from "cloudflare:workers";
 import { createUser, getUserByEmail, getUserByGoogleId, updateUser } from "@/lib/db";
+import { markSignup } from "@/lib/tracking";
 import { OAUTH_COOKIE, startSession } from "@/lib/auth";
 import { isLang, localePath, type Lang } from "@/lib/i18n";
 import { suggestUsername } from "@/lib/social";
@@ -67,6 +68,7 @@ export const GET: APIRoute = async (ctx) => {
         email_verified: true,
         username: await suggestUsername(g.name, g.email), // changeable in Settings; profile stays private
       });
+      markSignup(ctx.cookies, "google", ctx.url.protocol === "https:");
     }
   }
 

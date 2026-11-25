@@ -17,6 +17,8 @@ import Avatar from "@/components/Avatar.astro";
 import DonateModal from "@/components/DonateModal.astro";
 import ConfirmModal from "@/components/ConfirmModal.astro";
 import CopyGiftSheet from "@/components/gifts/CopyGiftSheet.astro";
+import CookieBanner from "@/components/CookieBanner.astro";
+import { GTM_ID } from "@/lib/tracking";
 
 interface Props {
   /** Full <title>; defaults to the home title. Pages pass "My lists — WishDrop". */
@@ -126,6 +128,31 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
     <link rel="preload" href="/fonts/plus-jakarta-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/plus-jakarta-sans-latin-ext.woff2" as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
+    <!-- Google Tag Manager (Google Ads), loaded only once the visitor accepts cookies: see CookieBanner. -->
+    <script is:inline define:vars={{ gtmId: GTM_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () {
+        window.dataLayer.push(arguments);
+      };
+      var off = { ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied", analytics_storage: "denied" };
+      window.gtag("consent", "default", off);
+      window.wdLoadGtm = function () {
+        window.gtag("consent", "update", { ad_storage: "granted", ad_user_data: "granted", ad_personalization: "granted", analytics_storage: "granted" });
+        if (window.wdGtmLoaded) return;
+        window.wdGtmLoaded = true;
+        window.dataLayer.push({ "gtm.start": Date.now(), event: "gtm.js" });
+        var s = document.createElement("script");
+        s.async = true;
+        s.src = "https://www.googletagmanager.com/gtm.js?id=" + gtmId;
+        document.head.appendChild(s);
+      };
+      window.wdDenyGtm = function () {
+        window.gtag("consent", "update", off);
+      };
+      try {
+        if (localStorage.getItem("wd_consent") === "granted") window.wdLoadGtm();
+      } catch (e) {}
+    </script>
     <slot name="head" />
   </head>
   <body class:list={["flex min-h-screen flex-col antialiased", { "has-tabbar": tabbar }]}>
@@ -331,6 +358,7 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
                 <a href={href(hubPath(lang))} class="hover:text-ink">{t("footer.ideas")}</a>
                 <a href={href("/privacy")} class="hover:text-ink">{t("footer.privacy")}</a>
                 <a href={href("/terms")} class="hover:text-ink">{t("footer.terms")}</a>
+                <a href={href("/privacy")} data-cookie-settings class="hover:text-ink">{t("footer.cookies")}</a>
                 <a href={href("/contact")} class="hover:text-ink">{t("footer.contact")}</a>
                 <a href={reportHref} class="inline-flex items-center gap-1 hover:text-ink">
                   <Icon name="bug" class="h-4 w-4" />
@@ -388,6 +416,7 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
     <DonateModal />
     <ConfirmModal />
     {user && <CopyGiftSheet lang={lang} />}
+    <CookieBanner lang={lang} />
 
     <script>
       // Header menus (language + account), logout, and remembering the chosen language.

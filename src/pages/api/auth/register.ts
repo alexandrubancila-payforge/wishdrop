@@ -5,6 +5,7 @@ import { apiT, fail, isHttps, json, readJson, requestLang } from "@/lib/http";
 import { sendVerifyEmail } from "@/lib/email";
 import { localePath } from "@/lib/i18n";
 import { suggestUsername } from "@/lib/social";
+import { markSignup } from "@/lib/tracking";
 
 export const POST: APIRoute = async (ctx) => {
   const t = apiT(ctx);
@@ -23,6 +24,7 @@ export const POST: APIRoute = async (ctx) => {
     username: await suggestUsername(null, clean), // changeable in Settings; profile stays private
   });
   await startSession(ctx.cookies, user.id, isHttps(ctx));
+  markSignup(ctx.cookies, "email", isHttps(ctx));
 
   const lang = requestLang(ctx);
   const link = `${ctx.url.origin}${localePath(lang, "/verify-email")}?token=${verifyToken}`;
