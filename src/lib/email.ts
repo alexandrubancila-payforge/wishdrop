@@ -5,6 +5,7 @@
  */
 import { env } from "cloudflare:workers";
 import type { Lang } from "./i18n";
+import { renderEmail } from "./email-template";
 
 interface Message {
   to: string;
@@ -41,44 +42,127 @@ export async function sendEmail(msg: Message): Promise<boolean> {
 const escape = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
+/** Plain emails (to the owner: contact form, reports, alerts) get a simple readable layout. */
 function textToHtml(text: string) {
   const body = escape(text)
-    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#7c3aed">$1</a>')
+    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#e3574f">$1</a>')
     .replace(/\n/g, "<br>");
-  return `<div style="font-family:Inter,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2a1a3e;max-width:520px">${body}</div>`;
+  return `<div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b2433;max-width:560px">${body}</div>`;
 }
 
 /* ---------- account emails, in the user's language ---------- */
 
-const COPY: Record<Lang, { verifySubject: string; verify: string; resetSubject: string; reset: string }> = {
+interface AccountCopy {
+  subject: string;
+  preheader: string;
+  title: string;
+  text: string;
+  button: string;
+  note: string;
+}
+
+const COPY: Record<Lang, { verify: AccountCopy; reset: AccountCopy; footer: string }> = {
   ro: {
-    verifySubject: "Confirmă adresa de email — WishDrop",
-    verify: "Bună!\n\nConfirmă adresa de email pentru contul tău WishDrop:\n{link}\n\nLinkul e valabil 24 de ore.",
-    resetSubject: "Resetează parola — WishDrop",
-    reset: "Bună!\n\nAi cerut resetarea parolei pentru contul WishDrop. Alege o parolă nouă aici:\n{link}\n\nLinkul e valabil o oră. Dacă nu ai cerut tu, ignoră acest email.",
+    verify: {
+      subject: "Confirmă adresa de email — WishDrop",
+      preheader: "Un click și contul tău e gata.",
+      title: "Confirmă-ți emailul",
+      text: "Încă un pas și contul tău WishDrop e gata. După confirmare, prietenii te pot găsi în căutare.",
+      button: "Confirmă emailul",
+      note: "Linkul e valabil 24 de ore. Dacă nu tu ți-ai făcut cont, ignoră acest email.",
+    },
+    reset: {
+      subject: "Resetează parola — WishDrop",
+      preheader: "Alege o parolă nouă pentru contul tău.",
+      title: "Resetează parola",
+      text: "Ai cerut o parolă nouă pentru contul WishDrop. Apasă butonul și alege una.",
+      button: "Alege o parolă nouă",
+      note: "Linkul e valabil o oră. Dacă nu ai cerut tu, ignoră acest email; parola rămâne aceeași.",
+    },
+    footer: "Ai primit acest email pentru că ai un cont WishDrop.",
   },
   en: {
-    verifySubject: "Confirm your email — WishDrop",
-    verify: "Hi!\n\nPlease confirm the email address for your WishDrop account:\n{link}\n\nThe link is valid for 24 hours.",
-    resetSubject: "Reset your password — WishDrop",
-    reset: "Hi!\n\nYou asked to reset your WishDrop password. Choose a new one here:\n{link}\n\nThe link is valid for one hour. If it wasn't you, just ignore this email.",
+    verify: {
+      subject: "Confirm your email — WishDrop",
+      preheader: "One click and your account is ready.",
+      title: "Confirm your email",
+      text: "One more step and your WishDrop account is ready. Once confirmed, friends can find you in search.",
+      button: "Confirm email",
+      note: "The link is valid for 24 hours. If you didn't sign up, just ignore this email.",
+    },
+    reset: {
+      subject: "Reset your password — WishDrop",
+      preheader: "Choose a new password for your account.",
+      title: "Reset your password",
+      text: "You asked for a new WishDrop password. Press the button and choose one.",
+      button: "Choose a new password",
+      note: "The link is valid for one hour. If it wasn't you, ignore this email; your password stays the same.",
+    },
+    footer: "You got this email because you have a WishDrop account.",
   },
   de: {
-    verifySubject: "Bestätige deine E-Mail — WishDrop",
-    verify: "Hallo!\n\nBitte bestätige die E-Mail-Adresse für dein WishDrop-Konto:\n{link}\n\nDer Link ist 24 Stunden gültig.",
-    resetSubject: "Passwort zurücksetzen — WishDrop",
-    reset: "Hallo!\n\nDu hast angefordert, dein WishDrop-Passwort zurückzusetzen. Wähle hier ein neues:\n{link}\n\nDer Link ist eine Stunde gültig. Wenn du das nicht warst, ignoriere diese E-Mail.",
+    verify: {
+      subject: "Bestätige deine E-Mail — WishDrop",
+      preheader: "Ein Klick und dein Konto ist bereit.",
+      title: "Bestätige deine E-Mail",
+      text: "Nur noch ein Schritt, dann ist dein WishDrop-Konto bereit. Danach finden dich Freunde in der Suche.",
+      button: "E-Mail bestätigen",
+      note: "Der Link ist 24 Stunden gültig. Wenn du dich nicht angemeldet hast, ignoriere diese E-Mail.",
+    },
+    reset: {
+      subject: "Passwort zurücksetzen — WishDrop",
+      preheader: "Wähle ein neues Passwort für dein Konto.",
+      title: "Passwort zurücksetzen",
+      text: "Du hast ein neues WishDrop-Passwort angefordert. Tippe auf den Button und wähle eins.",
+      button: "Neues Passwort wählen",
+      note: "Der Link ist eine Stunde gültig. Wenn du das nicht warst, ignoriere diese E-Mail; dein Passwort bleibt gleich.",
+    },
+    footer: "Du bekommst diese E-Mail, weil du ein WishDrop-Konto hast.",
   },
   ru: {
-    verifySubject: "Подтвердите email — WishDrop",
-    verify: "Здравствуйте!\n\nПодтвердите адрес email для вашего аккаунта WishDrop:\n{link}\n\nСсылка действительна 24 часа.",
-    resetSubject: "Сброс пароля — WishDrop",
-    reset: "Здравствуйте!\n\nВы запросили сброс пароля WishDrop. Задайте новый пароль здесь:\n{link}\n\nСсылка действительна один час. Если это были не вы, просто проигнорируйте письмо.",
+    verify: {
+      subject: "Подтвердите email — WishDrop",
+      preheader: "Один клик — и аккаунт готов.",
+      title: "Подтвердите email",
+      text: "Ещё один шаг — и ваш аккаунт WishDrop готов. После подтверждения друзья смогут найти вас в поиске.",
+      button: "Подтвердить email",
+      note: "Ссылка действительна 24 часа. Если вы не регистрировались, просто проигнорируйте письмо.",
+    },
+    reset: {
+      subject: "Сброс пароля — WishDrop",
+      preheader: "Задайте новый пароль для аккаунта.",
+      title: "Сброс пароля",
+      text: "Вы запросили новый пароль WishDrop. Нажмите кнопку и задайте его.",
+      button: "Задать новый пароль",
+      note: "Ссылка действительна один час. Если это были не вы, проигнорируйте письмо — пароль не изменится.",
+    },
+    footer: "Вы получили это письмо, потому что у вас есть аккаунт WishDrop.",
   },
 };
 
-export const sendVerifyEmail = (to: string, link: string, lang: Lang) =>
-  sendEmail({ to, subject: COPY[lang].verifySubject, text: COPY[lang].verify.replace("{link}", link) });
+/** Footer line for emails people get from WishDrop. */
+export const accountFooter = (lang: Lang) => COPY[lang].footer;
 
-export const sendResetEmail = (to: string, link: string, lang: Lang) =>
-  sendEmail({ to, subject: COPY[lang].resetSubject, text: COPY[lang].reset.replace("{link}", link) });
+function accountEmail(to: string, c: AccountCopy, link: string, lang: Lang) {
+  return sendEmail({
+    to,
+    subject: c.subject,
+    text: `${c.title}\n\n${c.text}\n\n${c.button}: ${link}\n\n${c.note}`,
+    html: renderEmail({
+      lang,
+      preheader: c.preheader,
+      emoji: c === COPY[lang].verify ? "✉️" : "🔑",
+      title: c.title,
+      blocks: [
+        { type: "p", text: c.text },
+        { type: "button", label: c.button, url: link },
+        { type: "note", text: c.note },
+      ],
+      footer: COPY[lang].footer,
+    }),
+  });
+}
+
+export const sendVerifyEmail = (to: string, link: string, lang: Lang) => accountEmail(to, COPY[lang].verify, link, lang);
+
+export const sendResetEmail = (to: string, link: string, lang: Lang) => accountEmail(to, COPY[lang].reset, link, lang);

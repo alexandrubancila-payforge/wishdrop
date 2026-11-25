@@ -9,6 +9,7 @@ import { env } from "cloudflare:workers";
 import { db, now } from "./db";
 import { isLang, localePath, makeT, type Lang } from "./i18n";
 import { sendEmail } from "./email";
+import { renderEmail } from "./email-template";
 import strings from "@/i18n/reminders";
 
 const DAY = 86_400_000;
@@ -100,10 +101,32 @@ export async function sendReminders(today = new Date()) {
         ? t("subjectOne", { what: one.list_name ? `„${one.list_name}”` : t("bdayWhat", { friend: one.friend }) })
         : t("subjectMany");
     const name = one.r_name ? ` ${one.r_name.split(" ")[0]}` : "";
+    const offUrl = await unsubscribeUrl(userId);
     const ok = await sendEmail({
       to: one.email,
       subject,
-      text: [t("hello", { name }), "", t("intro"), "", ...lines, "", t("outro"), "", "—", t("unsubscribe", { url: await unsubscribeUrl(userId) })].join("\n"),
+      text: [t("hello", { name }), "", t("intro"), "", ...lines, "", t("outro"), "", "—", t("unsubscribe", { url: offUrl })].join("\n"),
+      html: renderEmail({
+        lang,
+        preheader: t("html.preheader"),
+        emoji: rows.some((r) => !r.list_name) ? "🎂" : "🎉",
+        title: t("html.title"),
+        blocks: [
+          { type: "p", text: t("hello", { name }) },
+          {
+            type: "rows",
+            items: rows.map((r) => {
+              const date = fmt.format(new Date(r.date + "T00:00:00Z"));
+              return r.list_name
+                ? { emoji: "🎉", title: r.list_name, sub: t("html.eventSub", { friend: r.friend, date }), url: env.APP_URL + localePath(lang, r.url_path), cta: t("html.ctaEvent") }
+                : { emoji: "🎂", title: r.friend, sub: t("html.bdaySub", { date }), url: env.APP_URL + localePath(lang, r.url_path), cta: t("html.ctaBday") };
+            }),
+          },
+          { type: "note", text: t("outro") },
+        ],
+        footer: t("html.footer"),
+        unsubscribe: { label: t("html.unsub"), url: offUrl },
+      }),
     });
     if (!ok) continue;
     emails++;

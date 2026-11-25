@@ -4,6 +4,7 @@ import { apiT, fail, json, requireUser } from "@/lib/http";
 import { db } from "@/lib/db";
 import { isLang, localePath, makeT, type Lang } from "@/lib/i18n";
 import { sendEmail } from "@/lib/email";
+import { renderEmail } from "@/lib/email-template";
 import { notify } from "@/lib/notifications";
 import { draw, getGroup, members, SANTA_MIN } from "@/lib/santa";
 import strings from "@/i18n/santa";
@@ -56,7 +57,31 @@ export const POST: APIRoute = async (ctx) => {
         "",
         s("mail.secret"),
       ].filter((l, i, a) => l !== "" || a[i - 1] !== "");
-      await sendEmail({ to: giver.email, subject: s("mail.subject", { group: group.name }), text: lines.join("\n") }).catch(() => false);
+      const chips = [
+        group.budget ? s("mail.budget", { budget: group.budget }) : "",
+        group.exchange_date
+          ? `📅 ${new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(group.exchange_date + "T00:00:00Z"))}`
+          : "",
+      ].filter(Boolean);
+      await sendEmail({
+        to: giver.email,
+        subject: s("mail.subject", { group: group.name }),
+        text: lines.join("\n"),
+        html: renderEmail({
+          lang,
+          preheader: s("mail.preheader"),
+          emoji: "🎅",
+          title: s("mail.title"),
+          blocks: [
+            { type: "p", text: `${s("mail.hello", { name: giver.name ? ` ${giver.name.split(" ")[0]}` : "" })} ${s("mail.drawn", { group: group.name })}` },
+            { type: "highlight", label: s("mail.label"), value: display(giftee) },
+            ...(chips.length ? [{ type: "chips" as const, items: chips }] : []),
+            { type: "button", label: s("mail.button"), url },
+            { type: "note", text: s("mail.secret") },
+          ],
+          footer: s("mail.footer"),
+        }),
+      }).catch(() => false);
     }),
   );
   return json({ ok: true, members: pairs.size });
