@@ -16,6 +16,7 @@ import Icon from "@/components/Icon.astro";
 import Avatar from "@/components/Avatar.astro";
 import DonateModal from "@/components/DonateModal.astro";
 import ConfirmModal from "@/components/ConfirmModal.astro";
+import CopyGiftSheet from "@/components/gifts/CopyGiftSheet.astro";
 
 interface Props {
   /** Full <title>; defaults to the home title. Pages pass "My lists — WishDrop". */
@@ -383,6 +384,7 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
 
     <DonateModal />
     <ConfirmModal />
+    {user && <CopyGiftSheet lang={lang} />}
 
     <script>
       // Header menus (language + account), logout, and remembering the chosen language.

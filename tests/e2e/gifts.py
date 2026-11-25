@@ -43,7 +43,11 @@ def check(label, cond, detail=""):
 
 def user(tag, private=False):
     op = client()
-    s, r = call(op, "POST", "/api/auth/register", {"email": f"{tag}{stamp}@example.com", "password": secrets.token_hex(8)})
+    for _ in range(3):  # the sign-up limit (20/min per IP) can trip when suites run back to back
+        s, r = call(op, "POST", "/api/auth/register", {"email": f"{tag}{stamp}@example.com", "password": secrets.token_hex(8)})
+        if s != 429:
+            break
+        time.sleep(61)
     assert s == 200, (s, r)
     u = f"{tag}{stamp}"
     call(op, "PATCH", "/api/account/profile", {"username": u, "name": f"{tag.title()} Test", "is_private": private})
@@ -153,6 +157,25 @@ s, r = call(ana, "POST", f"/api/items/{n3}/react", {"kind": "heart", "on": True}
 check("owner can't react", s == 403, (s, r))
 s, page = call(cris, "GET", f"/w/{slug}")
 check("reaction buttons on the list", 'data-react="want"' in item_on(page, n3) and 'aria-pressed="true"' in item_on(page, n3), "")
+
+# --- "I want it too" → copy into my list ---
+s, r = call(cris, "GET", "/api/wishlists")
+check("my lists for the picker", s == 200 and isinstance(r.get("lists"), list), (s, r))
+s, r = call(cris, "POST", f"/api/items/{n3}/copy", {"new_list": "Dorințele mele"})
+check("copy a friend's gift into a new list", s == 201 and r.get("list", {}).get("name") == "Dorințele mele", (s, r))
+clist = r.get("list", {}).get("id")
+s, r = call(cris, "POST", f"/api/items/{n3}/copy", {"wishlist_id": clist})
+check("copy into an existing list", s == 201, (s, r))
+s, page = call(cris, "GET", f"/dashboard/{clist}")
+check("copied gifts show in my list", page.count("data-item-id=") >= 2 and "20 lei" in page, "")
+s, r = call(cris, "POST", f"/api/items/{n3}/copy", {"wishlist_id": lid})
+check("can't copy into someone else's list", s == 404, (s, r))
+s, r = call(ana, "POST", f"/api/items/{n3}/copy", {"new_list": "x"})
+check("can't copy my own gift", s == 403, (s, r))
+s, r = call(guest, "POST", f"/api/items/{n3}/copy", {"new_list": "x"})
+check("guests can't copy", s == 401, (s, r))
+s, page = call(cris, "GET", "/feed")
+check("copy sheet on pages for signed-in users", 'id="copy-sheet"' in page, "")
 
 # --- received ---
 s, r = call(ana, "PATCH", f"/api/items/{n2}", {"received": True})

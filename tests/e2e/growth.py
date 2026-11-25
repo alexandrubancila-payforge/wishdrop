@@ -43,7 +43,11 @@ def check(label, cond, detail=""):
 
 def user(tag, private=False):
     op = client()
-    s, r = call(op, "POST", "/api/auth/register", {"email": f"{tag}{stamp}@example.com", "password": secrets.token_hex(8)})
+    for _ in range(3):  # the sign-up limit (20/min per IP) can trip when suites run back to back
+        s, r = call(op, "POST", "/api/auth/register", {"email": f"{tag}{stamp}@example.com", "password": secrets.token_hex(8)})
+        if s != 429:
+            break
+        time.sleep(61)
     assert s == 200, (s, r)
     u = f"{tag}{stamp}"
     call(op, "PATCH", "/api/account/profile", {"username": u, "name": f"{tag.title()} Test", "is_private": private})

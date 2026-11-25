@@ -37,3 +37,11 @@ export async function putImage(body: ArrayBuffer | ReadableStream, contentType: 
 export async function deleteImage(key: string | null | undefined) {
   if (key && key.startsWith("items/")) await env.BUCKET.delete(key).catch(() => {});
 }
+
+/** A separate copy of a photo (so deleting one gift never removes another's photo). "" when there is none. */
+export async function copyImage(key: string | null | undefined) {
+  if (!key || !key.startsWith("items/")) return "";
+  const obj = await env.BUCKET.get(key);
+  if (!obj) return "";
+  return putImage(await obj.arrayBuffer(), obj.httpMetadata?.contentType ?? "image/jpeg");
+}
