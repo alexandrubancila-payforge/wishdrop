@@ -492,3 +492,56 @@ html {
   background: var(--color-accent-500);
   color: #fff;
 }
+
+/* Page-change loader (Layout.astro): thin coral bar on top, page dims if slow. */
+#nav-progress {
+  position: fixed;
+  top: env(safe-area-inset-top, 0px);
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+#nav-progress i {
+  display: block;
+  height: 100%;
+  background: var(--color-accent-500);
+  border-radius: 0 999px 999px 0;
+  box-shadow: 0 0 10px rgb(240 114 106 / 0.6);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+#nav-progress.on {
+  opacity: 1;
+}
+#nav-progress.on i {
+  animation: nav-progress 10s cubic-bezier(0.08, 0.7, 0.2, 1) forwards;
+}
+@keyframes nav-progress {
+  0% {
+    transform: scaleX(0);
+  }
+  8% {
+    transform: scaleX(0.4);
+  }
+  100% {
+    transform: scaleX(0.94);
+  }
+}
+body.nav-wait main {
+  opacity: 0.55;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+body.nav-wait {
+  cursor: progress;
+}
+@media (prefers-reduced-motion: reduce) {
+  #nav-progress.on i {
+    animation: none;
+    transform: scaleX(0.6);
+  }
+}

@@ -459,8 +459,43 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
           true,
         );
 
-        // Coming back via bfcache: clear any dimmed card.
+        // Page-change loader: a thin bar at the top (the installed app has no
+        // browser loading bar), and the page dims if it takes a while. Shown
+        // after a short delay so instant (prefetched) pages don't flash it.
+        var bar = document.createElement("div");
+        bar.id = "nav-progress";
+        bar.setAttribute("aria-hidden", "true");
+        bar.innerHTML = "<i></i>";
+        document.body.appendChild(bar);
+        var timers = [];
+        function startLoader() {
+          if (timers.length) return;
+          timers.push(setTimeout(function () { bar.classList.add("on"); }, 120));
+          timers.push(setTimeout(function () { document.body.classList.add("nav-wait"); }, 700));
+          // A navigation that never happens (download, cancelled): give up quietly.
+          timers.push(setTimeout(stopLoader, 12000));
+        }
+        function stopLoader() {
+          timers.forEach(clearTimeout);
+          timers = [];
+          bar.classList.remove("on");
+          document.body.classList.remove("nav-wait");
+        }
+        window.wdStartLoader = startLoader;
+        document.addEventListener("click", function (e) {
+          if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+          var a = e.target.closest("a[href]");
+          if (a && isInternalNav(a)) startLoader();
+        });
+        document.addEventListener("submit", function (e) {
+          if (!e.defaultPrevented && (e.target.method || "get").toLowerCase() === "get" && !e.target.hasAttribute("data-no-loader")) startLoader();
+        });
+        // Navigations started from scripts (location.href = …, reload).
+        window.addEventListener("beforeunload", startLoader);
+
+        // Coming back via bfcache: clear any dimmed card and the loader.
         window.addEventListener("pageshow", function () {
+          stopLoader();
           document.querySelectorAll(".is-navigating").forEach(function (el) {
             el.classList.remove("is-navigating");
           });
