@@ -39,7 +39,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       },
       {
         "h": "Ce văd ceilalți",
-        "p": "Profilul tău (nume, nume de utilizator, poză, descriere, ziua de naștere dacă o completezi) e public. Listele apar pe profil după cum alegi: pentru toți, doar pentru urmăritori sau doar prin link. Oricine are linkul unei liste o poate deschide. Proprietarul unei liste vede câte reacții au primit cadourile și, în afara modului surpriză, cine a rezervat sau s-a alăturat cu nume."
+        "p": "Profilul tău (nume, nume de utilizator, poză, descriere, ziua de naștere dacă o completezi) e public. Listele apar pe profil după cum alegi: pentru toți, doar pentru urmăritori sau doar prin link. Oricine are linkul unei liste o poate deschide. Proprietarul unei liste vede câte reacții au primit cadourile și, în afara modului surpriză, cine a rezervat sau s-a alăturat cu nume. Cadourile din listele publice ale profilurilor publice pot apărea pe pagina „Populare”, fără numele tău și fără rezervări; poți opri asta din Setări → Cont."
       },
       {
         "h": "De ce le folosim",
@@ -103,7 +103,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       },
       {
         "h": "What others see",
-        "p": "Your profile (name, username, photo, bio, birthday if you add it) is public. Lists appear on your profile as you choose: for everyone, followers only, or by link only. Anyone with a list's link can open it. A list's owner sees how many reactions the gifts got and, outside surprise mode, who reserved or joined with a name."
+        "p": "Your profile (name, username, photo, bio, birthday if you add it) is public. Lists appear on your profile as you choose: for everyone, followers only, or by link only. Anyone with a list's link can open it. A list's owner sees how many reactions the gifts got and, outside surprise mode, who reserved or joined with a name. Gifts from public lists of public profiles may appear on the “Popular” page, without your name and without reservations; you can turn this off in Settings → Account."
       },
       {
         "h": "Why we use it",
@@ -167,7 +167,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       },
       {
         "h": "Was andere sehen",
-        "p": "Dein Profil (Name, Benutzername, Foto, Bio, Geburtstag, falls angegeben) ist öffentlich. Listen erscheinen auf deinem Profil wie von dir gewählt: für alle, nur für Follower oder nur per Link. Wer den Link einer Liste hat, kann sie öffnen. Der Besitzer einer Liste sieht, wie viele Reaktionen die Geschenke bekommen haben, und außerhalb des Überraschungsmodus, wer mit Namen reserviert oder mitgemacht hat."
+        "p": "Dein Profil (Name, Benutzername, Foto, Bio, Geburtstag, falls angegeben) ist öffentlich. Listen erscheinen auf deinem Profil wie von dir gewählt: für alle, nur für Follower oder nur per Link. Wer den Link einer Liste hat, kann sie öffnen. Der Besitzer einer Liste sieht, wie viele Reaktionen die Geschenke bekommen haben, und außerhalb des Überraschungsmodus, wer mit Namen reserviert oder mitgemacht hat. Geschenke aus öffentlichen Listen öffentlicher Profile können auf der Seite „Beliebt“ erscheinen, ohne deinen Namen und ohne Reservierungen; du kannst das unter Einstellungen → Konto abschalten."
       },
       {
         "h": "Wofür wir sie nutzen",
@@ -231,7 +231,7 @@ export const privacy: Record<Lang, LegalDoc> = {
       },
       {
         "h": "Что видят другие",
-        "p": "Ваш профиль (имя, имя пользователя, фото, описание, день рождения, если указан) публичен. Списки появляются в профиле так, как вы выберете: для всех, только для подписчиков или только по ссылке. Любой, у кого есть ссылка на список, может его открыть. Владелец списка видит число реакций на подарки и, вне режима сюрприза, кто забронировал или присоединился под своим именем."
+        "p": "Ваш профиль (имя, имя пользователя, фото, описание, день рождения, если указан) публичен. Списки появляются в профиле так, как вы выберете: для всех, только для подписчиков или только по ссылке. Любой, у кого есть ссылка на список, может его открыть. Владелец списка видит число реакций на подарки и, вне режима сюрприза, кто забронировал или присоединился под своим именем. Подарки из публичных списков открытых профилей могут появляться на странице «Популярное» — без вашего имени и без броней; это можно отключить в Настройки → Аккаунт."
       },
       {
         "h": "Зачем мы их используем",

@@ -72,6 +72,23 @@ const R = { resend: t("js.resend"), sending: t("js.sending"), sent: t("js.sent")
     </label>
   </section>
 
+  <!-- Popular page opt-out (lib/popular.ts) -->
+  <section class="card mt-6 flex items-center justify-between gap-3 p-5 sm:p-6">
+    <div class="flex min-w-0 items-center gap-3">
+      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-accent-100 text-accent-600">
+        <Icon name="fire" class="h-5 w-5" />
+      </span>
+      <div class="min-w-0">
+        <p class="font-bold leading-tight">{t("popularTitle")}</p>
+        <p class="mt-1 text-xs leading-snug text-ink-soft">{t("popularText")}</p>
+      </div>
+    </div>
+    <label class="inline-flex shrink-0 cursor-pointer items-center">
+      <input type="checkbox" data-profile-toggle="show_in_popular" class="peer sr-only" checked={!!user.show_in_popular} />
+      <span class="relative h-6 w-11 rounded-full bg-ink-soft/30 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-soft after:transition peer-checked:bg-accent-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20"></span>
+    </label>
+  </section>
+
   <!-- Blocked accounts -->
   <section class="card mt-6 p-5 sm:p-6">
     <h2 class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
@@ -131,6 +148,19 @@ const R = { resend: t("js.resend"), sending: t("js.sending"), sent: t("js.sent")
       }).catch(() => null);
       if (!res?.ok) reminders.checked = !reminders.checked;
       reminders.disabled = false;
+    });
+
+    document.querySelectorAll<HTMLInputElement>("[data-profile-toggle]").forEach((box) => {
+      box.addEventListener("change", async () => {
+        box.disabled = true;
+        const res = await fetch("/api/account/profile", {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ [box.dataset.profileToggle!]: box.checked }),
+        }).catch(() => null);
+        if (!res?.ok) box.checked = !box.checked;
+        box.disabled = false;
+      });
     });
 
     document.querySelectorAll<HTMLButtonElement>("[data-unblock]").forEach((b) => {

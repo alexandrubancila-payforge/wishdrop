@@ -11,6 +11,7 @@ export const GET: APIRoute = () => {
   const pages: Record<Lang, string>[] = [
     same("/"),
     same("/example"),
+    same("/popular"),
     same("/contact"),
     same("/privacy"),
     same("/terms"),

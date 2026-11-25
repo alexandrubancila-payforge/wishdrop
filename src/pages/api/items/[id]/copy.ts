@@ -34,8 +34,8 @@ export const POST: APIRoute = async (ctx) => {
   const id = newId();
   const image = await copyImage(item.image_key);
   await db()
-    .prepare("INSERT INTO items (id, wishlist_id, image_key, product_url, price, created_at) VALUES (?, ?, ?, ?, ?, ?)")
-    .bind(id, list.id, image, item.product_url, item.price, now())
+    .prepare("INSERT INTO items (id, wishlist_id, image_key, product_url, price, copied_from, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .bind(id, list.id, image, item.product_url, item.price, item.copied_from ?? item.id, now())
     .run();
   await notifyFollowers(user.id, "new_item", list.id, id);
   return json({ list: { id: list.id, name: list.name, slug: list.slug }, item_id: id }, 201);

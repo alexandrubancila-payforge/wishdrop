@@ -17,6 +17,7 @@ export const PATCH: APIRoute = async (ctx) => {
     bio?: string | null;
     is_private?: boolean;
     reminder_emails?: boolean;
+    show_in_popular?: boolean;
   }>(ctx.request);
 
   const fields: Record<string, unknown> = {};
@@ -50,6 +51,7 @@ export const PATCH: APIRoute = async (ctx) => {
     fields.bio = bio || null;
   }
   if (typeof body.reminder_emails === "boolean") fields.reminder_emails = body.reminder_emails ? 1 : 0;
+  if (typeof body.show_in_popular === "boolean") fields.show_in_popular = body.show_in_popular ? 1 : 0;
   if (typeof body.is_private === "boolean") {
     fields.is_private = body.is_private ? 1 : 0;
     if (!body.is_private && user.is_private) await acceptAllPending(user.id);

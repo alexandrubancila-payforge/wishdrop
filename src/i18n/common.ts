@@ -47,6 +47,7 @@ export default {
     "error.retry": "Încearcă din nou",
     "error.home": "Pagina principală",
     "footer.ideas": "Idei de cadouri",
+    "nav.popular": "Populare",
   },
   en: {
     "nav.profileShort": "Profile",
@@ -93,6 +94,7 @@ export default {
     "error.retry": "Try again",
     "error.home": "Home page",
     "footer.ideas": "Gift ideas",
+    "nav.popular": "Popular",
   },
   de: {
     "nav.profileShort": "Profil",
@@ -139,6 +141,7 @@ export default {
     "error.retry": "Noch einmal versuchen",
     "error.home": "Startseite",
     "footer.ideas": "Geschenkideen",
+    "nav.popular": "Beliebt",
   },
   ru: {
     "nav.profileShort": "Профиль",
@@ -185,5 +188,6 @@ export default {
     "error.retry": "Попробовать снова",
     "error.home": "На главную",
     "footer.ideas": "Идеи подарков",
+    "nav.popular": "Популярное",
   },
 } satisfies Bundle;

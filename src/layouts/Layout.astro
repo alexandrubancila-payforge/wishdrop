@@ -74,7 +74,7 @@ const tabs = user
       { href: href("/"), label: t("nav.feed"), icon: "house", active: path === "/" },
       { href: href("/search"), label: t("nav.searchShort"), icon: "magnifying-glass", active: path === "/search" },
       { href: href("/register"), label: t("nav.create"), icon: "plus", create: true },
-      { href: href("/example"), label: t("nav.example"), icon: "sparkle", active: path === "/example" },
+      { href: href("/popular"), label: t("nav.popular"), icon: "fire", active: path === "/popular" },
       { href: href("/login"), label: t("nav.login"), icon: "sign-in", active: path === "/login" },
     ];
 const year = new Date().getFullYear();
@@ -151,6 +151,18 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
               <span>Wish<span class="text-accent-600">Drop</span></span>
             </a>
             <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
+              <!-- Popular gifts -->
+              <a
+                href={href("/popular")}
+                aria-label={t("nav.popular")}
+                title={t("nav.popular")}
+                class:list={[
+                  "hidden h-10 w-10 place-items-center rounded-full bg-white shadow-soft transition hover:text-accent-600 sm:grid",
+                  path === "/popular" ? "text-accent-600" : "text-ink",
+                ]}
+              >
+                <Icon name="fire" weight={path === "/popular" ? "fill" : "regular"} class="h-5 w-5" />
+              </a>
               <!-- Find people -->
               <a
                 href={href("/search")}
@@ -246,6 +258,7 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
                         { href: profileHref, icon: "user-circle", label: t("nav.profile") },
                         { href: href("/dashboard"), icon: "list-heart", label: t("nav.myLists") },
                         { href: href("/dashboard/reservations"), icon: "hand-heart", label: t("nav.myReservations") },
+                        { href: href("/popular"), icon: "fire", label: t("nav.popular") },
                       ].map((item) => (
                         <a href={item.href} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
                           <Icon name={item.icon} class="h-5 w-5 text-accent-500" /> {item.label}

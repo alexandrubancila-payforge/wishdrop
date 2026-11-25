@@ -103,6 +103,44 @@ check("guide has FAQ structured data and hreflang", "FAQPage" in page and 'hrefl
 s, xml = call(client(), "GET", "/sitemap.xml")
 check("sitemap lists the guides", s == 200 and "/en/ideas/wedding-registry-online" in xml and xml.count("<url>") >= 40, s)
 
+# --- popular gifts ---
+import os, uuid
+photo = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "public", "demo", "books.jpg"), "rb").read()
+
+
+def upload(op):
+    boundary = uuid.uuid4().hex
+    body = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="p.jpg"\r\nContent-Type: image/jpeg\r\n\r\n').encode() + photo + f"\r\n--{boundary}--\r\n".encode()
+    req = urllib.request.Request(B + "/api/upload", data=body, method="POST")
+    req.add_header("content-type", f"multipart/form-data; boundary={boundary}")
+    req.add_header("origin", B)
+    req.add_header("user-agent", "Mozilla/5.0 Chrome/131 wishdrop-e2e")
+    return json.loads(op.open(req, timeout=30).read())["image_key"]
+
+
+product = f"https://example.com/carte-{stamp}?ref=abc"
+s, r = call(ana, "POST", "/api/wishlists", {"name": "Lista publică"})
+plist = r["id"]
+s, r = call(ana, "POST", f"/api/wishlists/{plist}/items", {"image_key": upload(ana), "product_url": product, "price": "77 lei"})
+pitem = r["id"]
+s, page = call(client(), "GET", "/popular")
+check("popular page shows a public gift", s == 200 and pitem in page and "77 lei" in page, s)
+check("popular page doesn't name the owner", ua not in page and "Ana Test" not in page, "")
+s, r = call(bob, "POST", f"/api/items/{pitem}/react", {"kind": "want", "on": True})
+s, r = call(bob, "POST", f"/api/items/{pitem}/copy", {"new_list": "Și eu"})
+check("copy from popular", s == 201, (s, r))
+s, page = call(client(), "GET", "/popular")
+pop = page.split("Adăugate recent")[0]
+check("liked + copied gift is in Most popular", "Cele mai populare" in page and pitem in pop, "")
+check("same product grouped (2 lists)", "în 2 liste" in pop, "")
+call(ana, "PATCH", "/api/account/profile", {"show_in_popular": False})
+s, page = call(client(), "GET", "/popular")
+check("opt-out hides my gifts", pitem not in page, "")
+call(ana, "PATCH", "/api/account/profile", {"show_in_popular": True})
+call(ana, "PATCH", f"/api/wishlists/{plist}", {"visibility": "link"})
+s, page = call(client(), "GET", "/popular")
+check("link-only lists never show", pitem not in page, "")
+
 for op in (ana, bob):
     call(op, "POST", "/api/account/delete")
 print(f"\n{passed} passed, {failed} failed")

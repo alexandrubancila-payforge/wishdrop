@@ -64,6 +64,8 @@ export default {
     exportBtn: "Descarcă datele mele",
     remindersTitle: "Reminder-e pe email",
     remindersText: "Cu 7 zile înainte de ziua unui prieten sau de evenimentul unei liste pe care o urmărești.",
+    popularTitle: "Apar în „Populare”",
+    popularText: "Cadourile din listele tale publice pot apărea pe pagina Populare, fără numele tău și fără rezervări.",
   },
   en: {
     titleProfile: "Profile — WishDrop",
@@ -124,6 +126,8 @@ export default {
     exportBtn: "Download my data",
     remindersTitle: "Reminder emails",
     remindersText: "7 days before a friend's birthday or the event of a list you follow.",
+    popularTitle: "Show up in “Popular”",
+    popularText: "Gifts from your public lists may appear on the Popular page, without your name and without reservations.",
   },
   de: {
     titleProfile: "Profil — WishDrop",
@@ -184,6 +188,8 @@ export default {
     exportBtn: "Meine Daten herunterladen",
     remindersTitle: "Erinnerungen per E-Mail",
     remindersText: "7 Tage vor dem Geburtstag eines Freundes oder dem Anlass einer Liste, der du folgst.",
+    popularTitle: "In „Beliebt“ erscheinen",
+    popularText: "Geschenke aus deinen öffentlichen Listen können auf der Seite „Beliebt“ erscheinen, ohne deinen Namen und ohne Reservierungen.",
   },
   ru: {
     titleProfile: "Профиль — WishDrop",
@@ -248,5 +254,7 @@ export default {
     exportBtn: "Скачать мои данные",
     remindersTitle: "Напоминания на email",
     remindersText: "За 7 дней до дня рождения друга или события в списке, на который вы подписаны.",
+    popularTitle: "Показывать в «Популярном»",
+    popularText: "Подарки из ваших публичных списков могут появляться на странице «Популярное» — без вашего имени и без броней.",
   },
 } satisfies Bundle;

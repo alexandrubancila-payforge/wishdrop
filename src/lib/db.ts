@@ -30,6 +30,8 @@ export interface User {
   reminder_emails: number;
   /** Last language used on the site (for emails). */
   lang: string | null;
+  /** 1 = gifts from my public lists may appear (anonymously) on /popular. */
+  show_in_popular: number;
 }
 
 export interface Wishlist {
@@ -63,6 +65,8 @@ export interface Item {
   received_at: number | null;
   /** NULL = normal gift; N = a group gift N people chip in for. */
   group_size: number | null;
+  /** The gift this one was copied from ("Add to my list"), if any. */
+  copied_from: string | null;
 }
 
 export const db = () => env.DB;
@@ -117,7 +121,7 @@ export async function createUser(u: {
 const USER_COLUMNS = new Set([
   "password_hash", "google_id", "name", "avatar_url", "email_verified", "verify_token",
   "verify_expires", "reset_token", "reset_expires", "birthday", "disable_seasons",
-  "username", "bio", "is_private", "reminder_emails", "lang",
+  "username", "bio", "is_private", "reminder_emails", "lang", "show_in_popular",
 ]);
 
 export async function updateUser(id: string, fields: Partial<User>) {

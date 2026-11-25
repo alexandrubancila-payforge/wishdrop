@@ -1,0 +1,132 @@
+---
+/**
+ * /popular — the most loved gifts from public lists (lib/popular.ts), shown
+ * without their owner. Anyone can react; signed-in people can copy a gift into
+ * their own list (components/gifts/CopyGiftSheet.astro).
+ */
+import Layout from "@/layouts/Layout.astro";
+import Icon from "@/components/Icon.astro";
+import Reactions from "@/components/gifts/Reactions.astro";
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import strings from "@/i18n/popular";
+import { popularGifts, type PopularGift } from "@/lib/popular";
+import { reactionsFor } from "@/lib/gifts";
+import { imageUrl } from "@/lib/storage";
+
+const { lang, user } = Astro.locals;
+const t = makeT(lang, common, strings);
+const href = (p: string) => localePath(lang, p);
+const { popular, recent } = await popularGifts();
+const reactions = await reactionsFor([...popular, ...recent].map((g) => g.id), user?.id ?? null);
+const loginHref = `${href("/login")}?next=${encodeURIComponent("/popular")}`;
+const domain = (url: string | null) => {
+  if (!url) return "";
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
+};
+const sections = [
+  { key: "popular", icon: "fire", title: t("popular"), gifts: popular },
+  { key: "recent", icon: "sparkle", title: t("recent"), gifts: recent },
+].filter((s) => s.gifts.length);
+const own = (g: PopularGift) => !!user && g.owner_id === user.id;
+---
+
+<Layout title={t("title")} description={t("description")} mainClass="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
+  <header class="max-w-2xl">
+    <h1 class="flex items-center gap-3 text-3xl font-extrabold tracking-tight sm:text-4xl">
+      <span class="grid h-12 w-12 place-items-center rounded-2xl bg-accent-100 text-accent-600">
+        <Icon name="fire" class="h-6 w-6" />
+      </span>
+      {t("h1")}
+    </h1>
+    <p class="mt-3 text-lg text-ink-soft">{t("intro")}</p>
+    <p class="mt-2 flex items-start gap-1.5 text-xs text-ink-soft">
+      <Icon name="shield-check" class="mt-px h-4 w-4 shrink-0 text-mint-ink" />
+      {t("privacy")}
+    </p>
+  </header>
+
+  {
+    sections.length === 0 ? (
+      <div class="card mt-8 flex flex-col items-center px-6 py-12 text-center">
+        <span class="grid h-16 w-16 place-items-center rounded-3xl bg-accent-100 text-accent-600">
+          <Icon name="gift" class="h-8 w-8" />
+        </span>
+        <p class="mx-auto mt-4 max-w-md text-ink-soft">{t("empty")}</p>
+        <a href={user ? href("/dashboard") + "#new" : href("/register")} class="btn btn-primary mt-5 !py-3 text-sm">{t("emptyCta")}</a>
+      </div>
+    ) : (
+      sections.map((sec) => (
+        <section class="mt-10">
+          <h2 class="flex items-center gap-2 text-xl font-extrabold tracking-tight">
+            <Icon name={sec.icon} class="h-5 w-5 text-accent-500" />
+            {sec.title}
+          </h2>
+          <ul class="mt-4 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+            {sec.gifts.map((g) => {
+              const img = imageUrl(g.image_key);
+              const site = domain(g.product_url);
+              const Wrapper = g.product_url ? "a" : "div";
+              const wrapperProps = g.product_url ? { href: g.product_url, target: "_blank", rel: "nofollow noopener noreferrer", title: t("viewProduct") } : {};
+              return (
+                <li class="card flex flex-col !rounded-3xl p-2" data-item-id={g.id} data-image-url={img}>
+                  <Wrapper class="relative block aspect-square overflow-hidden rounded-2xl bg-sand" {...wrapperProps}>
+                    <img src={img} alt="" loading="lazy" class="h-full w-full object-cover transition duration-300 hover:scale-[1.03]" />
+                    {g.people > 1 && (
+                      <span class="chip absolute left-2 top-2 bg-white/95 text-xs text-ink shadow-soft">
+                        <Icon name="users" weight="bold" class="h-3.5 w-3.5 text-accent-500" />
+                        {t("people", { n: g.people })}
+                      </span>
+                    )}
+                  </Wrapper>
+                  <div class="flex flex-1 flex-col px-1.5 pb-1 pt-3">
+                    {g.price && <p class="truncate text-lg font-extrabold tracking-tight">{g.price}</p>}
+                    {site && <p class="truncate text-xs font-medium text-ink-soft">{site}</p>}
+                    <Reactions
+                      lang={lang}
+                      itemId={g.id}
+                      summary={reactions.get(g.id)}
+                      mode={own(g) ? "readonly" : user ? "react" : "login"}
+                      loginHref={loginHref}
+                      heartOnly
+                      class="mt-2"
+                    />
+                    <div class="mt-auto pt-3">
+                      {own(g) ? (
+                        <p class="flex min-h-10 items-center justify-center rounded-full bg-mint px-3 text-xs font-bold text-mint-ink">{t("own")}</p>
+                      ) : user ? (
+                        <button type="button" data-copy-item={g.id} class="btn btn-soft w-full !py-2.5 text-sm">
+                          <Icon name="plus" weight="bold" class="h-4 w-4" />
+                          {t("add")}
+                        </button>
+                      ) : (
+                        <a href={loginHref} class="btn btn-soft w-full !py-2.5 text-sm" title={t("addGuest")}>
+                          <Icon name="plus" weight="bold" class="h-4 w-4" />
+                          {t("add")}
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ))
+    )
+  }
+
+  <script>
+    // "To my list" opens the same sheet as "I want it too".
+    document.addEventListener("click", (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>("[data-copy-item]");
+      if (!b) return;
+      const card = b.closest<HTMLElement>("[data-item-id]");
+      window.dispatchEvent(new CustomEvent("wd:want", { detail: { itemId: b.dataset.copyItem, image: card?.dataset.imageUrl || "" } }));
+    });
+  </script>
+</Layout>
