@@ -122,20 +122,9 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="WishDrop" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
-      media="print"
-      onload="this.media='all'"
-    />
-    <noscript>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-        rel="stylesheet"
-      />
-    </noscript>
+    <!-- Our own copy of Plus Jakarta Sans (see global.css), fetched early so pages don't jump when it arrives. -->
+    <link rel="preload" href="/fonts/plus-jakarta-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/plus-jakarta-sans-latin-ext.woff2" as="font" type="font/woff2" crossorigin />
     <title>{title}</title>
     <slot name="head" />
   </head>
@@ -475,18 +464,11 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
           true,
         );
 
-        // Page-change loader: a thin bar at the top (the installed app has no
-        // browser loading bar), and the page dims if it takes a while. Shown
-        // after a short delay so instant (prefetched) pages don't flash it.
-        var bar = document.createElement("div");
-        bar.id = "nav-progress";
-        bar.setAttribute("aria-hidden", "true");
-        bar.innerHTML = "<i></i>";
-        document.body.appendChild(bar);
+        // Page-change feedback: if the next page takes a while, the current one
+        // dims (the installed app has no browser loading indicator).
         var timers = [];
         function startLoader() {
           if (timers.length) return;
-          timers.push(setTimeout(function () { bar.classList.add("on"); }, 120));
           timers.push(setTimeout(function () { document.body.classList.add("nav-wait"); }, 700));
           // A navigation that never happens (download, cancelled): give up quietly.
           timers.push(setTimeout(stopLoader, 12000));
@@ -494,7 +476,6 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
         function stopLoader() {
           timers.forEach(clearTimeout);
           timers = [];
-          bar.classList.remove("on");
           document.body.classList.remove("nav-wait");
         }
         window.wdStartLoader = startLoader;
