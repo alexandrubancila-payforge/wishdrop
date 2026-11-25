@@ -48,6 +48,7 @@ export default {
     "error.home": "Pagina principală",
     "footer.ideas": "Idei de cadouri",
     "nav.popular": "Populare",
+    "nav.santa": "Secret Santa",
   },
   en: {
     "nav.profileShort": "Profile",
@@ -95,6 +96,7 @@ export default {
     "error.home": "Home page",
     "footer.ideas": "Gift ideas",
     "nav.popular": "Popular",
+    "nav.santa": "Secret Santa",
   },
   de: {
     "nav.profileShort": "Profil",
@@ -142,6 +144,7 @@ export default {
     "error.home": "Startseite",
     "footer.ideas": "Geschenkideen",
     "nav.popular": "Beliebt",
+    "nav.santa": "Wichteln",
   },
   ru: {
     "nav.profileShort": "Профиль",
@@ -189,5 +192,6 @@ export default {
     "error.home": "На главную",
     "footer.ideas": "Идеи подарков",
     "nav.popular": "Популярное",
+    "nav.santa": "Тайный Санта",
   },
 } satisfies Bundle;

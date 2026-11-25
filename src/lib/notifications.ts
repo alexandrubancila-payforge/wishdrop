@@ -23,7 +23,8 @@ export type NotificationType =
   | "new_list"
   | "new_item"
   | "reaction_heart"
-  | "reaction_want";
+  | "reaction_want"
+  | "santa_drawn";
 
 export const KEEP_DAYS = 90;
 
@@ -48,11 +49,13 @@ export interface NotificationRow {
   list_slug: string | null;
   item_id: string | null;
   item_image: string | null;
+  santa_group_id: string | null;
 }
 
 interface Ref {
   wishlistId?: string | null;
   itemId?: string | null;
+  santaGroupId?: string | null;
 }
 
 const prune = () =>
@@ -64,11 +67,15 @@ export async function notify(userId: string, actorId: string, type: Notification
   await db().batch([
     prune(),
     db()
-      .prepare("DELETE FROM notifications WHERE user_id = ? AND actor_id = ? AND type = ? AND COALESCE(item_id, '') = ?")
-      .bind(userId, actorId, type, ref.itemId ?? ""),
+      .prepare(
+        "DELETE FROM notifications WHERE user_id = ? AND actor_id = ? AND type = ? AND COALESCE(item_id, '') = ? AND COALESCE(santa_group_id, '') = ?",
+      )
+      .bind(userId, actorId, type, ref.itemId ?? "", ref.santaGroupId ?? ""),
     db()
-      .prepare("INSERT INTO notifications (id, user_id, actor_id, type, created_at, wishlist_id, item_id) VALUES (?, ?, ?, ?, ?, ?, ?)")
-      .bind(newId(), userId, actorId, type, now(), ref.wishlistId ?? null, ref.itemId ?? null),
+      .prepare(
+        "INSERT INTO notifications (id, user_id, actor_id, type, created_at, wishlist_id, item_id, santa_group_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      )
+      .bind(newId(), userId, actorId, type, now(), ref.wishlistId ?? null, ref.itemId ?? null, ref.santaGroupId ?? null),
   ]);
   pushNotification([userId], actorId, type, ref, 1);
 }
@@ -162,15 +169,16 @@ export async function unreadCount(userId: string) {
 export async function listNotifications(userId: string, limit = 100) {
   const { results } = await db()
     .prepare(
-      `SELECT n.id, n.type, n.created_at, n.read_at, n.actor_id, n.count, n.wishlist_id, n.item_id,
+      `SELECT n.id, n.type, n.created_at, n.read_at, n.actor_id, n.count, n.wishlist_id, n.item_id, n.santa_group_id,
               u.username, u.name, u.email, u.avatar_url, u.is_private,
-              w.name AS list_name, w.slug AS list_slug, i.image_key AS item_image,
+              COALESCE(w.name, sg.name) AS list_name, w.slug AS list_slug, i.image_key AS item_image,
               (SELECT f.status FROM follows f WHERE f.follower_id = ?1 AND f.followee_id = n.actor_id) AS my_status,
               EXISTS (SELECT 1 FROM follows f WHERE f.follower_id = n.actor_id AND f.followee_id = ?1 AND f.status = 'pending') AS request_pending
          FROM notifications n
          JOIN users u ON u.id = n.actor_id
          LEFT JOIN wishlists w ON w.id = n.wishlist_id
          LEFT JOIN items i ON i.id = n.item_id
+         LEFT JOIN santa_groups sg ON sg.id = n.santa_group_id
         WHERE ${VISIBLE}
         ORDER BY n.created_at DESC
         LIMIT ?3`,
@@ -193,11 +201,16 @@ export function sentenceTemplate(t: T, lang: Lang, n: { type: NotificationType; 
   const list = n.list_name ?? "";
   if (n.type === "new_item") return n.count > 1 ? plural(t, lang, "new_items", n.count, { list }) : t("new_item", { list });
   if (n.type === "new_list") return t("new_list", { list });
+  if (n.type === "santa_drawn") return t("santa_drawn", { list });
   return t(n.type);
 }
 
 /** Where tapping the notification leads. */
-export function notificationUrl(lang: Lang, n: { type: NotificationType; list_slug: string | null; wishlist_id: string | null }) {
+export function notificationUrl(
+  lang: Lang,
+  n: { type: NotificationType; list_slug: string | null; wishlist_id: string | null; santa_group_id?: string | null },
+) {
+  if (n.type === "santa_drawn" && n.santa_group_id) return localePath(lang, `/santa/${n.santa_group_id}`);
   if ((n.type === "new_list" || n.type === "new_item") && n.list_slug) return localePath(lang, `/w/${n.list_slug}`);
   if (n.type.startsWith("reaction_") && n.wishlist_id) return localePath(lang, `/dashboard/${n.wishlist_id}`);
   return localePath(lang, "/notifications");
@@ -210,13 +223,17 @@ function pushNotification(userIds: string[], actorId: string, type: Notification
     const t = makeT(lang, strings);
     const [actor, list] = await Promise.all([
       db().prepare("SELECT name, username, email FROM users WHERE id = ?").bind(actorId).first<{ name: string | null; username: string | null; email: string }>(),
-      ref.wishlistId ? db().prepare("SELECT name, slug FROM wishlists WHERE id = ?").bind(ref.wishlistId).first<{ name: string; slug: string }>() : null,
+      ref.wishlistId
+        ? db().prepare("SELECT name, slug FROM wishlists WHERE id = ?").bind(ref.wishlistId).first<{ name: string; slug: string }>()
+        : ref.santaGroupId
+          ? db().prepare("SELECT name, NULL AS slug FROM santa_groups WHERE id = ?").bind(ref.santaGroupId).first<{ name: string; slug: string }>()
+          : null,
     ]);
     const body = sentenceTemplate(t, lang, { type, count, list_name: list?.name ?? null }).replace("{name}", actor ? actorName(actor) : "");
     return {
       title: "WishDrop",
       body,
-      url: notificationUrl(lang, { type, list_slug: list?.slug ?? null, wishlist_id: ref.wishlistId ?? null }),
+      url: notificationUrl(lang, { type, list_slug: list?.slug ?? null, wishlist_id: ref.wishlistId ?? null, santa_group_id: ref.santaGroupId ?? null }),
       tag: ref.wishlistId ? `list-${ref.wishlistId}` : `${type}-${actorId}`,
     };
   });

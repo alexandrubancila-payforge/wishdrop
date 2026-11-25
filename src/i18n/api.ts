@@ -39,6 +39,9 @@ export default {
     blocked: "Nu poți face asta.",
     messageShort: "Scrie câteva cuvinte despre ce s-a întâmplat.",
     suspended: "Acest cont a fost suspendat. Scrie-ne din pagina de contact dacă crezi că e o greșeală.",
+    santaDrawn: "S-a tras deja la sorți în acest grup.",
+    santaFull: "Grupul e plin.",
+    santaTooFew: "Sunt necesari cel puțin 3 participanți.",
   },
   en: {
     usernameInvalid: "Username: 3–24 characters, only lowercase letters, digits, dot and _.",
@@ -77,6 +80,9 @@ export default {
     blocked: "You can't do that.",
     messageShort: "Write a few words about what happened.",
     suspended: "This account has been suspended. Write to us from the contact page if you think it's a mistake.",
+    santaDrawn: "Names have already been drawn in this group.",
+    santaFull: "The group is full.",
+    santaTooFew: "You need at least 3 people.",
   },
   de: {
     usernameInvalid: "Benutzername: 3–24 Zeichen, nur Kleinbuchstaben, Ziffern, Punkt und _.",
@@ -115,6 +121,9 @@ export default {
     blocked: "Das geht nicht.",
     messageShort: "Schreib ein paar Worte dazu, was passiert ist.",
     suspended: "Dieses Konto wurde gesperrt. Schreib uns über die Kontaktseite, wenn du das für einen Fehler hältst.",
+    santaDrawn: "In dieser Gruppe wurde schon gelost.",
+    santaFull: "Die Gruppe ist voll.",
+    santaTooFew: "Es braucht mindestens 3 Personen.",
   },
   ru: {
     usernameInvalid: "Имя пользователя: 3–24 символа, только строчные латинские буквы, цифры, точка и _.",
@@ -153,5 +162,8 @@ export default {
     blocked: "Это действие недоступно.",
     messageShort: "Напишите пару слов о том, что случилось.",
     suspended: "Этот аккаунт заблокирован. Напишите нам через страницу контактов, если считаете это ошибкой.",
+    santaDrawn: "В этой группе жеребьёвка уже прошла.",
+    santaFull: "Группа заполнена.",
+    santaTooFew: "Нужно минимум 3 участника.",
   },
 } satisfies Bundle;

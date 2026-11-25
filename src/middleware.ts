@@ -18,7 +18,8 @@ import { withinLimits } from "./lib/limits";
 import { alertOwner } from "./lib/alerts";
 import { apiT, fail } from "./lib/http";
 
-const PROTECTED = /^\/(dashboard|settings|requests|feed|notifications|admin)(\/|$)/;
+// /santa/join/<code> stays open: it's the invite link.
+const PROTECTED = /^\/(dashboard|settings|requests|feed|notifications|admin|santa(?!\/join\/))(\/|$)/;
 const isPage = (path: string) => !path.startsWith("/api/") && !path.startsWith("/_") && !/\.[a-z0-9]+$/i.test(path);
 
 /** Same list as public/_headers (static files don't pass through here). */

@@ -34,6 +34,7 @@ export default {
     "push.unsupported": "Browserul acesta nu suportă notificări.",
     "push.ios": "Pe iPhone: adaugă întâi WishDrop pe ecranul principal (Partajează → Adaugă pe ecranul principal), apoi deschide-l de acolo.",
     "push.fail": "Nu am putut porni notificările. Încearcă din nou.",
+    santa_drawn: "{name} a tras la sorți în „{list}”. Vezi pentru cine faci cadou 🎅",
   },
   en: {
     title: "Notifications",
@@ -66,6 +67,7 @@ export default {
     "push.unsupported": "This browser doesn't support notifications.",
     "push.ios": "On iPhone: first add WishDrop to your Home Screen (Share → Add to Home Screen), then open it from there.",
     "push.fail": "Couldn't turn notifications on. Try again.",
+    santa_drawn: "{name} drew names in “{list}”. See who you're giving to 🎅",
   },
   de: {
     title: "Benachrichtigungen",
@@ -98,6 +100,7 @@ export default {
     "push.unsupported": "Dieser Browser unterstützt keine Benachrichtigungen.",
     "push.ios": "Auf dem iPhone: Füge WishDrop zuerst zum Home-Bildschirm hinzu (Teilen → Zum Home-Bildschirm) und öffne es von dort.",
     "push.fail": "Benachrichtigungen konnten nicht eingeschaltet werden. Versuch es noch einmal.",
+    santa_drawn: "{name} hat in „{list}“ gelost. Schau, wen du beschenkst 🎅",
   },
   ru: {
     title: "Уведомления",
@@ -132,5 +135,6 @@ export default {
     "push.unsupported": "Этот браузер не поддерживает уведомления.",
     "push.ios": "На iPhone: сначала добавьте WishDrop на экран «Домой» (Поделиться → На экран «Домой»), затем откройте его оттуда.",
     "push.fail": "Не удалось включить уведомления. Попробуйте ещё раз.",
+    santa_drawn: "{name} провёл(а) жеребьёвку в «{list}». Посмотрите, кому вы дарите 🎅",
   },
 } satisfies Bundle;

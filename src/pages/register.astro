@@ -10,7 +10,10 @@ import api from "@/i18n/api";
 const { lang, user } = Astro.locals;
 const t = makeT(lang, common, auth, api);
 
-if (user) return Astro.redirect(localePath(lang, "/dashboard"));
+// ?next=/path (without language prefix): where to go after signing up, e.g. a Secret Santa invite.
+const rawNext = Astro.url.searchParams.get("next") ?? "";
+const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "";
+if (user) return Astro.redirect(localePath(lang, next || "/dashboard"));
 
 const M = {
   invalidEmail: t("invalidEmail"),
@@ -31,7 +34,7 @@ const M = {
       <a href={localePath(lang, "/login")} class="font-semibold text-accent-700 hover:underline">{t("register.login")}</a>
     </p>
     <GoogleButton href="/api/auth/google" label={t("auth.continueGoogle")} divider={t("auth.orEmail")} />
-    <form id="auth-form" class="space-y-4" data-verify-url={localePath(lang, "/verify-email")}>
+    <form id="auth-form" class="space-y-4" data-verify-url={localePath(lang, next || "/verify-email")}>
       <div>
         <label for="email" class="block text-sm font-semibold text-ink">{t("auth.email")}</label>
         <input id="email" name="email" type="email" autocomplete="email" required class="field mt-1.5" />

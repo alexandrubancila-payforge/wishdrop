@@ -259,6 +259,7 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
                         { href: href("/dashboard"), icon: "list-heart", label: t("nav.myLists") },
                         { href: href("/dashboard/reservations"), icon: "hand-heart", label: t("nav.myReservations") },
                         { href: href("/popular"), icon: "fire", label: t("nav.popular") },
+                        { href: href("/santa"), icon: "gift", label: t("nav.santa") },
                       ].map((item) => (
                         <a href={item.href} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
                           <Icon name={item.icon} class="h-5 w-5 text-accent-500" /> {item.label}

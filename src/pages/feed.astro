@@ -18,6 +18,7 @@ import { imageUrl } from "@/lib/storage";
 import { db } from "@/lib/db";
 import { unreadCount } from "@/lib/notifications";
 import notifStrings from "@/i18n/notifications";
+import santaStrings from "@/i18n/santa";
 import { plural } from "@/components/dashboard/plural";
 import type { FeedEntry } from "@/lib/feed";
 import Reactions from "@/components/gifts/Reactions.astro";
@@ -44,6 +45,9 @@ const birthdays = [
 ].sort((a, b) => a.inDays - b.inDays);
 const reactions = await reactionsFor(activity.map((a) => a.id), user.id);
 const notifLabel = makeT(lang, notifStrings)("title");
+// Secret Santa card in the gift season (November to January).
+const santaSeason = [10, 11, 0].includes(new Date().getUTCMonth());
+const santaT = makeT(lang, santaStrings);
 const profileHref = user.username ? href(`/@${user.username}`) : href("/settings") + "#public-profile";
 const displayName = user.name || (user.username ? `@${user.username}` : user.email.split("@")[0]);
 
@@ -115,6 +119,7 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
             { href: href("/dashboard/reservations"), icon: "hand-heart", label: t("myReservations") },
             { href: href("/search"), icon: "user-plus", label: t("findFriends") },
             { href: href("/popular"), icon: "fire", label: makeT(lang, common)("nav.popular") },
+            { href: href("/santa"), icon: "gift", label: makeT(lang, common)("nav.santa") },
             { href: href("/settings"), icon: "gear", label: t("nav.settings") },
           ].map((item) => (
             <a
@@ -161,6 +166,9 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
         <a href={href("/dashboard")} class="chip shrink-0 bg-white !px-4 !py-2 text-ink shadow-soft hover:text-accent-700">
           <Icon name="list-heart" class="h-4 w-4 text-accent-500" />{t("myLists")}
         </a>
+        <a href={href("/santa")} class="chip shrink-0 bg-white !px-4 !py-2 text-ink shadow-soft hover:text-accent-700">
+          <Icon name="gift" class="h-4 w-4 text-accent-500" />{makeT(lang, common)("nav.santa")}
+        </a>
         <a href={href("/popular")} class="chip shrink-0 bg-white !px-4 !py-2 text-ink shadow-soft hover:text-accent-700">
           <Icon name="fire" class="h-4 w-4 text-accent-500" />{makeT(lang, common)("nav.popular")}
         </a>
@@ -202,6 +210,21 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
               ))}
             </ul>
           </section>
+        )
+      }
+
+      {
+        santaSeason && (
+          <a href={href("/santa")} class="card mt-8 flex items-center gap-4 bg-accent-500 p-5 text-white transition hover:-translate-y-0.5 hover:shadow-lift">
+            <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/20">
+              <Icon name="gift" weight="fill" class="h-6 w-6" />
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block font-extrabold">{santaT("promo.title")}</span>
+              <span class="mt-0.5 block text-sm text-white/85">{santaT("promo.text")}</span>
+            </span>
+            <span class="chip hidden shrink-0 bg-white text-accent-700 sm:inline-flex">{santaT("promo.btn")} →</span>
+          </a>
         )
       }
 

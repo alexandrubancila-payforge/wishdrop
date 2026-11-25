@@ -40,7 +40,8 @@ const nameOf = (n: NotificationRow) => actorName(n);
 const escape = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 const sentence = (n: NotificationRow) =>
   escape(sentenceTemplate(t, lang, n)).replace("{name}", `<b class="font-bold text-ink">${escape(nameOf(n))}</b>`);
-const aboutGift = (n: NotificationRow) => n.type === "new_list" || n.type === "new_item" || n.type.startsWith("reaction_");
+const aboutGift = (n: NotificationRow) =>
+  n.type === "new_list" || n.type === "new_item" || n.type.startsWith("reaction_") || n.type === "santa_drawn";
 const vapidKey = env.VAPID_PUBLIC_KEY ?? "";
 const ICON: Record<string, { name: string; tint: string }> = {
   follow: { name: "user-plus", tint: "bg-accent-500 text-white" },
@@ -50,6 +51,7 @@ const ICON: Record<string, { name: string; tint: string }> = {
   new_item: { name: "gift", tint: "bg-accent-500 text-white" },
   reaction_heart: { name: "heart", tint: "bg-accent-500 text-white" },
   reaction_want: { name: "sparkle", tint: "bg-sun-ink text-white" },
+  santa_drawn: { name: "gift", tint: "bg-mint-ink text-white" },
 };
 const sections = [
   { title: t("new"), rows: fresh },
