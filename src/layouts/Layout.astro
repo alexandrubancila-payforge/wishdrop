@@ -384,7 +384,7 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
           {tabs.map((tab) =>
             tab.create ? (
               <a href={tab.href} class="flex flex-1 flex-col items-center gap-1 pb-2 text-[11px] font-semibold text-ink-soft" aria-label={tab.label}>
-                <span class="-mt-6 grid h-14 w-14 place-items-center rounded-full bg-accent-600 text-white shadow-coral ring-4 ring-white">
+                <span class="-mt-6 grid h-14 w-14 place-items-center rounded-full bg-accent-600 text-white ring-4 ring-white">
                   <Icon name="plus" weight="bold" class="h-6 w-6" />
                 </span>
                 <span>{tab.label}</span>

@@ -126,7 +126,6 @@ body {
   .btn-primary {
     color: #fff;
     background: var(--color-accent-600);
-    box-shadow: var(--shadow-coral);
   }
   .btn-primary:hover:not(:disabled) {
     background: var(--color-accent-700);
