@@ -101,6 +101,14 @@ const shareInfo = {
       >
         <Icon name="pencil-simple" class="h-[18px] w-[18px]" />
       </button>
+      <a
+        href="#list-settings"
+        aria-label={t("listSettings")}
+        title={t("listSettings")}
+        class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-ink-soft shadow-soft transition hover:text-accent-700"
+      >
+        <Icon name="gear" class="h-[18px] w-[18px]" />
+      </a>
     </div>
     <form id="rename-form" class="hidden items-center gap-2" data-wishlist-id={list.id}>
       <input id="rename-input" type="text" placeholder={t("ph.listName")} maxlength="60" required value={list.name} class="field !py-2 text-xl font-extrabold tracking-tight" />
@@ -138,147 +146,6 @@ const shareInfo = {
       </a>
     </div>
   </div>
-
-  <!-- Surprise mode (compact) -->
-  <div class="card mt-6 flex items-center justify-between gap-3 p-4">
-    <div class="flex min-w-0 items-center gap-3">
-      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-lav text-lav-ink">
-        <Icon name="eye-slash" class="h-5 w-5" />
-      </span>
-      <div class="min-w-0">
-        <p class="font-bold leading-tight">{t("surprise")}</p>
-        <p class="mt-1 text-xs leading-snug text-ink-soft">{t("surpriseText")}</p>
-      </div>
-    </div>
-    <label class="inline-flex shrink-0 cursor-pointer items-center gap-2">
-      <input type="checkbox" id="surprise-toggle" class="peer sr-only" data-wishlist-id={list.id} checked={surprise} />
-      <span
-        class="relative h-6 w-11 rounded-full bg-ink-soft/30 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-soft after:transition peer-checked:bg-accent-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20"
-      ></span>
-      <span class="hidden text-sm font-semibold text-ink-soft sm:inline" data-surprise-label>{surprise ? t("on") : t("off")}</span>
-    </label>
-  </div>
-
-  <!-- Where the list appears (profile visibility). The link works in every case. -->
-  <div class="card mt-3 p-4 sm:p-5" id="visibility" data-wishlist-id={list.id} data-saved={t("vis.saved")} data-fail={t("vis.fail")}>
-    <div class="flex items-center justify-between gap-3">
-      <p class="flex items-center gap-2 font-extrabold leading-tight tracking-tight">
-        <Icon name="eye" class="h-5 w-5 text-accent-500" />
-        {t("vis.title")}
-      </p>
-      <p id="visibility-status" class="hidden text-xs font-medium"></p>
-    </div>
-    <div class="mt-3 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={t("vis.title")}>
-      {
-        (["public", "followers", "link"] as const).map((v) => (
-          <label class="cursor-pointer">
-            <input type="radio" name="visibility" value={v} checked={list.visibility === v} class="peer sr-only" />
-            <span class="flex h-full items-start gap-3 rounded-2xl border-[1.5px] border-line bg-white p-3 transition hover:border-accent-300 peer-checked:border-accent-500 peer-checked:bg-accent-100 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20">
-              <span
-                class:list={[
-                  "grid h-9 w-9 shrink-0 place-items-center rounded-xl",
-                  v === "public" ? "bg-mint text-mint-ink" : v === "followers" ? "bg-lav text-lav-ink" : "bg-sand text-ink-soft",
-                ]}
-              >
-                <Icon name={v === "public" ? "globe" : v === "followers" ? "users" : "link"} class="h-[18px] w-[18px]" />
-              </span>
-              <span class="min-w-0">
-                <span class="block text-sm font-bold text-ink">{t(`vis.${v}`)}</span>
-                <span class="mt-0.5 block text-xs leading-snug text-ink-soft">{t(`vis.${v}Text`)}</span>
-              </span>
-            </span>
-          </label>
-        ))
-      }
-    </div>
-    {
-      !user.username && (
-        <p class="mt-3 flex items-center gap-1.5 rounded-xl bg-lav px-3 py-2 text-xs text-lav-ink">
-          <Icon name="info" class="h-4 w-4 shrink-0" />
-          <span>
-            {t("vis.noUsername")}{" "}
-            <a href={localePath(lang, "/settings") + "#public-profile"} class="font-bold hover:underline">→</a>
-          </span>
-        </p>
-      )
-    }
-  </div>
-
-  <!-- Event date: countdown on the list, reminders for friends 7 days before. -->
-  <div class="card mt-3 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5" id="event-box" data-wishlist-id={list.id} data-saved={t("event.saved")} data-fail={t("event.fail")}>
-    <div class="flex min-w-0 items-center gap-3">
-      <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sun text-sun-ink">
-        <Icon name="calendar-blank" class="h-5 w-5" />
-      </span>
-      <div class="min-w-0">
-        <p class="font-bold leading-tight">{t("event.title")}</p>
-        <p class="mt-1 text-xs leading-snug text-ink-soft">{t("event.text")}</p>
-      </div>
-    </div>
-    <div class="flex shrink-0 items-center gap-2">
-      <input type="date" id="event-date" value={list.event_date ?? ""} class="field !w-auto !py-2.5" aria-label={t("event.title")} />
-      <button type="button" id="event-clear" class:list={["text-xs font-semibold text-ink-soft hover:text-rose-600", !list.event_date && "hidden"]}>{t("event.clear")}</button>
-      <span id="event-status" class="hidden text-xs font-medium"></span>
-    </div>
-  </div>
-
-  <script>
-    // Save the event date when it changes (empty = no date).
-    const eventBox = document.getElementById("event-box")!;
-    const eventInput = document.getElementById("event-date") as HTMLInputElement;
-    const eventClear = document.getElementById("event-clear")!;
-    const eventStatus = document.getElementById("event-status")!;
-    async function saveEvent(value: string) {
-      try {
-        const res = await fetch(`/api/wishlists/${eventBox.dataset.wishlistId}`, {
-          method: "PATCH",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ event_date: value || null }),
-        });
-        if (!res.ok) throw new Error();
-        eventStatus.textContent = eventBox.dataset.saved!;
-        eventStatus.className = "text-xs font-medium text-mint-ink";
-        eventClear.classList.toggle("hidden", !value);
-      } catch {
-        eventStatus.textContent = eventBox.dataset.fail!;
-        eventStatus.className = "text-xs font-medium text-rose-600";
-      }
-      setTimeout(() => eventStatus.classList.add("hidden"), 2000);
-    }
-    eventInput.addEventListener("change", () => saveEvent(eventInput.value));
-    eventClear.addEventListener("click", () => {
-      eventInput.value = "";
-      saveEvent("");
-    });
-  </script>
-
-  <script>
-    // Save the visibility as soon as an option is picked.
-    const box = document.getElementById("visibility");
-    const status = document.getElementById("visibility-status");
-    box?.querySelectorAll<HTMLInputElement>('input[name="visibility"]').forEach((radio) => {
-      radio.addEventListener("change", async () => {
-        const previous = box.dataset.current;
-        try {
-          const res = await fetch(`/api/wishlists/${box.dataset.wishlistId}`, {
-            method: "PATCH",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ visibility: radio.value }),
-          });
-          if (!res.ok) throw new Error();
-          box.dataset.current = radio.value;
-          status!.textContent = box.dataset.saved!;
-          status!.className = "text-xs font-medium text-mint-ink";
-        } catch {
-          if (previous) box.querySelector<HTMLInputElement>(`input[value="${previous}"]`)!.checked = true;
-          status!.textContent = box.dataset.fail!;
-          status!.className = "text-xs font-medium text-rose-600";
-        }
-        setTimeout(() => status!.classList.add("hidden"), 2000);
-      });
-    });
-    if (box) box.dataset.current = box.querySelector<HTMLInputElement>('input[name="visibility"]:checked')?.value;
-  </script>
 
   <div class="mt-6 grid gap-6 lg:grid-cols-[360px_1fr] lg:gap-8">
     <div class="lg:sticky lg:top-20 lg:self-start">
@@ -741,6 +608,156 @@ const shareInfo = {
       }
     </div>
   </div>
+
+  <!-- List settings, after the gifts: a new list starts with "Add a gift", not with options. -->
+  <section id="list-settings" class="mt-12 scroll-mt-24">
+    <h2 class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
+      <Icon name="gear" class="h-5 w-5 text-accent-500" />
+      {t("listSettings")}
+    </h2>
+    <p class="mt-1 text-sm text-ink-soft">{t("listSettingsText")}</p>
+
+    <!-- Surprise mode (compact) -->
+    <div class="card mt-4 flex items-center justify-between gap-3 p-4">
+      <div class="flex min-w-0 items-center gap-3">
+        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-lav text-lav-ink">
+          <Icon name="eye-slash" class="h-5 w-5" />
+        </span>
+        <div class="min-w-0">
+          <p class="font-bold leading-tight">{t("surprise")}</p>
+          <p class="mt-1 text-xs leading-snug text-ink-soft">{t("surpriseText")}</p>
+        </div>
+      </div>
+      <label class="inline-flex shrink-0 cursor-pointer items-center gap-2">
+        <input type="checkbox" id="surprise-toggle" class="peer sr-only" data-wishlist-id={list.id} checked={surprise} />
+        <span
+          class="relative h-6 w-11 rounded-full bg-ink-soft/30 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-soft after:transition peer-checked:bg-accent-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20"
+        ></span>
+        <span class="hidden text-sm font-semibold text-ink-soft sm:inline" data-surprise-label>{surprise ? t("on") : t("off")}</span>
+      </label>
+    </div>
+
+    <!-- Where the list appears (profile visibility). The link works in every case. -->
+    <div class="card mt-3 p-4 sm:p-5" id="visibility" data-wishlist-id={list.id} data-saved={t("vis.saved")} data-fail={t("vis.fail")}>
+      <div class="flex items-center justify-between gap-3">
+        <p class="flex items-center gap-2 font-extrabold leading-tight tracking-tight">
+          <Icon name="eye" class="h-5 w-5 text-accent-500" />
+          {t("vis.title")}
+        </p>
+        <p id="visibility-status" class="hidden text-xs font-medium"></p>
+      </div>
+      <div class="mt-3 grid gap-2 sm:grid-cols-3" role="radiogroup" aria-label={t("vis.title")}>
+        {
+          (["public", "followers", "link"] as const).map((v) => (
+            <label class="cursor-pointer">
+              <input type="radio" name="visibility" value={v} checked={list.visibility === v} class="peer sr-only" />
+              <span class="flex h-full items-start gap-3 rounded-2xl border-[1.5px] border-line bg-white p-3 transition hover:border-accent-300 peer-checked:border-accent-500 peer-checked:bg-accent-100 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20">
+                <span
+                  class:list={[
+                    "grid h-9 w-9 shrink-0 place-items-center rounded-xl",
+                    v === "public" ? "bg-mint text-mint-ink" : v === "followers" ? "bg-lav text-lav-ink" : "bg-sand text-ink-soft",
+                  ]}
+                >
+                  <Icon name={v === "public" ? "globe" : v === "followers" ? "users" : "link"} class="h-[18px] w-[18px]" />
+                </span>
+                <span class="min-w-0">
+                  <span class="block text-sm font-bold text-ink">{t(`vis.${v}`)}</span>
+                  <span class="mt-0.5 block text-xs leading-snug text-ink-soft">{t(`vis.${v}Text`)}</span>
+                </span>
+              </span>
+            </label>
+          ))
+        }
+      </div>
+      {
+        !user.username && (
+          <p class="mt-3 flex items-center gap-1.5 rounded-xl bg-lav px-3 py-2 text-xs text-lav-ink">
+            <Icon name="info" class="h-4 w-4 shrink-0" />
+            <span>
+              {t("vis.noUsername")}{" "}
+              <a href={localePath(lang, "/settings") + "#public-profile"} class="font-bold hover:underline">→</a>
+            </span>
+          </p>
+        )
+      }
+    </div>
+
+    <!-- Event date: countdown on the list, reminders for friends 7 days before. -->
+    <div class="card mt-3 flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5" id="event-box" data-wishlist-id={list.id} data-saved={t("event.saved")} data-fail={t("event.fail")}>
+      <div class="flex min-w-0 items-center gap-3">
+        <span class="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sun text-sun-ink">
+          <Icon name="calendar-blank" class="h-5 w-5" />
+        </span>
+        <div class="min-w-0">
+          <p class="font-bold leading-tight">{t("event.title")}</p>
+          <p class="mt-1 text-xs leading-snug text-ink-soft">{t("event.text")}</p>
+        </div>
+      </div>
+      <div class="flex shrink-0 items-center gap-2">
+        <input type="date" id="event-date" value={list.event_date ?? ""} class="field !w-auto !py-2.5" aria-label={t("event.title")} />
+        <button type="button" id="event-clear" class:list={["text-xs font-semibold text-ink-soft hover:text-rose-600", !list.event_date && "hidden"]}>{t("event.clear")}</button>
+        <span id="event-status" class="hidden text-xs font-medium"></span>
+      </div>
+    </div>
+
+    <script>
+      // Save the event date when it changes (empty = no date).
+      const eventBox = document.getElementById("event-box")!;
+      const eventInput = document.getElementById("event-date") as HTMLInputElement;
+      const eventClear = document.getElementById("event-clear")!;
+      const eventStatus = document.getElementById("event-status")!;
+      async function saveEvent(value: string) {
+        try {
+          const res = await fetch(`/api/wishlists/${eventBox.dataset.wishlistId}`, {
+            method: "PATCH",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ event_date: value || null }),
+          });
+          if (!res.ok) throw new Error();
+          eventStatus.textContent = eventBox.dataset.saved!;
+          eventStatus.className = "text-xs font-medium text-mint-ink";
+          eventClear.classList.toggle("hidden", !value);
+        } catch {
+          eventStatus.textContent = eventBox.dataset.fail!;
+          eventStatus.className = "text-xs font-medium text-rose-600";
+        }
+        setTimeout(() => eventStatus.classList.add("hidden"), 2000);
+      }
+      eventInput.addEventListener("change", () => saveEvent(eventInput.value));
+      eventClear.addEventListener("click", () => {
+        eventInput.value = "";
+        saveEvent("");
+      });
+    </script>
+
+    <script>
+      // Save the visibility as soon as an option is picked.
+      const box = document.getElementById("visibility");
+      const status = document.getElementById("visibility-status");
+      box?.querySelectorAll<HTMLInputElement>('input[name="visibility"]').forEach((radio) => {
+        radio.addEventListener("change", async () => {
+          const previous = box.dataset.current;
+          try {
+            const res = await fetch(`/api/wishlists/${box.dataset.wishlistId}`, {
+              method: "PATCH",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ visibility: radio.value }),
+            });
+            if (!res.ok) throw new Error();
+            box.dataset.current = radio.value;
+            status!.textContent = box.dataset.saved!;
+            status!.className = "text-xs font-medium text-mint-ink";
+          } catch {
+            if (previous) box.querySelector<HTMLInputElement>(`input[value="${previous}"]`)!.checked = true;
+            status!.textContent = box.dataset.fail!;
+            status!.className = "text-xs font-medium text-rose-600";
+          }
+          setTimeout(() => status!.classList.add("hidden"), 2000);
+        });
+      });
+      if (box) box.dataset.current = box.querySelector<HTMLInputElement>('input[name="visibility"]:checked')?.value;
+    </script>
+  </section>
 
   <!-- Share modal: story image + QR card -->
   <div id="share-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-ink/45 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="share-title">

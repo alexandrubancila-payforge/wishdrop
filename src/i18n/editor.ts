@@ -71,6 +71,8 @@ export default {
     "share.scan": "Scanează și alege un cadou",
     "share.by": "de {name}",
     "share.close": "Închide",
+    listSettings: "Setări listă",
+    listSettingsText: "Cine vede lista, modul surpriză și data evenimentului.",
   },
   en: {
     back: "← Back to lists",
@@ -141,6 +143,8 @@ export default {
     "share.scan": "Scan and pick a gift",
     "share.by": "by {name}",
     "share.close": "Close",
+    listSettings: "List settings",
+    listSettingsText: "Who sees the list, surprise mode and the event date.",
   },
   de: {
     back: "← Zurück zu den Listen",
@@ -211,6 +215,8 @@ export default {
     "share.scan": "Scannen und ein Geschenk aussuchen",
     "share.by": "von {name}",
     "share.close": "Schließen",
+    listSettings: "Listeneinstellungen",
+    listSettingsText: "Wer die Liste sieht, Überraschungsmodus und das Datum des Anlasses.",
   },
   ru: {
     back: "← Назад к спискам",
@@ -281,5 +287,7 @@ export default {
     "share.scan": "Сканируйте и выберите подарок",
     "share.by": "от {name}",
     "share.close": "Закрыть",
+    listSettings: "Настройки списка",
+    listSettingsText: "Кто видит список, режим сюрприза и дата события.",
   },
 } satisfies Bundle;
