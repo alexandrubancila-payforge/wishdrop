@@ -63,10 +63,12 @@ const abs = (l: typeof lang) => new URL(localePath(l, alternates?.[l] ?? path), 
 const altLangs = alternates ? LANGS.filter((l) => alternates[l]) : LANGS;
 const displayName = user ? user.name || user.email.split("@")[0] : "";
 const tabActive = (p: string) => path === p;
+// Signed in, "/" is served by /feed (pages/index.astro rewrites), so both count as Home.
+const onHome = path === "/" || path === "/feed";
 const onProfile = !!user?.username && (path === `/@${user.username}` || path.startsWith(`/@${user.username}/`));
 const tabs = user
   ? [
-      { href: href("/"), label: t("nav.feed"), icon: "house", active: path === "/" },
+      { href: href("/"), label: t("nav.feed"), icon: "house", active: onHome },
       { href: href("/search"), label: t("nav.searchShort"), icon: "magnifying-glass", active: path === "/search" },
       { href: href("/dashboard") + "#new", label: t("nav.create"), icon: "plus", create: true },
       // "+" already opens My lists, so this slot shows the popular gifts.
@@ -74,7 +76,7 @@ const tabs = user
       { href: profileHref, label: t("nav.profileShort"), avatar: true, active: onProfile || path.startsWith("/settings") },
     ]
   : [
-      { href: href("/"), label: t("nav.feed"), icon: "house", active: path === "/" },
+      { href: href("/"), label: t("nav.feed"), icon: "house", active: onHome },
       { href: href("/search"), label: t("nav.searchShort"), icon: "magnifying-glass", active: path === "/search" },
       { href: href("/register"), label: t("nav.create"), icon: "plus", create: true },
       { href: href("/popular"), label: t("nav.popular"), icon: "fire", active: path === "/popular" },
