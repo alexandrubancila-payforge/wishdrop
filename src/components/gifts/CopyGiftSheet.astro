@@ -3,17 +3,20 @@
  * "Add it to your list too?" — opens after a signed-in visitor presses
  * "I want it too" (src/scripts/reactions.ts fires `wd:want`). Copies the gift
  * into one of their lists or a new one (POST /api/items/<id>/copy).
+ * "Not now" (or closing the sheet before adding) takes the "I want it too"
+ * back, so the button isn't left marked.
  * Rendered by Layout for signed-in users only.
  */
 import Icon from "@/components/Icon.astro";
 import { localePath, makeT, type Lang } from "@/lib/i18n";
 import gifts from "@/i18n/gifts";
+import common from "@/i18n/common";
 
 interface Props {
   lang: Lang;
 }
 const { lang } = Astro.props;
-const t = makeT(lang, gifts);
+const t = makeT(lang, gifts, common);
 ---
 
 <div
@@ -43,7 +46,7 @@ const t = makeT(lang, gifts);
       <select id="copy-list" class="field mt-1"></select>
       <div data-copy-new class="mt-3 hidden">
         <label class="block text-sm font-semibold text-ink" for="copy-new-name">{t("copy.newLabel")}</label>
-        <input id="copy-new-name" type="text" maxlength="60" value={t("copy.newName")} class="field mt-1" />
+        <input id="copy-new-name" type="text" placeholder={t("ph.listName")} maxlength="60" value={t("copy.newName")} class="field mt-1" />
       </div>
       <p data-copy-error class="mt-3 hidden text-sm font-medium text-rose-600"></p>
       <div class="mt-6 flex flex-col gap-2.5">
@@ -79,12 +82,18 @@ const t = makeT(lang, gifts);
     const ph = sheet.querySelector<HTMLElement>("[data-copy-ph]")!;
     let itemId = "";
     let lists: { id: string; name: string }[] | null = null;
+    /** The "I want it too" button that opened the sheet, while the gift isn't copied yet. */
+    let wantButton: HTMLButtonElement | null = null;
 
     const step = (name: "ask" | "done") =>
       sheet.querySelectorAll<HTMLElement>("[data-step]").forEach((s) => s.classList.toggle("hidden", s.dataset.step !== name));
     const close = () => {
+      if (sheet.classList.contains("hidden")) return;
       sheet.classList.add("hidden");
       sheet.classList.remove("flex");
+      // Skipped: un-press "I want it too" (src/scripts/reactions.ts toggles it off).
+      if (wantButton?.getAttribute("aria-pressed") === "true") wantButton.click();
+      wantButton = null;
     };
     const fillLists = () => {
       select.innerHTML = "";
@@ -94,8 +103,9 @@ const t = makeT(lang, gifts);
     };
 
     window.addEventListener("wd:want", async (e) => {
-      const detail = (e as CustomEvent<{ itemId: string; image?: string }>).detail;
+      const detail = (e as CustomEvent<{ itemId: string; image?: string; button?: HTMLButtonElement }>).detail;
       itemId = detail.itemId;
+      wantButton = detail.button ?? null;
       error.classList.add("hidden");
       add.disabled = false;
       img.classList.toggle("hidden", !detail.image);
@@ -133,6 +143,7 @@ const t = makeT(lang, gifts);
         if (select.value === "__new") lists = [{ id: data.list.id, name: data.list.name }, ...(lists ?? [])];
         sheet.querySelector("[data-copy-done]")!.textContent = sheet.dataset.done!.replace("{list}", data.list.name);
         sheet.querySelector<HTMLAnchorElement>("[data-copy-view]")!.href = `${sheet.dataset.dashboard}/${data.list.id}`;
+        wantButton = null;
         step("done");
       } catch (err) {
         error.textContent = (err instanceof Error && err.message) || sheet.dataset.fail!;

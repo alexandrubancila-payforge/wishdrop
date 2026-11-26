@@ -103,7 +103,7 @@ const shareInfo = {
       </button>
     </div>
     <form id="rename-form" class="hidden items-center gap-2" data-wishlist-id={list.id}>
-      <input id="rename-input" type="text" maxlength="60" required value={list.name} class="field !py-2 text-xl font-extrabold tracking-tight" />
+      <input id="rename-input" type="text" placeholder={t("ph.listName")} maxlength="60" required value={list.name} class="field !py-2 text-xl font-extrabold tracking-tight" />
       <button type="submit" class="btn btn-primary shrink-0 !px-4 !py-2.5 text-sm">{t("save")}</button>
       <button type="button" id="rename-cancel" class="btn btn-ghost shrink-0 !px-4 !py-2.5 text-sm">{t("cancel")}</button>
     </form>
@@ -852,7 +852,7 @@ const shareInfo = {
         <label for="edit-price" class="block text-sm font-semibold text-ink">
           {t("price")} <span class="font-normal text-ink-soft">{t("optional")}</span>
         </label>
-        <input id="edit-price" type="text" maxlength="40" class="field mt-1" />
+        <input id="edit-price" type="text" placeholder={t("pricePlaceholder")} maxlength="40" class="field mt-1" />
       </div>
       <div class="mt-4">
         <label for="edit-url" class="block text-sm font-semibold text-ink">{t("productLink")}</label>

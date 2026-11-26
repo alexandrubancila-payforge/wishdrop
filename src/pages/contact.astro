@@ -82,12 +82,12 @@ const f = pick(t, {
     <div class="mt-4 grid gap-4 sm:grid-cols-2">
       <div>
         <label for="cf-name" class="block text-sm font-semibold text-ink">{f.name}</label>
-        <input id="cf-name" name="name" type="text" required maxlength="100" class="field mt-1.5" aria-describedby="cf-name-err" />
+        <input id="cf-name" name="name" type="text" placeholder={t("ph.name")} required maxlength="100" class="field mt-1.5" aria-describedby="cf-name-err" />
         <p id="cf-name-err" class="mt-1 hidden text-xs font-medium text-rose-600"></p>
       </div>
       <div>
         <label for="cf-email" class="block text-sm font-semibold text-ink">{f.email}</label>
-        <input id="cf-email" name="email" type="email" required maxlength="200" class="field mt-1.5" aria-describedby="cf-email-err" />
+        <input id="cf-email" name="email" type="email" placeholder={t("ph.email")} required maxlength="200" class="field mt-1.5" aria-describedby="cf-email-err" />
         <p id="cf-email-err" class="mt-1 hidden text-xs font-medium text-rose-600"></p>
       </div>
     </div>
@@ -95,7 +95,7 @@ const f = pick(t, {
       <label for="cf-message" class="block text-sm font-semibold text-ink">{f.message}</label>
       <textarea
         id="cf-message"
-        name="message"
+        name="message" placeholder={t("ph.message")}
         rows="5"
         required
         minlength="10"

@@ -172,6 +172,18 @@ body {
     font-size: 16px;
     transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
   }
+  /* Own chevron, kept off the rounded edge (the native arrow sits flush right). */
+  select.field,
+  select.field:focus {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 2.75rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%232b2433' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1rem;
+    cursor: pointer;
+  }
   .field::placeholder {
     color: rgb(117 105 127 / 0.75);
   }

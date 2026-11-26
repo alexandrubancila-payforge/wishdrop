@@ -85,7 +85,7 @@ const reasons = ["spam", "inappropriate", "fake", "other"];
       !user && (
         <div class="mt-4">
           <label class="block text-sm font-semibold text-ink" for="report-email">{t("email")}</label>
-          <input id="report-email" name="email" type="email" maxlength="254" autocomplete="email" class="field mt-1" />
+          <input id="report-email" name="email" type="email" placeholder={t("ph.email")} maxlength="254" autocomplete="email" class="field mt-1" />
           <p class="mt-1 text-xs text-ink-soft">{t("emailHint")}</p>
         </div>
       )

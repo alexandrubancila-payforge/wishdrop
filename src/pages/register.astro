@@ -37,13 +37,13 @@ const M = {
     <form id="auth-form" class="space-y-4" data-verify-url={localePath(lang, next || "/verify-email")}>
       <div>
         <label for="email" class="block text-sm font-semibold text-ink">{t("auth.email")}</label>
-        <input id="email" name="email" type="email" autocomplete="email" required class="field mt-1.5" />
+        <input id="email" name="email" type="email" placeholder={t("ph.email")} autocomplete="email" required class="field mt-1.5" />
       </div>
       <div>
         <label for="password" class="block text-sm font-semibold text-ink">
           {t("auth.password")} <span class="font-normal text-ink-soft">{t("auth.minChars")}</span>
         </label>
-        <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required class="field mt-1.5" />
+        <input id="password" name="password" type="password" placeholder={t("ph.newPassword")} autocomplete="new-password" minlength="8" required class="field mt-1.5" />
       </div>
       <p id="auth-error" class="hidden text-sm font-medium text-rose-600"></p>
       <button type="submit" id="auth-submit" class="btn btn-primary w-full py-3.5">

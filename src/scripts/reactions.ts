@@ -52,7 +52,7 @@ if (!(window as any).__wdReact) {
       // "I want it too" → offer to put the gift in my own list (components/gifts/CopyGiftSheet.astro).
       if (on && kind === "want") {
         const card = box.closest<HTMLElement>("[data-item-id]");
-        window.dispatchEvent(new CustomEvent("wd:want", { detail: { itemId: box.dataset.reactions, image: card?.dataset.imageUrl || "" } }));
+        window.dispatchEvent(new CustomEvent("wd:want", { detail: { itemId: box.dataset.reactions, image: card?.dataset.imageUrl || "", button: b } }));
       }
     } catch {
       paint(box, before);
