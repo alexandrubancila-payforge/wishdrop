@@ -53,6 +53,8 @@ export interface Item {
   id: string;
   wishlist_id: string;
   image_key: string;
+  /** Optional gift name, typed or scraped from the product page. */
+  title: string | null;
   product_url: string | null;
   price: string | null;
   reserved_by: string | null;

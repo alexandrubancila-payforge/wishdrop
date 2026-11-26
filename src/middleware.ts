@@ -18,9 +18,12 @@ import { withinLimits } from "./lib/limits";
 import { alertOwner } from "./lib/alerts";
 import { apiT, fail } from "./lib/http";
 
-// /santa/join/<code> stays open: it's the invite link.
-const PROTECTED = /^\/(dashboard|settings|requests|feed|notifications|admin|santa(?!\/join\/))(\/|$)/;
-const isPage = (path: string) => !path.startsWith("/api/") && !path.startsWith("/_") && !/\.[a-z0-9]+$/i.test(path);
+// /santa/join/<code> stays open: it's the invite link. Profiles (/@username…) need an account too;
+// a shared list link (/w/<slug>) stays open.
+const PROTECTED = /^\/(?:(dashboard|settings|requests|feed|notifications|admin|santa(?!\/join\/))(\/|$)|@)/;
+// "/@ana.pop" ends like a file name but is a profile page.
+const isPage = (path: string) =>
+  path.startsWith("/@") || (!path.startsWith("/api/") && !path.startsWith("/_") && !/\.[a-z0-9]+$/i.test(path));
 
 /** Same list as public/_headers (static files don't pass through here). */
 const SECURITY_HEADERS: Record<string, string> = {

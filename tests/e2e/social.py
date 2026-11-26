@@ -53,6 +53,8 @@ def user(tag):
 
 
 ana, bob, cris, guest = user("ana"), user("bob"), user("cris"), client()
+# A signed-in stranger: profiles need an account, so this is who "anyone" is.
+dan = user("dan")
 ua, ub, uc = f"ana.{stamp}", f"bob_{stamp}", f"cris{stamp}"
 
 # --- usernames ---
@@ -96,17 +98,21 @@ def shows(page, vis):
 
 
 s, page = call(guest, "GET", f"/@{ua}")
-check("guest sees ana's public profile", s == 200 and "Ana Test" in page and "Îmi plac cărțile" in page, s)
-check("guest sees public list only", shows(page, "public") and not shows(page, "followers") and not shows(page, "link"), "")
-s, page = call(guest, "GET", f"/en/@{ua}")
-check("profile works with language prefix", s == 200, s)
+check("guest is sent to login from a profile", s == 302, s)
 s, page = call(guest, "GET", f"/@{ua}/followers")
+check("guest is sent to login from a followers page", s == 302, s)
+s, page = call(dan, "GET", f"/@{ua}")
+check("stranger sees ana's public profile", s == 200 and "Ana Test" in page and "Îmi plac cărțile" in page, s)
+check("stranger sees public list only", shows(page, "public") and not shows(page, "followers") and not shows(page, "link"), "")
+s, page = call(dan, "GET", f"/en/@{ua}")
+check("profile works with language prefix", s == 200, s)
+s, page = call(dan, "GET", f"/@{ua}/followers")
 check("public profile followers page open", s == 200, s)
 s, _ = call(guest, "GET", f"/w/{lists['link']['slug']}")
 check("link-only list still opens by link", s == 200, s)
 s, _ = call(guest, "GET", f"/w/{lists['followers']['slug']}")
 check("followers-only list still opens by link", s == 200, s)
-s, _ = call(guest, "GET", "/@nobody-here-" + stamp)
+s, _ = call(dan, "GET", "/@nobody-here-" + stamp)
 check("unknown profile -> 404", s == 404, s)
 
 # --- search ---
@@ -181,7 +187,8 @@ check("settings has username field", 'id="set-username"' in page and ua in page,
 for op in (ana, bob, cris):
     s, r = call(op, "POST", "/api/account/delete")
     check("delete account", s == 200, (s, r))
-s, _ = call(guest, "GET", f"/@{ua}")
+s, _ = call(dan, "GET", f"/@{ua}")
 check("deleted user's profile gone", s == 404, s)
+call(dan, "POST", "/api/account/delete")
 
 print(f"\n{passed} passed, {failed} failed")

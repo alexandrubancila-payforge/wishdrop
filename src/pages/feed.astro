@@ -284,7 +284,7 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
                           </span>
                         )}
                         <span class="min-w-0">
-                          <span class="block truncate font-bold sm:text-lg">{domain(it.product_url) || it.list_name}</span>
+                          <span class="block truncate font-bold sm:text-lg">{it.title || domain(it.product_url) || it.list_name}</span>
                           <span class="mt-1.5 flex flex-wrap gap-1.5">
                             {it.priority > 0 && <span class="chip bg-accent-100 text-accent-700">★ {t("mostWanted")}</span>}
                             {it.reserved_at && <span class="chip bg-mint text-mint-ink">✓ {t("reserved")}</span>}
@@ -302,7 +302,7 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
                               <div class="relative">
                                 <a href={listHref} class="relative block overflow-hidden rounded-2xl">
                                   {g.image_key ? (
-                                    <img src={imageUrl(g.image_key)} alt="" loading="lazy" class:list={["aspect-square w-full bg-sand object-cover transition duration-300 hover:scale-[1.03]", g.reserved_at && "opacity-50 grayscale"]} />
+                                    <img src={imageUrl(g.image_key)} alt={g.title ?? ""} loading="lazy" class:list={["aspect-square w-full bg-sand object-cover transition duration-300 hover:scale-[1.03]", g.reserved_at && "opacity-50 grayscale"]} />
                                   ) : (
                                     <span class="grid aspect-square w-full place-items-center bg-accent-50 text-accent-500">
                                       <Icon name="gift" class="h-9 w-9" />

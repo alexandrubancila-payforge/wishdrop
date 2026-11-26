@@ -1,8 +1,8 @@
 /**
- * Auto-fill from a product link: fetch the page, find the product photo and
+ * Auto-fill from a product link: fetch the page, find the product photo, name and
  * price (Open Graph, JSON-LD, microdata), copy the photo into R2.
  *
- * Responses: { image_key, image_url, price } — image_key null when no photo;
+ * Responses: { image_key, image_url, price, title } — image_key/title null when not found;
  * 400 { error: "amazon_blocked" } for Amazon; 422 { error: "blocked" } when the
  * site refuses or the page can't be read.
  */
@@ -33,14 +33,14 @@ export const POST: APIRoute = async (ctx) => {
   const html = await fetchText(page.href);
   if (!html) return fail("blocked", 422);
 
-  const meta = parseProduct(html);
+  const meta = parseProduct(html, page.hostname);
   let image_key: string | null = null;
   if (meta.image) {
     try {
       image_key = await copyImage(new URL(meta.image, page).href, page.href, user.id, ctx.url.origin);
     } catch {}
   }
-  return json({ image_key, image_url: image_key ? imageUrl(image_key) : null, price: meta.price });
+  return json({ image_key, image_url: image_key ? imageUrl(image_key) : null, price: meta.price, title: meta.title });
 };
 
 async function fetchText(url: string): Promise<string | null> {
@@ -91,8 +91,22 @@ function metaContent(html: string, names: string[]) {
   return null;
 }
 
-function parseProduct(html: string): { image: string | null; price: string | null } {
+/** "Lego Titanic 10294 | eMAG.ro" → "Lego Titanic 10294": drops a trailing shop name. */
+function cleanTitle(raw: string | null, host: string) {
+  if (!raw) return null;
+  let title = decode(raw).replace(/\s+/g, " ").trim();
+  const parts = title.split(/\s+[|–—-]\s+/);
+  const shop = host.replace(/^www\./, "").split(".")[0].toLowerCase();
+  if (parts.length > 1) {
+    const last = parts[parts.length - 1].toLowerCase().replace(/[^a-z0-9]/g, "");
+    if (last && (last.includes(shop) || shop.includes(last))) title = parts.slice(0, -1).join(" - ");
+  }
+  return title.slice(0, 120) || null;
+}
+
+function parseProduct(html: string, host: string): { image: string | null; price: string | null; title: string | null } {
   let image = metaContent(html, ["og:image:secure_url", "og:image", "twitter:image", "twitter:image:src"]);
+  let name: string | null = null;
   let price: string | null = null;
   let currency: string | null = null;
 
@@ -104,6 +118,7 @@ function parseProduct(html: string): { image: string | null; price: string | nul
       for (const n of nodes) {
         const type = [n?.["@type"]].flat().join(" ");
         if (!/Product/i.test(type)) continue;
+        if (!name && typeof n.name === "string") name = n.name;
         if (!image) image = [n.image].flat().map((i: any) => (typeof i === "string" ? i : i?.url)).find(Boolean) ?? null;
         const offer = [n.offers].flat()[0];
         const p = offer?.price ?? offer?.lowPrice ?? offer?.priceSpecification?.price;
@@ -122,5 +137,6 @@ function parseProduct(html: string): { image: string | null; price: string | nul
   if (!image) image = html.match(/<link[^>]+rel=["']image_src["'][^>]*href=["']([^"']+)["']/i)?.[1] ?? null;
 
   const priceText = price ? `${price}${currency ? " " + currency : ""}`.trim() : null;
-  return { image: image ? decode(image) : null, price: priceText };
+  name ??= metaContent(html, ["og:title", "twitter:title"]) ?? html.match(/<title[^>]*>([^<]*)<\/title>/i)?.[1] ?? null;
+  return { image: image ? decode(image) : null, price: priceText, title: cleanTitle(name, host) };
 }

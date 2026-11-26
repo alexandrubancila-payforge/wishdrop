@@ -259,7 +259,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                     {img ? (
                       <img
                         src={img}
-                        alt={item.price ? `${t("list.giftAlt")} — ${item.price}` : t("list.giftAlt")}
+                        alt={item.title || (item.price ? `${t("list.giftAlt")} — ${item.price}` : t("list.giftAlt"))}
                         loading="lazy"
                         class:list={[
                           "h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]",
@@ -300,6 +300,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                   ) : null}
                   <div class="flex flex-1 flex-col px-1.5 pb-1 pt-3">
                     <div class="min-w-0 px-0.5">
+                      {item.title && <p class="line-clamp-2 text-sm font-bold leading-snug text-ink">{item.title}</p>}
                       {item.price ? (
                         <>
                           <p class="text-xl font-extrabold tracking-tight">{item.price}</p>

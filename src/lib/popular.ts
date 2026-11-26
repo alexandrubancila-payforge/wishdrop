@@ -13,6 +13,7 @@ export interface PopularGift {
   /** The gift shown (the one with the most reactions in its group). */
   id: string;
   image_key: string;
+  title: string | null;
   product_url: string | null;
   price: string | null;
   owner_id: string;
@@ -40,7 +41,7 @@ export function productKey(url: string | null) {
 async function candidates(limit = 2000) {
   const { results } = await db()
     .prepare(
-      `SELECT i.id, i.image_key, i.product_url, i.price, i.created_at, i.copied_from, w.user_id AS owner_id,
+      `SELECT i.id, i.image_key, i.title, i.product_url, i.price, i.created_at, i.copied_from, w.user_id AS owner_id,
               (SELECT COUNT(*) FROM item_reactions r WHERE r.item_id = i.id AND r.kind = 'heart') AS heart,
               (SELECT COUNT(*) FROM item_reactions r WHERE r.item_id = i.id AND r.kind = 'want') AS want,
               (SELECT COUNT(*) FROM items c WHERE c.copied_from = i.id) AS copies

@@ -75,7 +75,7 @@ const own = (g: PopularGift) => !!user && g.owner_id === user.id;
               return (
                 <li class="card flex flex-col !rounded-3xl p-2" data-item-id={g.id} data-image-url={img}>
                   <Wrapper class="relative block aspect-square overflow-hidden rounded-2xl bg-sand" {...wrapperProps}>
-                    <img src={img} alt="" loading="lazy" class="h-full w-full object-cover transition duration-300 hover:scale-[1.03]" />
+                    <img src={img} alt={g.title ?? ""} loading="lazy" class="h-full w-full object-cover transition duration-300 hover:scale-[1.03]" />
                     {g.people > 1 && (
                       <span class="chip absolute left-2 top-2 bg-white/95 text-xs text-ink shadow-soft">
                         <Icon name="users" weight="bold" class="h-3.5 w-3.5 text-accent-500" />
@@ -84,6 +84,7 @@ const own = (g: PopularGift) => !!user && g.owner_id === user.id;
                     )}
                   </Wrapper>
                   <div class="flex flex-1 flex-col px-1.5 pb-1 pt-3">
+                    {g.title && <p class="line-clamp-2 text-sm font-bold leading-snug text-ink">{g.title}</p>}
                     {g.price && <p class="truncate text-lg font-extrabold tracking-tight">{g.price}</p>}
                     {site && <p class="truncate text-xs font-medium text-ink-soft">{site}</p>}
                     <Reactions

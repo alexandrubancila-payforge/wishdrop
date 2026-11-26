@@ -171,6 +171,14 @@ const shareInfo = {
           </p>
         </div>
 
+        <!-- Name: typed, or filled from the product page -->
+        <div class="mt-4">
+          <label for="item-title" class="block text-sm font-semibold text-ink">
+            {t("itemName")} <span class="font-normal text-ink-soft">{t("optional")}</span>
+          </label>
+          <input id="item-title" name="title" type="text" maxlength="120" placeholder={t("itemNamePlaceholder")} class="field mt-1" />
+        </div>
+
         <!-- Image picker with preview -->
         <div class="mt-4">
           <label class="block text-sm font-semibold text-ink">
@@ -228,6 +236,7 @@ const shareInfo = {
         const placeholder = form.querySelector("[data-preview-placeholder]");
         const previewSkeleton = form.querySelector("[data-preview-skeleton]");
         const priceInput = document.getElementById("item-price");
+        const titleInput = document.getElementById("item-title");
         const submitBtn = document.getElementById("add-item-submit");
         const submitLabel = form.querySelector("[data-submit-label]");
         const errorEl = document.getElementById("add-item-error");
@@ -236,6 +245,8 @@ const shareInfo = {
         const MAX_BYTES = 15 * 1024 * 1024;
 
         let scrapedImageKey = null;
+        // The last name filled in from a product page: replaced by the next link, never what the user typed.
+        let autoTitle = "";
 
         // Downscale + recompress in the browser before upload so we never store a
         // multi-MB phone photo. Long edge capped, exported as WebP.
@@ -317,6 +328,9 @@ const shareInfo = {
               showHint(data.error === "amazon_blocked" ? M.amazon : M.blocked);
               return;
             }
+            if (data.title && (!titleInput.value.trim() || titleInput.value === autoTitle)) {
+              titleInput.value = autoTitle = data.title;
+            }
             if (data.image_key && data.image_url) {
               scrapedImageKey = data.image_key;
               fileInput.value = "";
@@ -381,6 +395,7 @@ const shareInfo = {
               headers: { "content-type": "application/json" },
               body: JSON.stringify({
                 image_key: imageKey || "",
+                title: titleInput.value.trim() || null,
                 price: priceInput.value.trim() || null,
                 product_url: productUrl || null,
                 priority: Number(form.querySelector('input[name="priority"]:checked')?.value || 0),
@@ -429,6 +444,7 @@ const shareInfo = {
                   data-reserved={reserved ? "true" : "false"}
                   data-my-reservation="false"
                   data-price={item.price ?? ""}
+                  data-title={item.title ?? ""}
                   data-product-url={item.product_url ?? ""}
                   data-image-url={img}
                   data-priority={item.priority}
@@ -444,7 +460,7 @@ const shareInfo = {
                     {img ? (
                       <img
                         src={img}
-                        alt={item.price ? t("giftAltPrice", { price: item.price }) : t("giftAlt")}
+                        alt={item.title || (item.price ? t("giftAltPrice", { price: item.price }) : t("giftAlt"))}
                         loading="lazy"
                         class:list={[
                           "h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]",
@@ -515,6 +531,7 @@ const shareInfo = {
                   </button>
                   <div class="flex flex-1 flex-col gap-2 px-1.5 pb-1 pt-3">
                     <div class="min-w-0">
+                      {item.title && <p class="line-clamp-2 text-sm font-bold leading-snug text-ink">{item.title}</p>}
                       {item.price ? (
                         <>
                           <p class="truncate text-lg font-extrabold tracking-tight">{item.price}</p>
@@ -594,7 +611,7 @@ const shareInfo = {
                         <Icon name="gift" class="h-6 w-6" />
                       </span>
                     )}
-                    <span class="min-w-0 flex-1 truncate text-sm font-bold">{item.price || domain(item.product_url) || t("giftAlt")}</span>
+                    <span class="min-w-0 flex-1 truncate text-sm font-bold">{item.title || item.price || domain(item.product_url) || t("giftAlt")}</span>
                     <button type="button" data-unreceive-btn class="btn btn-ghost shrink-0 !px-3 !py-2 text-xs">
                       <Icon name="arrow-counter-clockwise" weight="bold" class="h-3.5 w-3.5" />
                       {t("received.undo")}
@@ -866,6 +883,12 @@ const shareInfo = {
         <button type="button" id="edit-remove-image" class="mt-1.5 hidden text-xs font-semibold text-rose-600 hover:underline">{t("removePhoto")}</button>
       </div>
       <div class="mt-4">
+        <label for="edit-title" class="block text-sm font-semibold text-ink">
+          {t("itemName")} <span class="font-normal text-ink-soft">{t("optional")}</span>
+        </label>
+        <input id="edit-title" type="text" placeholder={t("itemNamePlaceholder")} maxlength="120" class="field mt-1" />
+      </div>
+      <div class="mt-4">
         <label for="edit-price" class="block text-sm font-semibold text-ink">
           {t("price")} <span class="font-normal text-ink-soft">{t("optional")}</span>
         </label>
@@ -1042,6 +1065,7 @@ const shareInfo = {
     const editPreviewPh = document.getElementById("edit-preview-ph");
     const editRemoveBtn = document.getElementById("edit-remove-image");
     const editPrice = document.getElementById("edit-price");
+    const editTitle = document.getElementById("edit-title");
     const editUrl = document.getElementById("edit-url");
     const editError = document.getElementById("edit-error");
     const editSave = document.getElementById("edit-save");
@@ -1076,6 +1100,7 @@ const shareInfo = {
         const card = b.closest("[data-item-id]");
         editItemId = card.dataset.itemId;
         editPrice.value = card.dataset.price || "";
+        editTitle.value = card.dataset.title || "";
         editUrl.value = card.dataset.productUrl || "";
         editNewFile = null;
         editImageRemoved = false;
@@ -1127,6 +1152,7 @@ const shareInfo = {
       editSave.disabled = true;
       try {
         const body = {
+          title: editTitle.value.trim() || null,
           price: editPrice.value.trim() || null,
           product_url: editUrl.value.trim() || null,
           priority: Number(editModal.querySelector('input[name="edit-priority"]:checked')?.value || 0),

@@ -21,7 +21,7 @@ const [{ totals, weekly, recent, topLists }, reports] = await Promise.all([siteS
 const n = (k: string) => totals[k] ?? 0;
 const fmt = new Intl.NumberFormat(lang);
 const day = new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", timeZone: "UTC" });
-const dateTime = new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+const dateTime = new Intl.DateTimeFormat(lang, { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Bucharest" });
 
 const kpis = [
   { key: "users", icon: "users", tint: "bg-accent-100 text-accent-600", total: n("users"), d7: n("users7"), d30: n("users30") },

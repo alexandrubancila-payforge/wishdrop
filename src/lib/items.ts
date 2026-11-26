@@ -2,6 +2,7 @@
 
 export interface ItemFields {
   image_key?: string;
+  title?: string | null;
   product_url?: string | null;
   price?: string | null;
   /** 1 = really want · 0 = would be nice · -1 = just an idea. */
@@ -11,6 +12,7 @@ export interface ItemFields {
 }
 
 export const GROUP_MIN = 2;
+export const TITLE_MAX = 120;
 export const GROUP_MAX = 20;
 
 /**
@@ -35,6 +37,10 @@ export function cleanItemFields(body: Record<string, unknown>): ItemFields | { e
       }
     }
     out.product_url = url || null;
+  }
+  if ("title" in body) {
+    const title = body.title == null ? "" : String(body.title).replace(/\s+/g, " ").trim().slice(0, TITLE_MAX);
+    out.title = title || null;
   }
   if ("price" in body) {
     const price = body.price == null ? "" : String(body.price).trim().slice(0, 40);
