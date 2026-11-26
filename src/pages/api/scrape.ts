@@ -9,6 +9,7 @@
 import type { APIRoute } from "astro";
 import { fail, json, readJson, requireUser } from "@/lib/http";
 import { imageUrl, isImageType, putImage } from "@/lib/storage";
+import { checkImage, flagPhoto, MAX_CHECK_BYTES } from "@/lib/moderation";
 
 const UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36";
@@ -36,7 +37,7 @@ export const POST: APIRoute = async (ctx) => {
   let image_key: string | null = null;
   if (meta.image) {
     try {
-      image_key = await copyImage(new URL(meta.image, page).href, page.href);
+      image_key = await copyImage(new URL(meta.image, page).href, page.href, user.id, ctx.url.origin);
     } catch {}
   }
   return json({ image_key, image_url: image_key ? imageUrl(image_key) : null, price: meta.price });
@@ -57,7 +58,8 @@ async function fetchText(url: string): Promise<string | null> {
   }
 }
 
-async function copyImage(src: string, referer: string) {
+/** The page's product photo, stored as our own copy after the automatic check (a refused photo leaves the gift without one). */
+async function copyImage(src: string, referer: string, userId: string, origin: string) {
   const res = await fetch(src, {
     headers: { "user-agent": UA, accept: "image/*", referer },
     signal: AbortSignal.timeout(8000),
@@ -66,7 +68,11 @@ async function copyImage(src: string, referer: string) {
   if (!res.ok || !isImageType(type)) throw new Error("not an image");
   const body = await res.arrayBuffer();
   if (body.byteLength > MAX_IMAGE || body.byteLength < 500) throw new Error("bad size");
-  return putImage(body, type);
+  const { verdict } = body.byteLength <= MAX_CHECK_BYTES ? await checkImage(body) : { verdict: "review" as const };
+  if (verdict === "block") throw new Error("refused by the photo check");
+  const key = await putImage(body, type);
+  if (verdict === "review") await flagPhoto(userId, key, origin);
+  return key;
 }
 
 const decode = (s: string) =>

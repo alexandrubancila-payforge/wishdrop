@@ -51,6 +51,10 @@ export default {
     screenshot: "Captură de ecran",
     confirmSuspend: "Suspenzi contul? Nu se mai poate loga și dispare de peste tot.",
     confirmHide: "Ascunzi lista? Nimeni în afară de proprietar nu o mai poate deschide.",
+    "kind.photo": "Poză",
+    uploadedBy: "Încărcată de",
+    removePhoto: "Șterge poza",
+    confirmRemovePhoto: "Ștergi poza de peste tot unde e folosită? Cadourile fără link rămase fără poză se șterg și ele.",
   },
   en: {
     title: "Admin",
@@ -101,6 +105,10 @@ export default {
     screenshot: "Screenshot",
     confirmSuspend: "Suspend the account? They can't sign in and disappear everywhere.",
     confirmHide: "Hide the list? Nobody but the owner can open it.",
+    "kind.photo": "Photo",
+    uploadedBy: "Uploaded by",
+    removePhoto: "Delete photo",
+    confirmRemovePhoto: "Delete this photo everywhere it's used? Gifts left with no photo and no link are deleted too.",
   },
   de: {
     title: "Admin",
@@ -151,6 +159,10 @@ export default {
     screenshot: "Screenshot",
     confirmSuspend: "Konto sperren? Es kann sich nicht mehr anmelden und verschwindet überall.",
     confirmHide: "Liste ausblenden? Nur der Besitzer kann sie noch öffnen.",
+    "kind.photo": "Foto",
+    uploadedBy: "Hochgeladen von",
+    removePhoto: "Foto löschen",
+    confirmRemovePhoto: "Dieses Foto überall löschen? Geschenke ohne Foto und ohne Link werden ebenfalls gelöscht.",
   },
   ru: {
     title: "Админ",
@@ -201,5 +213,9 @@ export default {
     screenshot: "Скриншот",
     confirmSuspend: "Заблокировать аккаунт? Он не сможет войти и исчезнет отовсюду.",
     confirmHide: "Скрыть список? Открыть его сможет только владелец.",
+    "kind.photo": "Фото",
+    uploadedBy: "Загрузил(а)",
+    removePhoto: "Удалить фото",
+    confirmRemovePhoto: "Удалить это фото везде, где оно используется? Подарки без фото и без ссылки тоже удалятся.",
   },
 } satisfies Bundle;

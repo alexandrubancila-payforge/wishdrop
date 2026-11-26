@@ -37,6 +37,8 @@
     // Daily copy of the photos (lib/backup.ts).
     { "binding": "BACKUP_BUCKET", "bucket_name": "wishdrop-images-backup" }
   ],
+  // Workers AI: the automatic photo check (lib/moderation.ts).
+  "ai": { "binding": "AI" },
   // Every day at 07:00 UTC (morning in Europe): reminder emails, photo backup, cleanups (src/worker.ts).
   "triggers": { "crons": ["0 7 * * *"] },
   // Broad per-minute brake on API writes (lib/limits.ts; the strict limits count in D1).

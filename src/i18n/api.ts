@@ -43,6 +43,7 @@ export default {
     santaFull: "Grupul e plin.",
     santaTooFew: "Sunt necesari cel puțin 3 participanți.",
     loginToReserve: "Intră în cont ca să rezervi un cadou.",
+    imageRejected: "Poza asta nu poate fi folosită pe WishDrop. Alege altă poză.",
   },
   en: {
     usernameInvalid: "Username: 3–24 characters, only lowercase letters, digits, dot and _.",
@@ -85,6 +86,7 @@ export default {
     santaFull: "The group is full.",
     santaTooFew: "You need at least 3 people.",
     loginToReserve: "Sign in to reserve a gift.",
+    imageRejected: "This photo can't be used on WishDrop. Please pick another one.",
   },
   de: {
     usernameInvalid: "Benutzername: 3–24 Zeichen, nur Kleinbuchstaben, Ziffern, Punkt und _.",
@@ -127,6 +129,7 @@ export default {
     santaFull: "Die Gruppe ist voll.",
     santaTooFew: "Es braucht mindestens 3 Personen.",
     loginToReserve: "Melde dich an, um ein Geschenk zu reservieren.",
+    imageRejected: "Dieses Foto kann auf WishDrop nicht verwendet werden. Wähle bitte ein anderes.",
   },
   ru: {
     usernameInvalid: "Имя пользователя: 3–24 символа, только строчные латинские буквы, цифры, точка и _.",
@@ -169,5 +172,6 @@ export default {
     santaFull: "Группа заполнена.",
     santaTooFew: "Нужно минимум 3 участника.",
     loginToReserve: "Войдите, чтобы забронировать подарок.",
+    imageRejected: "Это фото нельзя использовать на WishDrop. Выберите другое.",
   },
 } satisfies Bundle;

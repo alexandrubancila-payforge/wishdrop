@@ -45,7 +45,7 @@ const more = [
   { key: "joins", icon: "hand-coins" },
   { key: "received", icon: "package" },
 ];
-const KIND_TINT: Record<string, string> = { bug: "bg-lav text-lav-ink", user: "bg-accent-100 text-accent-700", list: "bg-sun text-sun-ink" };
+const KIND_TINT: Record<string, string> = { bug: "bg-lav text-lav-ink", user: "bg-accent-100 text-accent-700", list: "bg-sun text-sun-ink", photo: "bg-rose-100 text-rose-700" };
 const reasonLabel = (r: string | null) => (r ? t(`reason.${r}`) : "");
 const reporterOf = (r: ReportRow) => r.reporter_name || (r.reporter_username ? `@${r.reporter_username}` : r.email || t("anon"));
 const listName = (r: { owner_name: string | null; owner_username: string | null; owner_email: string }) =>
@@ -86,6 +86,15 @@ const listName = (r: { owner_name: string | null; owner_username: string | null;
                   {r.target_suspended && <span class="chip ml-2 bg-ink text-white">{t("suspendedBadge")}</span>}
                 </p>
               )}
+              {r.kind === "photo" && (
+                <p class="mt-2 text-sm">
+                  <span class="text-ink-soft">{t("uploadedBy")}: </span>
+                  <span class="font-bold">
+                    {r.target_username ? <a href={localePath(lang, `/@${r.target_username}`)} class="hover:text-accent-700">{r.target_name || `@${r.target_username}`}</a> : r.target_name || "—"}
+                  </span>
+                  {r.target_suspended && <span class="chip ml-2 bg-ink text-white">{t("suspendedBadge")}</span>}
+                </p>
+              )}
               {r.kind === "list" && (
                 <p class="mt-2 font-bold">
                   {r.list_slug ? <a href={`/w/${r.list_slug}`} class="hover:text-accent-700">{r.list_name}</a> : "—"}
@@ -109,6 +118,16 @@ const listName = (r: { owner_name: string | null; owner_username: string | null;
                   <Icon name="check" weight="bold" class="h-3.5 w-3.5" /> {t("markDone")}
                 </button>
                 {r.kind === "user" && r.target_id && (
+                  <button type="button" class="btn btn-ghost !px-4 !py-2 text-xs text-rose-600" data-admin-action={`/api/admin/users/${r.target_id}`} data-body={JSON.stringify({ suspended: !r.target_suspended })} data-confirm={r.target_suspended ? "" : t("confirmSuspend")}>
+                    {r.target_suspended ? t("unsuspend") : t("suspend")}
+                  </button>
+                )}
+                {r.kind === "photo" && r.image_key && (
+                  <button type="button" class="btn btn-ghost !px-4 !py-2 text-xs text-rose-600" data-admin-action="/api/admin/photos/delete" data-body={JSON.stringify({ key: r.image_key, report: r.id })} data-confirm={t("confirmRemovePhoto")}>
+                    <Icon name="trash" class="h-3.5 w-3.5" /> {t("removePhoto")}
+                  </button>
+                )}
+                {r.kind === "photo" && r.target_id && (
                   <button type="button" class="btn btn-ghost !px-4 !py-2 text-xs text-rose-600" data-admin-action={`/api/admin/users/${r.target_id}`} data-body={JSON.stringify({ suspended: !r.target_suspended })} data-confirm={r.target_suspended ? "" : t("confirmSuspend")}>
                     {r.target_suspended ? t("unsuspend") : t("suspend")}
                   </button>

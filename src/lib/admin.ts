@@ -92,7 +92,7 @@ export async function siteStats(weeks = 12) {
 
 export interface ReportRow {
   id: string;
-  kind: "bug" | "user" | "list";
+  kind: "bug" | "user" | "list" | "photo";
   target_id: string | null;
   reason: string | null;
   message: string | null;
@@ -125,7 +125,7 @@ export async function adminReports() {
                 (SELECT COUNT(*) FROM reports r2 WHERE r2.target_id = r.target_id AND r2.kind = r.kind) AS same_target
            FROM reports r
            LEFT JOIN users ru ON ru.id = r.reporter_id
-           LEFT JOIN users tu ON r.kind = 'user' AND tu.id = r.target_id
+           LEFT JOIN users tu ON r.kind IN ('user', 'photo') AND tu.id = r.target_id
            LEFT JOIN wishlists tl ON r.kind = 'list' AND tl.id = r.target_id
           WHERE ${where} ORDER BY ${order} LIMIT ${limit}`,
       )
