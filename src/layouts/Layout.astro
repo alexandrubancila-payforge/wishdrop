@@ -69,7 +69,8 @@ const tabs = user
       { href: href("/"), label: t("nav.feed"), icon: "house", active: path === "/" },
       { href: href("/search"), label: t("nav.searchShort"), icon: "magnifying-glass", active: path === "/search" },
       { href: href("/dashboard") + "#new", label: t("nav.create"), icon: "plus", create: true },
-      { href: href("/dashboard"), label: t("nav.listsShort"), icon: "list-heart", active: path === "/dashboard" || path.startsWith("/dashboard/") },
+      // "+" already opens My lists, so this slot shows the popular gifts.
+      { href: href("/popular"), label: t("nav.popular"), icon: "fire", active: path === "/popular" },
       { href: profileHref, label: t("nav.profileShort"), avatar: true, active: onProfile || path.startsWith("/settings") },
     ]
   : [
