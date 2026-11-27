@@ -357,6 +357,67 @@ body {
     animation: skeleton-pulse 1.4s ease-in-out infinite;
   }
 
+  /* Feed bubbles (pages/feed.astro): a ring around the avatar, coral for new gifts, gold for a
+     birthday, grey once seen; a small round badge at the bottom right. */
+  .story {
+    display: flex;
+    width: 4.6rem;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .story-ring {
+    position: relative;
+    display: block;
+    border-radius: 999px;
+    padding: 3px;
+    background: var(--color-line);
+    transition: transform 0.15s;
+  }
+  .story:hover .story-ring {
+    transform: scale(1.04);
+  }
+  .story-ring.is-new {
+    background: linear-gradient(135deg, var(--color-accent-300), var(--color-accent-600));
+  }
+  .story-ring.is-bday {
+    background: linear-gradient(135deg, #f7c96b, #d98a1c);
+  }
+  .story-ring.is-empty {
+    background: none;
+    outline: 2px dashed var(--color-accent-300);
+    outline-offset: -2px;
+  }
+  .story-ring.is-seen {
+    background: var(--color-line);
+  }
+  .story-inner {
+    display: block;
+    border-radius: 999px;
+    padding: 2px;
+    background: var(--color-paper, #fffaf7);
+  }
+  .story-badge {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    display: grid;
+    width: 1.4rem;
+    height: 1.4rem;
+    place-items: center;
+    border-radius: 999px;
+    border: 2px solid var(--color-paper, #fffaf7);
+  }
+  .story-name {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
   /* Horizontal scrollers (birthdays, chips) without a visible scrollbar. */
   .no-scrollbar {
     scrollbar-width: none;

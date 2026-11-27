@@ -70,6 +70,39 @@ export async function feedPage(userId: string, before?: FeedCursor) {
   return { posts, next };
 }
 
+/** A friend who added gifts lately: one bubble in the row at the top of the feed. */
+export interface StoryFriend {
+  id: string;
+  username: string | null;
+  name: string | null;
+  email: string;
+  avatar_url: string | null;
+  /** When their newest gift was added (also tells "seen" apart from "new"). */
+  last_at: number;
+  /** The list that newest gift is on. */
+  list_slug: string;
+}
+
+/** People I follow who added gifts to a visible list in the last `days` days, most recent first. */
+export async function storyFriends(userId: string, days = 7, limit = 20) {
+  // SQLite: with MAX(), the bare column w.slug comes from the row holding that max.
+  const { results } = await db()
+    .prepare(
+      `SELECT u.id, u.username, u.name, u.email, u.avatar_url, MAX(i.created_at) AS last_at, w.slug AS list_slug
+         FROM follows f
+         JOIN users u ON u.id = f.followee_id AND u.suspended_at IS NULL
+         JOIN wishlists w ON w.user_id = u.id AND w.visibility IN ('public', 'followers') AND w.hidden_at IS NULL
+         JOIN items i ON i.wishlist_id = w.id AND i.received_at IS NULL AND i.created_at > ?
+        WHERE f.follower_id = ? AND f.status = 'accepted'
+        GROUP BY u.id
+        ORDER BY last_at DESC
+        LIMIT ?`,
+    )
+    .bind(Date.now() - days * 86_400_000, userId, limit)
+    .all<StoryFriend>();
+  return results;
+}
+
 export interface Birthday {
   id: string;
   username: string | null;
