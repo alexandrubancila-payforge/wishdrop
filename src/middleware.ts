@@ -83,7 +83,9 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   const trim = (p: string) => (p.length > 1 ? p.replace(/\/+$/, "") : p);
   const origin = trim(ctx.originPathname || pathname);
   const rewritten = origin !== trim(pathname);
-  const lang = splitLang(origin).lang;
+  // A rewrite to a prefixed path ("/ro" → "/ro/feed" for a signed-in visitor) names its language;
+  // an unprefixed target ("/404") keeps the language of the address in the browser.
+  const lang = prefixed ? splitLang(pathname).lang : splitLang(origin).lang;
 
   ctx.locals.lang = lang;
   ctx.locals.path = path;

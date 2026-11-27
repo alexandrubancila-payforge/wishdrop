@@ -172,6 +172,11 @@ check("last page says there is no more", re.search(r'data-feed-next(=""|[ >])', 
 s, _ = call(fa, "GET", "/feed/more?at=x")
 check("bad cursor refused", s == 400, s)
 
+s, page = call(fa, "GET", "/ro")
+check("signed-in /ro home stays Romanian", s == 200 and '<html lang="ro"' in page, s)
+s, page = call(fa, "GET", "/de")
+check("signed-in /de home stays German", s == 200 and '<html lang="de"' in page, s)
+
 # --- popular gifts ---
 import os, uuid
 photo = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "public", "demo", "books.jpg"), "rb").read()
