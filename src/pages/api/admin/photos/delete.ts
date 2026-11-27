@@ -15,7 +15,7 @@ export const POST: APIRoute = async (ctx) => {
   const { key, report } = await readJson<{ key?: string; report?: string }>(ctx.request);
   if (!key || !/^items\/[\w.-]+$/.test(key)) return fail("Bad request");
   await db().batch([
-    db().prepare("DELETE FROM items WHERE image_key = ? AND COALESCE(product_url, '') = ''").bind(key),
+    db().prepare("DELETE FROM items WHERE image_key = ? AND COALESCE(product_url, '') = '' AND COALESCE(title, '') = ''").bind(key),
     db().prepare("UPDATE items SET image_key = '' WHERE image_key = ?").bind(key),
     db().prepare("UPDATE users SET avatar_url = NULL WHERE avatar_url LIKE ?").bind(`%${key}`),
     db().prepare("UPDATE reports SET status = 'done' WHERE id = ?").bind(report ?? ""),

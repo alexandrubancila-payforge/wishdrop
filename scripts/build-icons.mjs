@@ -25,6 +25,10 @@ const ICONS = [
   "lightbulb", "fire", "package", "arrow-counter-clockwise", "chart-bar", "device-mobile", "bell-ringing",
   "bell-slash", "users-four", "hand-coins", "chart-line-up", "flag", "prohibit", "bug", "download-simple",
   "arrow-clockwise", "envelope-open", "eye-closed", "cookie", "detective",
+  // Name-only gifts get an icon that fits the name (lib/gift-icon.ts).
+  "book-open-text", "drop", "t-shirt", "sneaker", "game-controller", "headphones", "laptop", "watch", "diamond",
+  "flower-tulip", "music-notes", "airplane-tilt", "puzzle-piece", "baby", "paint-brush", "barbell", "bicycle",
+  "paw-print", "cooking-pot", "wine", "ticket", "plant", "television", "dress", "handbag",
 ];
 const WEIGHTS = ["duotone", "regular", "fill", "bold"];
 

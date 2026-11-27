@@ -4,6 +4,7 @@
  * row to the same list (a grid). Used by pages/feed.astro and, for the posts
  * loaded while scrolling, pages/feed/more.astro.
  */
+import GiftArt from "@/components/gifts/GiftArt.astro";
 import Icon from "@/components/Icon.astro";
 import Avatar from "@/components/Avatar.astro";
 import Reactions from "@/components/gifts/Reactions.astro";
@@ -73,8 +74,8 @@ const shown = group.slice(0, 4);
       {it.image_key ? (
         <img src={imageUrl(it.image_key)} alt="" loading="lazy" class:list={["aspect-square w-full rounded-2xl bg-white object-cover", it.reserved_at && "opacity-50 grayscale"]} />
       ) : (
-        <span class="grid aspect-square w-full place-items-center rounded-2xl bg-accent-50 text-accent-500">
-          <Icon name="gift" class="h-9 w-9" />
+        <span class="block aspect-square w-full overflow-hidden rounded-2xl">
+          <GiftArt id={it.id} title={it.title} host={domain(it.product_url)} />
         </span>
       )}
       <span class="min-w-0">
@@ -98,8 +99,8 @@ const shown = group.slice(0, 4);
                 {g.image_key ? (
                   <img src={imageUrl(g.image_key)} alt={g.title ?? ""} loading="lazy" class:list={["aspect-square w-full bg-sand object-cover transition duration-300 hover:scale-[1.03]", g.reserved_at && "opacity-50 grayscale"]} />
                 ) : (
-                  <span class="grid aspect-square w-full place-items-center bg-accent-50 text-accent-500">
-                    <Icon name="gift" class="h-9 w-9" />
+                  <span class="block aspect-square w-full">
+                    <GiftArt id={g.id} title={g.title} host={domain(g.product_url)} />
                   </span>
                 )}
                 {g.price && <span class="chip absolute bottom-2 left-2 max-w-[85%] truncate bg-white/95 text-ink shadow-soft">{g.price}</span>}

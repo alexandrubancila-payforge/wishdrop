@@ -6,6 +6,7 @@ import common from "@/i18n/common";
 import strings from "@/i18n/reservations";
 import { getReservationsOf } from "@/lib/db";
 import { imageUrl } from "@/lib/storage";
+import GiftArt from "@/components/gifts/GiftArt.astro";
 import Icon from "@/components/Icon.astro";
 import Avatar from "@/components/Avatar.astro";
 
@@ -62,9 +63,7 @@ const domain = (url: string | null) => {
                 {img ? (
                   <img src={img} alt={item.title ?? ""} loading="lazy" class="h-full w-full object-cover" />
                 ) : (
-                  <div class="grid h-full w-full place-items-center text-accent-500">
-                    <Icon name="gift" class="h-9 w-9" />
-                  </div>
+                  <GiftArt id={item.id} title={item.title} host={host} />
                 )}
               </div>
               <div class="flex min-w-0 flex-1 flex-col py-1 pr-1">

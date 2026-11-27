@@ -25,6 +25,9 @@ export const PATCH: APIRoute = async (ctx) => {
   const fields = cleanItemFields(body);
   if ("error" in fields) return fail(t(fields.error));
   const { group_size, ...plain } = fields;
+  // A gift keeps at least a name, a photo or a link.
+  const after = { ...item, ...plain } as { image_key?: string | null; product_url?: string | null; title?: string | null };
+  if (!after.image_key && !after.product_url && !after.title) return fail(t("needImage"));
 
   const sets: string[] = [];
   const values: unknown[] = [];

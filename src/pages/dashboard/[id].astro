@@ -14,6 +14,7 @@ import gifts from "@/i18n/gifts";
 import { getItems, getWishlist } from "@/lib/db";
 import { contributorsFor, reactionsFor } from "@/lib/gifts";
 import { imageUrl } from "@/lib/storage";
+import GiftArt from "@/components/gifts/GiftArt.astro";
 import Icon from "@/components/Icon.astro";
 import PriorityPicker from "@/components/gifts/PriorityPicker.astro";
 import GroupFields from "@/components/gifts/GroupFields.astro";
@@ -116,23 +117,18 @@ const shareInfo = {
       <button type="button" id="rename-cancel" class="btn btn-ghost shrink-0 !px-4 !py-2.5 text-sm">{t("cancel")}</button>
     </form>
 
-    <!-- Compact share row: link · copy · open -->
+    <!-- Share row: send (the phone's share sheet: WhatsApp, Telegram…) · copy · story & QR · open -->
     <div class="mt-4 flex items-center gap-2">
-      <div class="relative min-w-0 flex-1 sm:max-w-md">
-        <Icon name="link" class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-accent-500" />
-        <input
-          readonly
-          value={shareUrl}
-          id="share-url"
-          class="field truncate !rounded-full !bg-white !py-2.5 !pl-10 text-sm text-ink-soft shadow-soft"
-        />
-      </div>
-      <button id="copy-share" class="btn btn-soft shrink-0 !px-4 !py-3 text-sm">
-        {t("copyLink")}
+      <button type="button" id="send-list" class="btn btn-primary !px-4 !py-2.5 text-sm" data-text={t("sendText", { list: list.name })} data-title={list.name}>
+        <Icon name="share-network" weight="bold" class="h-4 w-4" />
+        {t("sendList")}
       </button>
-      <button type="button" id="open-share" class="btn btn-ghost shrink-0 !px-4 !py-3 text-sm" aria-label={t("share.title")}>
-        <Icon name="qr-code" class="h-4 w-4" />
-        <span class="hidden sm:inline">{t("share.btn")}</span>
+      <button type="button" id="copy-share" class="btn btn-soft !px-4 !py-2.5 text-sm" data-url={shareUrl}>
+        <Icon name="copy" class="h-4 w-4" />
+        <span data-label>{t("copyShort")}</span>
+      </button>
+      <button type="button" id="open-share" class="btn btn-ghost h-10 w-10 shrink-0 !p-0" aria-label={t("share.btn")} title={t("share.btn")}>
+        <Icon name="qr-code" class="h-[18px] w-[18px]" />
       </button>
       <a
         href={`/w/${list.slug}`}
@@ -145,6 +141,7 @@ const shareInfo = {
         <Icon name="arrow-square-out" class="h-[18px] w-[18px]" />
       </a>
     </div>
+    <p class="mt-1.5 truncate pl-1 text-xs text-ink-soft">{shareUrl.replace(/^https?:\/\//, "")}</p>
   </div>
 
   <div class="mt-6 grid gap-6 lg:grid-cols-[360px_1fr] lg:gap-8">
@@ -199,6 +196,7 @@ const shareInfo = {
               </span>
               <span class="mt-2 block font-semibold text-ink">{noEmoji(t("choose"))}</span>
               <span class="mt-0.5 block text-xs text-ink-soft">{t("chooseHint")}</span>
+              <span class="mt-1 hidden text-xs font-semibold text-accent-700 sm:block">{t("dropHint")}</span>
             </span>
           </label>
           <input id="item-image" name="image" type="file" accept="image/*" class="hidden" />
@@ -375,7 +373,7 @@ const shareInfo = {
           clearError();
           const rawFile = fileInput.files && fileInput.files[0];
           const productUrl = urlInput.value.trim();
-          if (!rawFile && !scrapedImageKey && !productUrl) return showError(M.needImg);
+          if (!rawFile && !scrapedImageKey && !productUrl && !titleInput.value.trim()) return showError(M.needImg);
           if (rawFile && rawFile.size > MAX_BYTES) return showError(M.tooBig);
 
           setSubmitLoading(true);
@@ -469,18 +467,7 @@ const shareInfo = {
                         data-card-img
                       />
                     ) : (
-                      <div
-                        class:list={[
-                          "flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center",
-                          reserved && "opacity-50 grayscale",
-                        ]}
-                        data-card-img
-                      >
-                        <span class="grid h-14 w-14 place-items-center rounded-2xl bg-accent-100 text-accent-600">
-                          <Icon name="gift" class="h-7 w-7" />
-                        </span>
-                        {host && <span class="max-w-full truncate text-sm font-semibold text-accent-700">{host}</span>}
-                      </div>
+                      <GiftArt id={item.id} title={item.title} host={host} class={reserved && "opacity-50 grayscale"} data-card-img />
                     )}
                     <div class:list={["absolute inset-0 grid place-items-center bg-mint/40", !reserved && "hidden"]} data-reserved-overlay>
                       <div class="flex flex-col items-center gap-1.5">
@@ -607,8 +594,8 @@ const shareInfo = {
                     {img ? (
                       <img src={img} alt="" loading="lazy" class="h-14 w-14 shrink-0 rounded-xl object-cover" />
                     ) : (
-                      <span class="grid h-14 w-14 shrink-0 place-items-center rounded-xl bg-accent-50 text-accent-500">
-                        <Icon name="gift" class="h-6 w-6" />
+                      <span class="h-14 w-14 shrink-0 overflow-hidden rounded-xl">
+                        <GiftArt id={item.id} title={item.title} size="sm" class="!p-0" />
                       </span>
                     )}
                     <span class="min-w-0 flex-1 truncate text-sm font-bold">{item.title || item.price || domain(item.product_url) || t("giftAlt")}</span>
@@ -877,6 +864,7 @@ const shareInfo = {
             </span>
             <span class="mt-2 block font-semibold text-ink">{noEmoji(t("change"))}</span>
             <span class="mt-0.5 block text-xs text-ink-soft">{t("changeHint")}</span>
+            <span class="mt-1 hidden text-xs font-semibold text-accent-700 sm:block">{t("dropHint")}</span>
           </span>
         </label>
         <input id="edit-image" type="file" accept="image/*" class="hidden" />
@@ -911,18 +899,72 @@ const shareInfo = {
   </div>
 
   <script is:inline define:vars={{ M: pageStrings }}>
-    // Copy share link
+    // Copy the list's link
     const copyBtn = document.getElementById("copy-share");
-    copyBtn?.addEventListener("click", async () => {
-      const input = document.getElementById("share-url");
+    const copyLabel = copyBtn.querySelector("[data-label]");
+    const copyLink = async () => {
       try {
-        await navigator.clipboard.writeText(input.value);
+        await navigator.clipboard.writeText(copyBtn.dataset.url);
       } catch {
-        input.select();
-        document.execCommand("copy");
+        window.prompt("", copyBtn.dataset.url);
       }
-      copyBtn.textContent = M.copied;
-      setTimeout(() => (copyBtn.textContent = M.copyLink), 1500);
+      const label = copyLabel.textContent;
+      copyLabel.textContent = M.copied;
+      setTimeout(() => (copyLabel.textContent = label), 1500);
+    };
+    copyBtn.addEventListener("click", copyLink);
+
+    // Send: the phone's share sheet (WhatsApp, Telegram, Messenger…); without one, copy the link.
+    const sendBtn = document.getElementById("send-list");
+    sendBtn.addEventListener("click", async () => {
+      const data = { title: sendBtn.dataset.title, text: sendBtn.dataset.text, url: copyBtn.dataset.url };
+      if (navigator.share && (!navigator.canShare || navigator.canShare(data))) {
+        try {
+          await navigator.share(data);
+        } catch {
+          // closed the share sheet
+        }
+      } else {
+        copyLink();
+      }
+    });
+
+    // A photo pasted (Ctrl+V) or dropped anywhere on the page goes into the photo picker:
+    // the edit window's when it's open, otherwise the "Add a gift" form's.
+    const pickerInput = () =>
+      document.getElementById(document.getElementById("edit-modal").classList.contains("hidden") ? "item-image" : "edit-image");
+    const imageFile = (files) => [...files].find((f) => f && f.type.startsWith("image/"));
+    const putFile = (input, file) => {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      input.files = dt.files;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+    document.addEventListener("paste", (e) => {
+      const file = imageFile([...(e.clipboardData?.items ?? [])].filter((i) => i.kind === "file").map((i) => i.getAsFile()));
+      if (!file) return;
+      e.preventDefault();
+      putFile(pickerInput(), file);
+    });
+    const zones = document.querySelectorAll("label[for='item-image'], label[for='edit-image']");
+    const hasFiles = (e) => [...(e.dataTransfer?.types ?? [])].includes("Files");
+    document.addEventListener("dragover", (e) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      const target = document.querySelector(`label[for='${pickerInput().id}']`);
+      zones.forEach((z) => z.classList.toggle("!border-accent-500", z === target));
+      zones.forEach((z) => z.classList.toggle("!bg-accent-50", z === target));
+    });
+    const clearZones = () => zones.forEach((z) => z.classList.remove("!border-accent-500", "!bg-accent-50"));
+    document.addEventListener("dragleave", (e) => {
+      if (!e.relatedTarget) clearZones();
+    });
+    document.addEventListener("drop", (e) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      clearZones();
+      const file = imageFile(e.dataTransfer.files);
+      if (file) putFile(pickerInput(), file);
     });
 
     // --- Rename list ---

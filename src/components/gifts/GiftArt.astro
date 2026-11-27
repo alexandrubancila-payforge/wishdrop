@@ -1,0 +1,29 @@
+---
+/**
+ * Stands in for the photo of a gift that has none: a soft tint and an icon
+ * that fits the gift's name (lib/gift-icon.ts), plus the shop's name for a
+ * link-only gift. Fills its parent; extra attributes (data-card-img) pass through.
+ */
+import Icon from "@/components/Icon.astro";
+import { giftIcon, giftTint } from "@/lib/gift-icon";
+
+interface Props {
+  id: string;
+  title?: string | null;
+  /** Shop name shown under the icon (link-only gifts). */
+  host?: string | null;
+  size?: "sm" | "md" | "lg";
+  class?: string | false | null;
+  [attr: string]: unknown;
+}
+const { id, title, host, size = "md", class: cls, ...rest } = Astro.props;
+const tile = { sm: "h-9 w-9 rounded-xl", md: "h-14 w-14 rounded-2xl", lg: "h-16 w-16 rounded-2xl" }[size];
+const icon = { sm: "h-5 w-5", md: "h-7 w-7", lg: "h-8 w-8" }[size];
+---
+
+<div class:list={["flex h-full w-full flex-col items-center justify-center gap-2 p-3 text-center", giftTint(id), cls]} aria-hidden="true" {...rest}>
+  <span class:list={["grid place-items-center bg-white/80 shadow-soft", tile]}>
+    <Icon name={giftIcon(title)} class={icon} />
+  </span>
+  {host && size !== "sm" && <span class="max-w-full truncate text-xs font-semibold opacity-80">{host}</span>}
+</div>

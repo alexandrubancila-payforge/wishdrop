@@ -19,6 +19,7 @@ import HeroArt from "@/components/list/HeroArt.astro";
 import GuestCta from "@/components/list/GuestCta.astro";
 import SeasonGreeting from "@/components/list/SeasonGreeting.astro";
 import Avatar from "@/components/Avatar.astro";
+import GiftArt from "@/components/gifts/GiftArt.astro";
 import Icon from "@/components/Icon.astro";
 import Reactions from "@/components/gifts/Reactions.astro";
 import { localePath, makeT, pick } from "@/lib/i18n";
@@ -268,9 +269,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                         data-card-img
                       />
                     ) : (
-                      <div class:list={["grid h-full w-full place-items-center bg-accent-50 text-accent-500", { "opacity-50 grayscale": reserved }]} data-card-img aria-hidden="true">
-                        <Icon name="gift" class="h-12 w-12" />
-                      </div>
+                      <GiftArt id={item.id} title={item.title} host={site} size="lg" class={reserved && "opacity-50 grayscale"} data-card-img />
                     )}
                     {(item.priority < 0 || item.group_size) && (
                       <span class="absolute left-2 top-2 flex flex-col items-start gap-1">

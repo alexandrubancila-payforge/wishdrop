@@ -4,7 +4,7 @@ import { apiT, fail, json, readJson, requireUser } from "@/lib/http";
 import { cleanItemFields } from "@/lib/items";
 import { notifyFollowers } from "@/lib/notifications";
 
-/** Add a gift: a photo (uploaded or scraped) and/or a product link, plus an optional name, price, priority and group size. */
+/** Add a gift: a name, a photo (uploaded or scraped) or a product link (at least one), plus an optional price, priority and group size. */
 export const POST: APIRoute = async (ctx) => {
   const user = requireUser(ctx);
   if (user instanceof Response) return user;
@@ -15,7 +15,7 @@ export const POST: APIRoute = async (ctx) => {
   const body = await readJson(ctx.request);
   const fields = cleanItemFields(body);
   if ("error" in fields) return fail(t(fields.error));
-  if (!fields.image_key && !fields.product_url) return fail(t("needImage"));
+  if (!fields.image_key && !fields.product_url && !fields.title) return fail(t("needImage"));
 
   const id = newId();
   await db()
