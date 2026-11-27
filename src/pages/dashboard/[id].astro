@@ -11,6 +11,9 @@ import common from "@/i18n/common";
 import strings from "@/i18n/editor";
 import social from "@/i18n/social";
 import gifts from "@/i18n/gifts";
+import dashboardStrings from "@/i18n/dashboard";
+import publiclist from "@/i18n/publiclist";
+import { plural } from "@/components/dashboard/plural";
 import { getItems, getWishlist } from "@/lib/db";
 import { contributorsFor, reactionsFor } from "@/lib/gifts";
 import { imageUrl } from "@/lib/storage";
@@ -32,6 +35,16 @@ const items = all.filter((i) => !i.received_at);
 const received = all.filter((i) => i.received_at).sort((a, b) => b.received_at! - a.received_at!);
 const [contributors, reactions] = await Promise.all([contributorsFor(list.id), reactionsFor(items.map((i) => i.id), null)]);
 const surprise = !!list.hide_reservations;
+
+// The line under the title: gift count, reserved (unless surprise mode), where it appears, event countdown.
+const tDash = makeT(lang, dashboardStrings);
+const tList = makeT(lang, publiclist);
+const reservedCount = items.filter((i) => i.reserved_at).length;
+const eventDays = list.event_date
+  ? Math.round((Date.parse(list.event_date + "T00:00:00Z") - Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())) / 86_400_000)
+  : null;
+const eventLabel =
+  eventDays === null || eventDays < 0 ? null : eventDays === 0 ? tList("event.today") : eventDays === 1 ? tList("event.tomorrow") : plural(tList, lang, "event.in", eventDays);
 const shareUrl = `${Astro.url.origin}/w/${list.slug}`;
 const domain = (url: string | null) => {
   if (!url) return "";
@@ -90,7 +103,8 @@ const shareInfo = {
 <Layout title={`${list.name} — WishDrop`} noindex mainClass="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-10">
   <a href={localePath(lang, "/dashboard")} class="inline-flex items-center text-sm font-semibold text-ink-soft transition hover:text-accent-700">{t("back")}</a>
 
-  <div class="mt-3">
+  <div class="mt-3 sm:flex sm:items-end sm:justify-between sm:gap-6">
+    <div class="min-w-0">
     <div id="title-view" class="flex items-center gap-2">
       <h1 id="wl-title" title={list.name} class="min-w-0 truncate text-3xl font-extrabold tracking-tight sm:text-4xl">
         {list.name}
@@ -207,8 +221,25 @@ const shareInfo = {
       <button type="button" id="rename-cancel" class="btn btn-ghost shrink-0 !px-4 !py-2.5 text-sm">{t("cancel")}</button>
     </form>
 
-    <!-- Share row: send (the phone's share sheet: WhatsApp, Telegram…) · copy · story & QR · open -->
-    <div class="mt-4 flex items-center gap-2">
+    <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
+      <span class="inline-flex items-center gap-1"><Icon name="gift" class="h-4 w-4" />{plural(tDash, lang, "gifts", items.length)}</span>
+      {!surprise && reservedCount > 0 && (
+        <span class="inline-flex items-center gap-1 text-mint-ink"><Icon name="check-circle" class="h-4 w-4" />{tDash("reservedN", { n: reservedCount })}</span>
+      )}
+      <span class="inline-flex items-center gap-1">
+        <Icon name={list.visibility === "public" ? "globe" : list.visibility === "followers" ? "users" : "link"} class="h-4 w-4" />
+        {t(`vis.${list.visibility}`)}
+      </span>
+      {eventLabel && (
+        <span class="inline-flex items-center gap-1 font-semibold text-accent-700"><Icon name="calendar-blank" class="h-4 w-4" />{eventLabel}</span>
+      )}
+    </p>
+    </div>
+
+    <!-- Share row: send (the phone's share sheet: WhatsApp, Telegram…) · copy · story & QR · open.
+         On wider screens it sits on the right of the title, with the address under it. -->
+    <div class="mt-4 shrink-0 sm:mt-0">
+    <div class="flex items-center gap-2">
       <button type="button" id="send-list" class="btn btn-primary !px-4 !py-2.5 text-sm" data-text={t("sendText", { list: list.name })} data-title={list.name}>
         <Icon name="share-network" weight="bold" class="h-4 w-4" />
         {t("sendList")}
@@ -231,7 +262,8 @@ const shareInfo = {
         <Icon name="arrow-square-out" class="h-[18px] w-[18px]" />
       </a>
     </div>
-    <p class="mt-1.5 truncate pl-1 text-xs text-ink-soft">{shareUrl.replace(/^https?:\/\//, "")}</p>
+    <p class="mt-1.5 truncate pl-1 text-xs text-ink-soft sm:text-right">{shareUrl.replace(/^https?:\/\//, "")}</p>
+    </div>
   </div>
 
   <div class="mt-6 grid gap-6 lg:grid-cols-[360px_1fr] lg:gap-8">
@@ -573,7 +605,7 @@ const shareInfo = {
                         </p>
                       </div>
                     </div>
-                    <span class="absolute left-2 top-2 flex flex-col items-start gap-1">
+                    <span class="absolute bottom-2 left-2 flex flex-col items-start gap-1">
                     {(item.priority < 0 || item.group_size) && (
                       <>
                         {item.group_size && (
@@ -594,19 +626,21 @@ const shareInfo = {
                     </span>
                   </a>
                   {/* "Most wanted" star and the "⋯" menu — OUTSIDE the image link so tapping them never opens the product. */}
-                  <div class="absolute right-4 top-4 z-10 flex gap-1.5 sm:right-5 sm:top-5">
-                    <button
-                      type="button"
-                      data-priority-btn
-                      aria-pressed={item.priority > 0 ? "true" : "false"}
-                      aria-label={t("favourite")}
-                      title={t("favourite")}
-                      class:list={["priority-star grid h-8 w-8 place-items-center rounded-full transition", item.priority > 0 && "is-priority"]}
-                    >
-                      <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" aria-hidden="true">
-                        <path d="M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2l3.086 6.253 6.9 1.002-4.993 4.867 1.179 6.873z" />
-                      </svg>
-                    </button>
+                  <div class="absolute left-4 top-4 z-10 sm:left-5 sm:top-5">
+                      <button
+                        type="button"
+                        data-priority-btn
+                        aria-pressed={item.priority > 0 ? "true" : "false"}
+                        aria-label={t("favourite")}
+                        title={t("favourite")}
+                        class:list={["priority-star grid h-8 w-8 place-items-center rounded-full transition", item.priority > 0 && "is-priority"]}
+                      >
+                        <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" aria-hidden="true">
+                          <path d="M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2l3.086 6.253 6.9 1.002-4.993 4.867 1.179 6.873z" />
+                        </svg>
+                      </button>
+                  </div>
+                  <div class="absolute right-4 top-4 z-10 sm:right-5 sm:top-5">
                     <button
                       type="button"
                       data-menu-btn
