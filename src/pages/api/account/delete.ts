@@ -23,7 +23,7 @@ export const POST: APIRoute = async (ctx) => {
     db().prepare("DELETE FROM wishlists WHERE user_id = ?").bind(user.id),
     db().prepare("DELETE FROM users WHERE id = ?").bind(user.id),
   ]);
-  await Promise.all([...photos.map((p) => deleteImage(p.image_key)), deleteImage(keyFromUrl(user.avatar_url))]);
+  await Promise.all([...photos.map((p) => deleteImage(p.image_key)), deleteImage(keyFromUrl(user.avatar_url)), deleteImage(keyFromUrl(user.cover_url))]);
   endSession(ctx.cookies);
   return json({ ok: true });
 };

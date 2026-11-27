@@ -7,6 +7,7 @@
 import Layout from "@/layouts/Layout.astro";
 import Avatar from "@/components/Avatar.astro";
 import Icon from "@/components/Icon.astro";
+import CoverPhoto from "@/components/social/CoverPhoto.astro";
 import FollowButton from "@/components/social/FollowButton.astro";
 import ProfileListCard from "@/components/social/ProfileListCard.astro";
 import { localePath, makeT } from "@/lib/i18n";
@@ -52,7 +53,10 @@ const stats = [
   mainClass="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10"
 >
   <!-- Profile header -->
-  <section class="card relative px-5 pt-8 text-center sm:px-8">
+  <section class="card relative px-5 pt-16 text-center sm:px-8 sm:pt-20">
+    <div class="absolute inset-x-0 top-0 h-28 overflow-hidden rounded-t-[inherit] sm:h-32">
+      <CoverPhoto url={owner.cover_url} editable={rel === "self"} />
+    </div>
     <button
       type="button"
       id="share-profile"
@@ -98,7 +102,7 @@ const stats = [
       )
     }
 
-    <div class="mx-auto w-fit rounded-full shadow-[0_0_0_10px_var(--color-accent-100)] ring-4 ring-white">
+    <div class="relative mx-auto w-fit rounded-full ring-4 ring-white">
       <Avatar user={owner} size={96} class="h-24 w-24" alt={name} />
     </div>
     <h1 class="mt-5 flex items-center justify-center gap-2 text-2xl font-extrabold tracking-tight sm:text-3xl">

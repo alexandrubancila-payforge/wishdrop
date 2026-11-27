@@ -12,6 +12,8 @@ export interface User {
   google_id: string | null;
   name: string | null;
   avatar_url: string | null;
+  /** Banner photo behind the avatar (same kind of URL as avatar_url). */
+  cover_url: string | null;
   email_verified: number;
   verify_token: string | null;
   verify_expires: number | null;
@@ -123,7 +125,7 @@ export async function createUser(u: {
 const USER_COLUMNS = new Set([
   "password_hash", "google_id", "name", "avatar_url", "email_verified", "verify_token",
   "verify_expires", "reset_token", "reset_expires", "birthday", "disable_seasons",
-  "username", "bio", "is_private", "reminder_emails", "lang", "show_in_popular",
+  "username", "bio", "is_private", "reminder_emails", "lang", "show_in_popular", "cover_url",
 ]);
 
 export async function updateUser(id: string, fields: Partial<User>) {

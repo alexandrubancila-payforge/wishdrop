@@ -252,6 +252,18 @@ body {
     stroke: currentColor;
   }
 
+  /* Cover photo buttons (components/social/CoverPhoto.astro): always on phones, on hover with a mouse. */
+  @media (hover: hover) {
+    .cover-actions {
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+    .cover-photo:hover .cover-actions,
+    .cover-actions:focus-within {
+      opacity: 1;
+    }
+  }
+
   /* List settings panel (list editor): a check on the chosen "where it appears" option. */
   .settings-check {
     opacity: 0;

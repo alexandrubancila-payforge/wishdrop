@@ -3,6 +3,9 @@ import type { Bundle } from "@/lib/i18n";
 /** Header, footer, mobile tab bar and the shared modals. */
 export default {
   ro: {
+    "cover.change": "Schimbă coperta",
+    "cover.remove": "Scoate coperta",
+    "cover.fail": "Nu am putut încărca poza. Încearcă alta.",
     "nav.profileShort": "Profil",
     "nav.listsShort": "Liste",
     "nav.example": "Exemplu",
@@ -64,6 +67,9 @@ export default {
     "ph.listName": "Numele listei",
   },
   en: {
+    "cover.change": "Change cover photo",
+    "cover.remove": "Remove cover photo",
+    "cover.fail": "Couldn't upload the photo. Try another one.",
     "nav.profileShort": "Profile",
     "nav.listsShort": "Lists",
     "nav.example": "Example",
@@ -125,6 +131,9 @@ export default {
     "ph.listName": "List name",
   },
   de: {
+    "cover.change": "Titelbild ändern",
+    "cover.remove": "Titelbild entfernen",
+    "cover.fail": "Das Foto konnte nicht hochgeladen werden. Versuch ein anderes.",
     "nav.profileShort": "Profil",
     "nav.listsShort": "Listen",
     "nav.example": "Beispiel",
@@ -186,6 +195,9 @@ export default {
     "ph.listName": "Name der Liste",
   },
   ru: {
+    "cover.change": "Сменить обложку",
+    "cover.remove": "Убрать обложку",
+    "cover.fail": "Не удалось загрузить фото. Попробуйте другое.",
     "nav.profileShort": "Профиль",
     "nav.listsShort": "Списки",
     "nav.example": "Пример",

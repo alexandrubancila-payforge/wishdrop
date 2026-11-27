@@ -1,0 +1,86 @@
+---
+/**
+ * The banner behind an avatar: the person's cover photo, or the soft brand
+ * tint. With `editable` (your own banner) it gets a camera button that uploads
+ * a new photo right away (through /api/upload, so the photo check applies)
+ * and, when there is one, a button to remove it. Fills its parent.
+ */
+import Icon from "@/components/Icon.astro";
+import { makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+
+interface Props {
+  url: string | null | undefined;
+  editable?: boolean;
+  class?: string;
+}
+const { url, editable = false, class: cls } = Astro.props;
+const t = makeT(Astro.locals.lang, common);
+---
+
+<div class:list={["cover-photo relative h-full w-full overflow-hidden bg-accent-100", cls]} data-cover>
+  {url && <img src={url} alt="" class="h-full w-full object-cover" />}
+  {
+    editable && (
+      <div class="cover-actions absolute bottom-2 right-2 flex gap-1.5">
+        {url && (
+          <button type="button" data-cover-remove class="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-ink-soft shadow-soft transition hover:text-rose-600" aria-label={t("cover.remove")} title={t("cover.remove")}>
+            <Icon name="trash" class="h-4 w-4" />
+          </button>
+        )}
+        <label class="grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-white/90 text-accent-600 shadow-soft transition hover:text-accent-700" aria-label={t("cover.change")} title={t("cover.change")}>
+          <Icon name="camera" class="h-4 w-4" />
+          <input type="file" accept="image/*" class="hidden" data-cover-input data-fail={t("cover.fail")} />
+        </label>
+      </div>
+    )
+  }
+</div>
+
+<script>
+  // Upload: shrink to 1600px wide (WebP), store it, save it on the account, reload to show it everywhere.
+  async function shrink(file: File) {
+    try {
+      const bmp = await createImageBitmap(file);
+      const scale = Math.min(1, 1600 / bmp.width);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bmp.width * scale);
+      canvas.height = Math.round(bmp.height * scale);
+      canvas.getContext("2d")!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, "image/webp", 0.85));
+      return blob && blob.size < file.size ? new File([blob], "cover.webp", { type: "image/webp" }) : file;
+    } catch {
+      return file;
+    }
+  }
+  const save = (cover_url: string | null) =>
+    fetch("/api/account/profile", { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ cover_url }) });
+
+  document.querySelectorAll<HTMLInputElement>("[data-cover-input]").forEach((input) => {
+    input.addEventListener("change", async () => {
+      const raw = input.files?.[0];
+      if (!raw) return;
+      const box = input.closest<HTMLElement>("[data-cover]")!;
+      box.classList.add("animate-pulse");
+      try {
+        const fd = new FormData();
+        fd.append("file", await shrink(raw));
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok || !data.url) throw new Error(data.error);
+        if (!(await save(String(data.url).split("?")[0])).ok) throw new Error();
+        location.reload();
+      } catch (e) {
+        box.classList.remove("animate-pulse");
+        alert((e instanceof Error && e.message) || input.dataset.fail);
+      }
+    });
+  });
+  document.querySelectorAll<HTMLButtonElement>("[data-cover-remove]").forEach((b) =>
+    b.addEventListener("click", async () => {
+      b.disabled = true;
+      if ((await save(null)).ok) location.reload();
+      else b.disabled = false;
+    }),
+  );
+</script>

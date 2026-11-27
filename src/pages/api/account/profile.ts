@@ -4,7 +4,7 @@ import { apiT, fail, json, readJson, requireUser } from "@/lib/http";
 import { deleteImage, keyFromUrl } from "@/lib/storage";
 import { acceptAllPending, getUserByUsername, normalizeUsername, usernameProblem } from "@/lib/social";
 
-/** Settings form: name, birthday, avatar, and the public profile (username, bio, private). */
+/** Settings form: name, birthday, avatar, cover photo, and the public profile (username, bio, private). */
 export const PATCH: APIRoute = async (ctx) => {
   const user = requireUser(ctx);
   if (user instanceof Response) return user;
@@ -13,6 +13,7 @@ export const PATCH: APIRoute = async (ctx) => {
     name?: string;
     birthday?: string;
     avatar_url?: string | null;
+    cover_url?: string | null;
     username?: string | null;
     bio?: string | null;
     is_private?: boolean;
@@ -34,6 +35,12 @@ export const PATCH: APIRoute = async (ctx) => {
     if (url && !keyFromUrl(url)) return fail(t("error"));
     if (keyFromUrl(user.avatar_url) && user.avatar_url !== url) await deleteImage(keyFromUrl(user.avatar_url));
     fields.avatar_url = url || null;
+  }
+  if ("cover_url" in body) {
+    const url = body.cover_url;
+    if (url && !keyFromUrl(url)) return fail(t("error"));
+    if (keyFromUrl(user.cover_url) && user.cover_url !== url) await deleteImage(keyFromUrl(user.cover_url));
+    fields.cover_url = url || null;
   }
   if ("username" in body) {
     const username = normalizeUsername(body.username);

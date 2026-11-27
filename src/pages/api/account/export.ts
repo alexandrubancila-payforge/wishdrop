@@ -46,6 +46,7 @@ export const GET: APIRoute = async (ctx) => {
       bio: user.bio,
       birthday: user.birthday,
       avatar_url: user.avatar_url,
+      cover_url: user.cover_url,
       private_profile: !!user.is_private,
       created_at: user.created_at,
     },
