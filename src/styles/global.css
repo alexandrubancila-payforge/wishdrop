@@ -252,6 +252,35 @@ body {
     stroke: currentColor;
   }
 
+  /* Rows in a gift's "⋯" menu (list editor). */
+  .item-menu-row {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 0.65rem;
+    border-radius: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--color-ink);
+    transition: background-color 0.15s;
+  }
+  .item-menu-row:hover {
+    background: var(--color-sand);
+  }
+  .menu-star svg {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6px;
+    stroke-linejoin: round;
+  }
+  .menu-star.is-priority {
+    color: var(--color-accent-700);
+  }
+  .menu-star.is-priority svg {
+    fill: currentColor;
+  }
+
   .reserve-choice {
     display: flex;
     align-items: center;

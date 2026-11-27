@@ -10,6 +10,7 @@ import { getUserWishlists } from "@/lib/db";
 import { imageUrl } from "@/lib/storage";
 import { plural } from "@/components/dashboard/plural";
 import Icon from "@/components/Icon.astro";
+import GiftArt from "@/components/gifts/GiftArt.astro";
 
 const { lang } = Astro.locals;
 const user = Astro.locals.user!;
@@ -152,9 +153,13 @@ const resendStr = pick(t, { resend: "js.resend", sending: "js.sending", sent: "j
                         covers.length === 3 && "grid-cols-[3fr_2fr] grid-rows-2",
                       ]}
                     >
-                      {covers.map((key, i) => (
+                      {covers.map((c, i) => (
                         <div class:list={["relative overflow-hidden bg-sand", covers.length === 3 && i === 0 && "row-span-2"]}>
-                          <img src={imageUrl(key)} alt="" loading="lazy" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" />
+                          {c.image_key ? (
+                            <img src={imageUrl(c.image_key)} alt="" loading="lazy" class="h-full w-full object-cover transition duration-500 group-hover:scale-[1.05]" />
+                          ) : (
+                            <GiftArt id={c.id} title={c.title} size={covers.length === 1 || i === 0 ? "md" : "sm"} />
+                          )}
                         </div>
                       ))}
                     </div>
@@ -196,6 +201,12 @@ const resendStr = pick(t, { resend: "js.resend", sending: "js.sending", sent: "j
                           <Icon name="gift" class="h-4 w-4" />
                           {empty ? t("noGifts") : plural(t, lang, "gifts", wl.item_count)}
                         </span>
+                        {!empty && wl.reserved_count > 0 && !wl.hide_reservations && (
+                          <span class="inline-flex items-center gap-1 text-mint-ink">
+                            <Icon name="check-circle" class="h-4 w-4" />
+                            {t("reservedN", { n: wl.reserved_count })}
+                          </span>
+                        )}
                         {event && (
                           <span class="inline-flex items-center gap-1 font-semibold text-accent-700">
                             <Icon name="calendar-blank" class="h-4 w-4" />
@@ -224,16 +235,25 @@ const resendStr = pick(t, { resend: "js.resend", sending: "js.sending", sent: "j
                       <Icon name="trash" class="h-[18px] w-[18px]" />
                     </button>
                   </div>
-                  <div class="mt-auto grid grid-cols-[1fr_auto] gap-2 pt-4">
-                    <a href={editUrl(wl.id)} class="btn btn-primary !px-4 !py-3 text-sm">
-                      <Icon name={empty ? "plus" : "pencil-simple"} weight={empty ? "bold" : "regular"} class="h-4 w-4" />
-                      {empty ? t("addGifts") : t("editList")}
-                    </a>
-                    <button data-copy-btn data-url={shareUrl(wl.slug)} class="btn btn-soft !px-4 !py-3 text-sm">
-                      <Icon name="link" class="h-4 w-4" />
-                      <span data-copy-label>{t("copyLink")}</span>
-                    </button>
-                  </div>
+                  {empty ? (
+                    <div class="mt-auto pt-4">
+                      <a href={editUrl(wl.id)} class="btn btn-primary w-full !px-4 !py-3 text-sm">
+                        <Icon name="plus" weight="bold" class="h-4 w-4" />
+                        {t("addGifts")}
+                      </a>
+                    </div>
+                  ) : (
+                    <div class="mt-auto grid grid-cols-2 gap-2 pt-4">
+                      <button data-send-btn data-url={shareUrl(wl.slug)} data-title={wl.name} data-text={t("sendText", { list: wl.name })} class="btn btn-primary !px-4 !py-3 text-sm">
+                        <Icon name="paper-plane-tilt" class="h-4 w-4" />
+                        <span data-send-label>{t("send")}</span>
+                      </button>
+                      <a href={editUrl(wl.id)} class="btn btn-soft !px-4 !py-3 text-sm">
+                        <Icon name="pencil-simple" class="h-4 w-4" />
+                        {t("editShort")}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </li>
             );
@@ -307,16 +327,23 @@ const resendStr = pick(t, { resend: "js.resend", sending: "js.sending", sent: "j
       }
     });
 
-    document.querySelectorAll("[data-copy-btn]").forEach((b) => {
-      const label = b.querySelector("[data-copy-label]");
+    // Send: the phone's share sheet (WhatsApp, Telegram…); without one, copy the link.
+    document.querySelectorAll("[data-send-btn]").forEach((b) => {
+      const label = b.querySelector("[data-send-label]");
       b.addEventListener("click", async () => {
+        const data = { title: b.dataset.title, text: b.dataset.text, url: b.dataset.url };
+        if (navigator.share && (!navigator.canShare || navigator.canShare(data))) {
+          try {
+            await navigator.share(data);
+          } catch {}
+          return;
+        }
         try {
           await navigator.clipboard.writeText(b.dataset.url);
         } catch {}
-        if (label) {
-          label.textContent = jsStr.copied;
-          setTimeout(() => (label.textContent = jsStr.copyLink), 1500);
-        }
+        const text = label.textContent;
+        label.textContent = jsStr.copied;
+        setTimeout(() => (label.textContent = text), 1500);
       });
     });
 

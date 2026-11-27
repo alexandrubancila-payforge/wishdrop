@@ -163,6 +163,8 @@ for n in range(40):  # alternating lists: every gift is its own post
 s, page = call(fa, "GET", "/feed")
 first = re.findall(r">(\d+)0 feedlei<", page)
 nxt = re.search(r'data-next="([^"]*)"', page)
+s, spage = call(fa, "GET", "/search")
+check("find friends shows invite and suggestions", s == 200 and 'id="invite-btn"' in spage and 'id="search-idle"' in spage, s)
 check("friend with new gifts gets a bubble", 'data-story="new:' in page and re.search(r'class="story-name"[^>]*>Feedb<', page), "")
 check("feed shows the first page", s == 200 and len(first) == 29 and "39" in first, (s, len(first)))
 check("feed has a next page", bool(nxt and nxt.group(1)), "")

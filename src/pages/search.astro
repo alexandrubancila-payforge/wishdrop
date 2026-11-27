@@ -10,6 +10,8 @@ import social from "@/i18n/social";
 import { db } from "@/lib/db";
 import { searchUsers, type Relation } from "@/lib/social";
 import { plural } from "@/components/dashboard/plural";
+import { suggestedPeople } from "@/lib/feed";
+import feedStrings from "@/i18n/feed";
 
 const { lang, user } = Astro.locals;
 const t = makeT(lang, common, social);
@@ -25,6 +27,12 @@ if (user && results.length) {
   for (const r of rows) mine.set(r.followee_id, r.status === "accepted" ? "following" : "requested");
 }
 const relTo = (id: string): Relation => (user?.id === id ? "self" : (mine.get(id) ?? "none"));
+
+// Before a search: an invite to send your profile link, and people you could follow.
+const suggestions = user ? await suggestedPeople(user.id, 8) : [];
+const tFeed = makeT(lang, feedStrings);
+const profileUrl = user?.username ? `${Astro.url.origin}/@${user.username}` : null;
+const firstWord = (s: string) => (s.startsWith("@") ? s : s.trim().split(/\s+/)[0]);
 ---
 
 <Layout title={`${t("search.title")} — WishDrop`} noindex mainClass="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
@@ -74,6 +82,38 @@ const relTo = (id: string): Relation => (user?.id === id ? "self" : (mine.get(id
       </div>
     )
   }
+
+  {/* Shown while the search box is empty; the script hides it during a search. */}
+  <div id="search-idle" hidden={q.length > 0}>
+    {
+      profileUrl && (
+        <div class="mt-6 flex items-center gap-3 rounded-3xl bg-mint p-4 text-mint-ink">
+          <Icon name="whatsapp-logo" class="h-8 w-8 shrink-0" />
+          <div class="min-w-0 flex-1">
+            <p class="font-bold">{t("invite.title")}</p>
+            <p class="text-sm opacity-80">{t("invite.text")}</p>
+          </div>
+          <button type="button" id="invite-btn" data-url={profileUrl} data-text={t("invite.message")} class="btn shrink-0 !bg-mint-ink !px-4 !py-2.5 text-sm !text-white">
+            {t("invite.btn")}
+          </button>
+        </div>
+      )
+    }
+    {
+      suggestions.length > 0 && (
+        <section class="mt-8">
+          <h2 class="text-lg font-extrabold">{t("suggest.title")}</h2>
+          <ul class="card mt-3 divide-y divide-line px-5">
+            {suggestions.map((p) => (
+              <PersonRow person={p} meta={p.via ? t("suggest.via", { name: firstWord(p.via) }) : tFeed("lists", { n: p.lists })}>
+                <FollowButton username={p.username} relation="none" isPrivate={!!p.is_private} size="sm" />
+              </PersonRow>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </div>
 
   <!-- Shown in #search-results while a search is loading. -->
   <template id="search-skeleton">
@@ -159,7 +199,23 @@ const relTo = (id: string): Relation => (user?.id === id ? "self" : (mine.get(id
       }
     }
 
+    // Invite: the phone's share sheet; on a computer, WhatsApp Web with the message ready.
+    const invite = document.getElementById("invite-btn");
+    invite?.addEventListener("click", async () => {
+      const url = invite.dataset.url!;
+      const text = invite.dataset.text!;
+      if (navigator.share) {
+        try {
+          await navigator.share({ text, url });
+        } catch {}
+      } else {
+        window.open(`https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`, "_blank", "noopener");
+      }
+    });
+
+    const idle = document.getElementById("search-idle");
     input.addEventListener("input", () => {
+      if (idle) idle.hidden = input.value.trim().length > 0;
       clearTimeout(timer);
       timer = window.setTimeout(run, 250);
     });

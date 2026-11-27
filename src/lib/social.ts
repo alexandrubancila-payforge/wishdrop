@@ -7,7 +7,7 @@
  *   'public' for anyone who can see the profile, 'followers' for accepted
  *   followers only, 'link' nowhere. The /w/<slug> link works in every case.
  */
-import { db, now, type User, type Wishlist } from "./db";
+import { type Cover, db, now, type User, type Wishlist } from "./db";
 import { findableSql } from "./blocks";
 import { forgetFollow, notify } from "./notifications";
 
@@ -110,15 +110,16 @@ export async function profileLists(owner: User, rel: Relation) {
     .all<Wishlist & { visibility: Visibility; item_count: number; available_count: number }>();
   const covers = await db()
     .prepare(
-      `SELECT wishlist_id, image_key FROM items
-        WHERE image_key <> '' AND received_at IS NULL AND wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)
-        ORDER BY priority DESC, created_at DESC`,
+      // Photos first; gifts without one fill the collage with their icon (components/gifts/GiftArt.astro).
+      `SELECT wishlist_id, id, title, image_key FROM items
+        WHERE received_at IS NULL AND wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)
+        ORDER BY image_key <> '' DESC, priority DESC, created_at DESC`,
     )
     .bind(owner.id)
-    .all<{ wishlist_id: string; image_key: string }>();
+    .all<Cover & { wishlist_id: string }>();
   return results.map((w) => ({
     ...w,
-    covers: covers.results.filter((c) => c.wishlist_id === w.id).map((c) => c.image_key).slice(0, 4),
+    covers: covers.results.filter((c) => c.wishlist_id === w.id).slice(0, 4).map(({ id, title, image_key }) => ({ id, title, image_key })),
   }));
 }
 

@@ -143,6 +143,13 @@ export const getWishlistBySlug = (slug: string) =>
   db().prepare("SELECT * FROM wishlists WHERE slug = ?").bind(slug).first<Wishlist>();
 
 /** A user's lists, newest first, with item counts and up to four cover images. */
+/** One tile of a list's cover collage: a gift's photo, or its icon when it has none. */
+export interface Cover {
+  id: string;
+  title: string | null;
+  image_key: string;
+}
+
 export async function getUserWishlists(userId: string) {
   const { results } = await db()
     .prepare(
@@ -155,15 +162,16 @@ export async function getUserWishlists(userId: string) {
     .all<Wishlist & { item_count: number; reserved_count: number }>();
   const covers = await db()
     .prepare(
-      `SELECT wishlist_id, image_key FROM items
-        WHERE image_key <> '' AND received_at IS NULL AND wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)
-        ORDER BY priority DESC, created_at DESC`,
+      // Photos first; gifts without one fill the collage with their icon (components/gifts/GiftArt.astro).
+      `SELECT wishlist_id, id, title, image_key FROM items
+        WHERE received_at IS NULL AND wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)
+        ORDER BY image_key <> '' DESC, priority DESC, created_at DESC`,
     )
     .bind(userId)
-    .all<{ wishlist_id: string; image_key: string }>();
+    .all<Cover & { wishlist_id: string }>();
   return results.map((w) => ({
     ...w,
-    covers: covers.results.filter((c) => c.wishlist_id === w.id).map((c) => c.image_key).slice(0, 4),
+    covers: covers.results.filter((c) => c.wishlist_id === w.id).slice(0, 4).map(({ id, title, image_key }) => ({ id, title, image_key })),
   }));
 }
 

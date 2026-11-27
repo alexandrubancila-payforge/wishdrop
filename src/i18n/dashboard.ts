@@ -3,6 +3,10 @@ import type { Bundle } from "@/lib/i18n";
 /** /dashboard — "My lists". */
 export default {
   ro: {
+    reservedN: "{n} rezervate",
+    send: "Trimite",
+    sendText: "Uite lista mea de dorințe „{list}”:",
+    editShort: "Editează",
     title: "Listele mele — WishDrop",
     hi: "Salut, {name}!",
     intro: "Creează liste de cadouri și împarte linkul public cu cei dragi.",
@@ -39,6 +43,10 @@ export default {
     viewPublic: "Vezi lista cum o văd prietenii",
   },
   en: {
+    reservedN: "{n} reserved",
+    send: "Send",
+    sendText: "Here's my wish list “{list}”:",
+    editShort: "Edit",
     title: "My lists — WishDrop",
     hi: "Hi, {name}!",
     intro: "Create gift lists and share the public link with your loved ones.",
@@ -71,6 +79,10 @@ export default {
     viewPublic: "See the list as your friends do",
   },
   de: {
+    reservedN: "{n} reserviert",
+    send: "Senden",
+    sendText: "Hier ist meine Wunschliste „{list}“:",
+    editShort: "Bearbeiten",
     title: "Meine Listen — WishDrop",
     hi: "Hallo, {name}!",
     intro: "Erstelle Geschenklisten und teile den öffentlichen Link mit deinen Liebsten.",
@@ -103,6 +115,10 @@ export default {
     viewPublic: "Liste so ansehen, wie Freunde sie sehen",
   },
   ru: {
+    reservedN: "забронировано: {n}",
+    send: "Отправить",
+    sendText: "Мой список желаний «{list}»:",
+    editShort: "Изменить",
     title: "Мои списки — WishDrop",
     hi: "Привет, {name}!",
     intro: "Создавайте списки подарков и делитесь публичной ссылкой с близкими.",

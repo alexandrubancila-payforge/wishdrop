@@ -3,6 +3,12 @@ import type { Bundle } from "@/lib/i18n";
 /** Profiles, search, following, requests, and list visibility. */
 export default {
   ro: {
+    "invite.title": "Invită-ți prietenii",
+    "invite.text": "Le trimiți linkul profilului tău",
+    "invite.btn": "Trimite",
+    "invite.message": "Hai pe WishDrop! Uite profilul meu, cu listele de dorințe:",
+    "suggest.title": "Pe cine poți urmări",
+    "suggest.via": "urmărit de {name}",
     "nav.search": "Caută",
     "nav.profile": "Profilul meu",
     "nav.requests": "Cereri de urmărire",
@@ -106,6 +112,12 @@ export default {
     "profile.blockedText": "Nu vă mai vedeți profilurile și nu vă puteți urmări. Îl poți debloca oricând.",
   },
   en: {
+    "invite.title": "Invite your friends",
+    "invite.text": "Send them your profile link",
+    "invite.btn": "Send",
+    "invite.message": "Join me on WishDrop! Here's my profile with my wish lists:",
+    "suggest.title": "People you could follow",
+    "suggest.via": "followed by {name}",
     "nav.search": "Search",
     "nav.profile": "My profile",
     "nav.requests": "Follow requests",
@@ -207,6 +219,12 @@ export default {
     "profile.blockedText": "You can't see each other's profiles or follow each other. You can unblock any time.",
   },
   de: {
+    "invite.title": "Lade deine Freunde ein",
+    "invite.text": "Schick ihnen den Link zu deinem Profil",
+    "invite.btn": "Senden",
+    "invite.message": "Komm zu WishDrop! Hier ist mein Profil mit meinen Wunschlisten:",
+    "suggest.title": "Wem du folgen könntest",
+    "suggest.via": "folgt {name}",
     "nav.search": "Suchen",
     "nav.profile": "Mein Profil",
     "nav.requests": "Folgeanfragen",
@@ -308,6 +326,12 @@ export default {
     "profile.blockedText": "Ihr seht eure Profile nicht mehr und könnt euch nicht folgen. Du kannst die Blockierung jederzeit aufheben.",
   },
   ru: {
+    "invite.title": "Пригласите друзей",
+    "invite.text": "Отправьте им ссылку на свой профиль",
+    "invite.btn": "Отправить",
+    "invite.message": "Присоединяйся к WishDrop! Вот мой профиль со списками желаний:",
+    "suggest.title": "На кого подписаться",
+    "suggest.via": "подписан(а) {name}",
     "nav.search": "Поиск",
     "nav.profile": "Мой профиль",
     "nav.requests": "Запросы на подписку",

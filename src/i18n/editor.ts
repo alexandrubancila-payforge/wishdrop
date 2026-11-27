@@ -3,6 +3,12 @@ import type { Bundle } from "@/lib/i18n";
 /** /dashboard/<id> — the list editor. */
 export default {
   ro: {
+    "menu.more": "Mai multe",
+    "menu.open": "Deschide produsul",
+    "menu.received": "L-am primit",
+    "menu.wanted": "Îmi doresc foarte mult",
+    "menu.delete": "Șterge",
+    editShort: "Editează",
     back: "← Înapoi la liste",
     rename: "Editează cadoul",
     save: "Salvează",
@@ -81,6 +87,12 @@ export default {
     listSettingsText: "Cine vede lista, modul surpriză și data evenimentului.",
   },
   en: {
+    "menu.more": "More",
+    "menu.open": "Open the product",
+    "menu.received": "I got it",
+    "menu.wanted": "I really want this",
+    "menu.delete": "Delete",
+    editShort: "Edit",
     back: "← Back to lists",
     rename: "Edit gift",
     save: "Save",
@@ -159,6 +171,12 @@ export default {
     listSettingsText: "Who sees the list, surprise mode and the event date.",
   },
   de: {
+    "menu.more": "Mehr",
+    "menu.open": "Produkt öffnen",
+    "menu.received": "Hab ich bekommen",
+    "menu.wanted": "Wünsche ich mir sehr",
+    "menu.delete": "Löschen",
+    editShort: "Bearbeiten",
     back: "← Zurück zu den Listen",
     rename: "Geschenk bearbeiten",
     save: "Speichern",
@@ -237,6 +255,12 @@ export default {
     listSettingsText: "Wer die Liste sieht, Überraschungsmodus und das Datum des Anlasses.",
   },
   ru: {
+    "menu.more": "Ещё",
+    "menu.open": "Открыть товар",
+    "menu.received": "Я получил(а)",
+    "menu.wanted": "Очень хочу",
+    "menu.delete": "Удалить",
+    editShort: "Изменить",
     back: "← Назад к спискам",
     rename: "Редактировать подарок",
     save: "Сохранить",

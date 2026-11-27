@@ -483,8 +483,13 @@ const shareInfo = {
                         </p>
                       </div>
                     </div>
+                    <span class="absolute left-2 top-2 flex flex-col items-start gap-1">
+                      <span data-priority-badge class:list={["chip bg-accent-500 text-white shadow-soft", item.priority <= 0 && "hidden"]}>
+                        <Icon name="star" weight="fill" class="h-3.5 w-3.5" />
+                        {t("prio.short.1")}
+                      </span>
                     {(item.priority < 0 || item.group_size) && (
-                      <span class="absolute left-2 top-2 flex flex-col items-start gap-1">
+                      <>
                         {item.group_size && (
                           <span class="chip bg-white/95 text-mint-ink shadow-soft">
                             <Icon name="users-three" weight="bold" class="h-3.5 w-3.5" />
@@ -498,24 +503,46 @@ const shareInfo = {
                             {t("prio.short.-1")}
                           </span>
                         )}
-                      </span>
+                      </>
                     )}
+                    </span>
                   </a>
-                  {/* "Most wanted" star — kept OUTSIDE the image link so tapping it never
-                      navigates. Toggle for the owner, indicator for visitors. */}
-                  <button
-                    data-priority-btn
-                    aria-label={t("favourite")}
-                    title={t("favourite")}
-                    class:list={[
-                      "priority-star absolute right-4 top-4 z-10 grid h-8 w-8 place-items-center rounded-full transition sm:right-5 sm:top-5",
-                      item.priority > 0 && "is-priority",
-                    ]}
-                  >
-                    <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]">
-                      <path d="M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2l3.086 6.253 6.9 1.002-4.993 4.867 1.179 6.873z" />
-                    </svg>
-                  </button>
+                  {/* "⋯" menu — OUTSIDE the image link so tapping it never opens the product. */}
+                  <div class="absolute right-4 top-4 z-10 sm:right-5 sm:top-5">
+                    <button
+                      type="button"
+                      data-menu-btn
+                      aria-haspopup="menu"
+                      aria-expanded="false"
+                      aria-label={t("menu.more")}
+                      title={t("menu.more")}
+                      class="grid h-8 w-8 place-items-center rounded-full bg-white/95 text-ink shadow-soft transition hover:scale-105"
+                    >
+                      <Icon name="dots-three" weight="bold" class="h-5 w-5" />
+                    </button>
+                    <div data-item-menu role="menu" hidden class="absolute right-0 top-10 w-60 rounded-2xl border border-line bg-white p-1.5 text-sm shadow-lift">
+                      {href && (
+                        <a role="menuitem" href={href} target="_blank" rel="noopener noreferrer" class="item-menu-row">
+                          <Icon name="arrow-square-out" class="h-[18px] w-[18px]" />
+                          {t("menu.open")}
+                        </a>
+                      )}
+                      <button role="menuitem" type="button" data-received-btn class="item-menu-row">
+                        <Icon name="check-circle" class="h-[18px] w-[18px]" />
+                        {t("menu.received")}
+                      </button>
+                      <button role="menuitemcheckbox" type="button" data-priority-btn aria-checked={item.priority > 0 ? "true" : "false"} class:list={["item-menu-row menu-star", item.priority > 0 && "is-priority"]}>
+                        <svg viewBox="0 0 24 24" class="h-[18px] w-[18px]" aria-hidden="true">
+                          <path d="M12 17.75l-6.172 3.245 1.179-6.873-4.993-4.867 6.9-1.002L12 2l3.086 6.253 6.9 1.002-4.993 4.867 1.179 6.873z" />
+                        </svg>
+                        {t("menu.wanted")}
+                      </button>
+                      <button role="menuitem" type="button" data-delete-btn class="item-menu-row !text-rose-600">
+                        <Icon name="trash" class="h-[18px] w-[18px]" />
+                        {t("menu.delete")}
+                      </button>
+                    </div>
+                  </div>
                   <div class="flex flex-1 flex-col gap-2 px-1.5 pb-1 pt-3">
                     <div class="min-w-0">
                       {item.title && <p class="line-clamp-2 text-sm font-bold leading-snug text-ink">{item.title}</p>}
@@ -529,44 +556,10 @@ const shareInfo = {
                       )}
                     </div>
                     <Reactions lang={lang} itemId={item.id} summary={reactions.get(item.id)} mode="readonly" />
-                    <div class="mt-auto flex items-center justify-end gap-1.5 pt-1">
-                      {href && (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          aria-label={t("viewProduct")}
-                          title={t("viewProduct")}
-                          class="mr-auto grid h-9 w-9 place-items-center rounded-full bg-sand text-ink-soft transition hover:bg-accent-100 hover:text-accent-700"
-                        >
-                          <Icon name="arrow-square-out" class="h-[18px] w-[18px]" />
-                        </a>
-                      )}
-                      <button
-                        data-received-btn
-                        aria-label={t("received.mark")}
-                        title={t("received.mark")}
-                        class="grid h-9 w-9 place-items-center rounded-full bg-sand text-ink-soft transition hover:bg-mint hover:text-mint-ink"
-                      >
-                        <Icon name="check-circle" class="h-[18px] w-[18px]" />
-                      </button>
-                      <button
-                        data-edit-btn
-                        aria-label={t("edit")}
-                        title={t("edit")}
-                        class="grid h-9 w-9 place-items-center rounded-full bg-sand text-ink-soft transition hover:bg-accent-100 hover:text-accent-700"
-                      >
-                        <Icon name="pencil-simple" class="h-[18px] w-[18px]" />
-                      </button>
-                      <button
-                        data-delete-btn
-                        aria-label={t("delete")}
-                        title={t("delete")}
-                        class="grid h-9 w-9 place-items-center rounded-full bg-sand text-ink-soft transition hover:bg-accent-50 hover:text-rose-600"
-                      >
-                        <Icon name="trash" class="h-[18px] w-[18px]" />
-                      </button>
-                    </div>
+                    <button type="button" data-edit-btn class="btn btn-soft mt-auto w-full !py-2.5 text-sm">
+                      <Icon name="pencil-simple" class="h-4 w-4" />
+                      {t("editShort")}
+                    </button>
                   </div>
                 </article>
               );
@@ -1039,6 +1032,37 @@ const shareInfo = {
       }
     });
 
+    // Gift "⋯" menus: one open at a time; a click outside, Escape or picking an item closes it.
+    const closeMenus = (except) =>
+      document.querySelectorAll("[data-item-menu]").forEach((m) => {
+        if (m === except) return;
+        m.hidden = true;
+        m.previousElementSibling?.setAttribute("aria-expanded", "false");
+      });
+    document.querySelectorAll("[data-menu-btn]").forEach((b) => {
+      b.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const menu = b.nextElementSibling;
+        closeMenus(menu);
+        menu.hidden = !menu.hidden;
+        b.setAttribute("aria-expanded", menu.hidden ? "false" : "true");
+        // Keep it on screen: a gift in the left column would push the menu past the edge.
+        menu.style.right = "0px";
+        if (!menu.hidden) {
+          const r = menu.getBoundingClientRect();
+          const gap = 8;
+          if (r.left < gap) menu.style.right = `${r.left - gap}px`;
+          else if (r.right > innerWidth - gap) menu.style.right = `${r.right - innerWidth + gap}px`;
+        }
+      });
+    });
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("[data-item-menu]") || e.target.closest(".item-menu-row")) closeMenus();
+    });
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeMenus();
+    });
+
     // Delete item
     document.querySelectorAll("[data-delete-btn]").forEach((b) => {
       b.addEventListener("click", async () => {
@@ -1057,9 +1081,7 @@ const shareInfo = {
 
     // Toggle "most wanted" priority (star)
     document.querySelectorAll("[data-priority-btn]").forEach((b) => {
-      b.addEventListener("click", async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
+      b.addEventListener("click", async () => {
         const card = b.closest("[data-item-id]");
         const on = !b.classList.contains("is-priority");
         b.disabled = true;
@@ -1071,6 +1093,8 @@ const shareInfo = {
           });
           if (!res.ok) throw new Error();
           b.classList.toggle("is-priority", on);
+          b.setAttribute("aria-checked", on ? "true" : "false");
+          card.querySelector("[data-priority-badge]")?.classList.toggle("hidden", !on);
           card.dataset.priority = on ? "1" : "0";
         } catch {
           alert(M.saveFail);

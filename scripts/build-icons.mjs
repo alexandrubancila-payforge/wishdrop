@@ -29,6 +29,7 @@ const ICONS = [
   "book-open-text", "drop", "t-shirt", "sneaker", "game-controller", "headphones", "laptop", "watch", "diamond",
   "flower-tulip", "music-notes", "airplane-tilt", "puzzle-piece", "baby", "paint-brush", "barbell", "bicycle",
   "paw-print", "cooking-pot", "wine", "ticket", "plant", "television", "dress", "handbag",
+  "whatsapp-logo",
 ];
 const WEIGHTS = ["duotone", "regular", "fill", "bold"];
 

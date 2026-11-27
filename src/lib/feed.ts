@@ -144,15 +144,21 @@ export async function suggestedPeople(userId: string, limit = 6) {
     .prepare(
       `SELECT u.id, u.username, u.name, u.email, u.avatar_url, u.is_private,
               (SELECT COUNT(*) FROM follows f WHERE f.followee_id = u.id AND f.status = 'accepted') AS followers,
-              (SELECT COUNT(*) FROM wishlists w WHERE w.user_id = u.id AND w.visibility = 'public') AS lists
+              (SELECT COUNT(*) FROM wishlists w WHERE w.user_id = u.id AND w.visibility = 'public') AS lists,
+              -- Someone I follow who follows them ("followed by Mihai"): those come first.
+              (SELECT COALESCE(m.name, '@' || m.username)
+                 FROM follows f2 JOIN users m ON m.id = f2.follower_id
+                WHERE f2.followee_id = u.id AND f2.status = 'accepted'
+                  AND f2.follower_id IN (SELECT followee_id FROM follows WHERE follower_id = ?1 AND status = 'accepted')
+                LIMIT 1) AS via
          FROM users u
         WHERE u.id <> ?1 AND u.username IS NOT NULL AND ${findableSql("?1")}
           AND u.id NOT IN (SELECT followee_id FROM follows WHERE follower_id = ?1)
-        ORDER BY followers DESC, lists DESC, u.created_at DESC
+        ORDER BY via IS NULL, followers DESC, lists DESC, u.created_at DESC
         LIMIT ?2`,
     )
     .bind(userId, limit)
-    .all<{ id: string; username: string; name: string | null; email: string; avatar_url: string | null; is_private: number; followers: number; lists: number }>();
+    .all<{ id: string; username: string; name: string | null; email: string; avatar_url: string | null; is_private: number; followers: number; lists: number; via: string | null }>();
   return results;
 }
 
