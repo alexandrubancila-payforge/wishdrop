@@ -205,13 +205,22 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
               <span>Wish<span class="text-accent-600">Drop</span></span>
             </a>
             <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
-              <!-- Popular gifts -->
+              {
+                !user && (
+                  <nav class="mr-1 hidden items-center gap-5 text-sm font-semibold text-ink-soft md:flex">
+                    <a href={href(hubPath(lang))} class="transition hover:text-ink">{t("footer.ideas")}</a>
+                    <a href={href("/popular")} class="transition hover:text-ink">{t("nav.popular")}</a>
+                  </nav>
+                )
+              }
+              <!-- Popular gifts (signed in; guests get the text links above) -->
               <a
                 href={href("/popular")}
                 aria-label={t("nav.popular")}
                 title={t("nav.popular")}
                 class:list={[
-                  "hidden h-10 w-10 place-items-center rounded-full bg-white shadow-soft transition hover:text-accent-600 sm:grid",
+                  "hidden h-10 w-10 place-items-center rounded-full bg-white shadow-soft transition hover:text-accent-600",
+                  user && "sm:grid",
                   path === "/popular" ? "text-accent-600" : "text-ink",
                 ]}
               >
@@ -223,7 +232,8 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
                 aria-label={t("nav.search")}
                 title={t("nav.search")}
                 class:list={[
-                  "grid h-10 w-10 place-items-center rounded-full bg-white shadow-soft transition hover:text-accent-600",
+                  "h-10 w-10 place-items-center rounded-full bg-white shadow-soft transition hover:text-accent-600",
+                  user ? "grid" : "grid md:hidden",
                   path === "/search" ? "text-accent-600" : "text-ink",
                 ]}
               >

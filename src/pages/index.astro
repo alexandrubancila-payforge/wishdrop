@@ -5,6 +5,8 @@ import Icon from "@/components/Icon.astro";
 import { localePath, makeT, OG_LOCALE } from "@/lib/i18n";
 import common from "@/i18n/common";
 import home from "@/i18n/home";
+import { db } from "@/lib/db";
+import { guidePath } from "@/lib/guides";
 
 const { lang, user } = Astro.locals;
 // Signed in: the home page is the feed (birthdays and friends' new gifts).
@@ -36,6 +38,34 @@ const jsonLd = {
   ],
 };
 
+// Social proof under the buttons: real totals, rounded down ("300+"), shown once there are enough.
+const totals = await db()
+  .prepare("SELECT (SELECT COUNT(*) FROM wishlists) AS lists, (SELECT COUNT(*) FROM items WHERE reserved_at IS NOT NULL) AS reserved")
+  .first<{ lists: number; reserved: number }>();
+const roundDown = (n: number) => {
+  const step = n >= 1000 ? 100 : n >= 100 ? 50 : 10;
+  return `${new Intl.NumberFormat(lang).format(Math.floor(n / step) * step)}+`;
+};
+const proof = totals && totals.lists >= 20 ? t("home.proof", { lists: roundDown(totals.lists), reserved: roundDown(totals.reserved) }) : null;
+
+// Occasions: a photo each (public/home, from Unsplash, see CREDITS.txt), linking to that guide.
+const OCCASIONS = [
+  { key: "birthday", label: "home.birthday" },
+  { key: "wedding", label: "home.wedding" },
+  { key: "christmas", label: "home.christmas" },
+  { key: "baby", label: "home.baby" },
+] as const;
+
+const FEATURES = [
+  { icon: "eye-slash", tile: "bg-lav text-lav-ink", title: "home.f1t", text: "home.f1x" },
+  { icon: "users-three", tile: "bg-mint text-mint-ink", title: "home.f2t", text: "home.f2x" },
+  { icon: "gift", tile: "bg-accent-100 text-accent-600", title: "home.f3t", text: "home.f3x" },
+  { icon: "bell-ringing", tile: "bg-sun text-sun-ink", title: "home.f4t", text: "home.f4x" },
+  { icon: "link", tile: "bg-accent-100 text-accent-600", title: "home.f5t", text: "home.f5x" },
+  { icon: "fire", tile: "bg-sun text-sun-ink", title: "home.f6t", text: "home.f6x" },
+];
+const FAQ = [1, 2, 3, 4];
+
 const STEPS = [
   { n: 1, icon: "list-heart", tile: "bg-accent-100 text-accent-600", title: "home.step1Title", text: "home.step1Text" },
   { n: 2, icon: "paper-plane-tilt", tile: "bg-lav text-lav-ink", title: "home.step2Title", text: "home.step2Text" },
@@ -65,12 +95,25 @@ const STEPS = [
           </a>
           {
             !user && (
-              <a href={href("/login")} class="btn btn-ghost px-7 py-4 text-base">
-                {t("home.haveAccount")}
+              <a href="/api/auth/google" class="btn btn-ghost px-6 py-4 text-base">
+                <Icon name="google-logo" weight="bold" class="h-5 w-5" />
+                {t("home.google")}
               </a>
             )
           }
         </div>
+        {
+          proof && (
+            <div class="mt-5 flex items-center justify-center gap-2.5 lg:justify-start">
+              <span class="flex" aria-hidden="true">
+                <span class="grid h-7 w-7 place-items-center rounded-full border-2 border-paper bg-accent-500 text-white"><Icon name="gift" weight="fill" class="h-3.5 w-3.5" /></span>
+                <span class="-ml-2 grid h-7 w-7 place-items-center rounded-full border-2 border-paper bg-lav text-lav-ink"><Icon name="heart" weight="fill" class="h-3.5 w-3.5" /></span>
+                <span class="-ml-2 grid h-7 w-7 place-items-center rounded-full border-2 border-paper bg-mint text-mint-ink"><Icon name="check" weight="bold" class="h-3.5 w-3.5" /></span>
+              </span>
+              <span class="text-sm font-semibold text-ink-soft">{proof}</span>
+            </div>
+          )
+        }
         <div class="mt-6 flex flex-col items-center gap-3 text-sm sm:flex-row sm:justify-center lg:justify-start">
           <span class="inline-flex items-center gap-1.5 text-ink-soft">
             <Icon name="check-circle" class="h-5 w-5 text-mint-ink" />
@@ -80,6 +123,7 @@ const STEPS = [
             {t("home.example")}
             <Icon name="caret-right" weight="bold" class="h-4 w-4" />
           </a>
+          {!user && <a href={href("/login")} class="font-semibold text-ink-soft transition hover:text-ink">{t("home.haveAccount")}</a>}
         </div>
       </div>
 
@@ -130,7 +174,11 @@ const STEPS = [
                 </span>
                 <span class="min-w-0 flex-1">
                   <span class="block text-base font-extrabold">349 lei</span>
-                  <span class="btn btn-soft mt-1 !px-3 !py-1.5 text-[11px]">{t("home.reserve")}</span>
+                  {/* Reserve turns into Reserved and back, showing what the app does. */}
+                  <span class="demo-swap relative mt-1 inline-grid">
+                    <span class="demo-a btn btn-soft !px-3 !py-1.5 text-[11px]">{t("home.reserve")}</span>
+                    <span class="demo-b chip bg-mint !px-2.5 !py-1.5 text-[11px] text-mint-ink"><Icon name="check" weight="bold" class="h-3 w-3" />{t("home.reserved")}</span>
+                  </span>
                 </span>
               </li>
               <li class="card flex items-center gap-3 !rounded-2xl p-2">
@@ -156,6 +204,35 @@ const STEPS = [
     </div>
   </section>
 
+  <!-- Occasions: photo cards that open the matching guide -->
+  <section class="mx-auto max-w-6xl px-4 pt-16 sm:px-6 sm:pt-24">
+    <div class="text-center">
+      <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("home.occTitle")}</h2>
+      <p class="mx-auto mt-2 max-w-lg text-ink-soft">{t("home.occText")}</p>
+    </div>
+    <ul class="mt-8 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+      {
+        OCCASIONS.map((o) => (
+          <li>
+            <a href={href(guidePath(lang, o.key))} class="group relative block aspect-[4/3] overflow-hidden rounded-3xl shadow-soft">
+              <picture>
+                <source srcset={`/home/${o.key}.webp`} type="image/webp" />
+                <img src={`/home/${o.key}.jpg`} alt="" loading="lazy" width="800" height="600" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+              </picture>
+              <span class="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent"></span>
+              <span class="absolute inset-x-0 bottom-0 p-3.5 text-white sm:p-4">
+                <span class="block text-lg font-extrabold leading-tight sm:text-xl">{t(o.label)}</span>
+                <span class="mt-0.5 inline-flex items-center gap-1 text-xs font-bold opacity-90">
+                  {t("home.occCta")} <Icon name="arrow-right" weight="bold" class="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+                </span>
+              </span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
   <!-- How it works -->
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
     <h2 class="text-center text-3xl font-extrabold tracking-tight sm:text-4xl">{t("home.stepsTitle")}</h2>
@@ -169,7 +246,64 @@ const STEPS = [
             </span>
             <h3 class="mt-5 text-xl font-extrabold tracking-tight">{t(s.title)}</h3>
             <p class="mt-2 text-sm leading-relaxed text-ink-soft">{t(s.text)}</p>
+            {/* A tiny piece of the app for each step. */}
+            <div class="mt-5 flex h-12 items-center justify-center gap-2 rounded-2xl bg-sand/70 px-3 text-xs font-bold" aria-hidden="true">
+              {s.n === 1 && (
+                <>
+                  <Icon name="link" class="h-4 w-4 text-accent-500" />
+                  <span class="truncate text-ink-soft">{t("home.demo1")}</span>
+                  <img src="/demo/headphones.jpg" alt="" class="h-8 w-8 shrink-0 rounded-lg object-cover" loading="lazy" />
+                </>
+              )}
+              {s.n === 2 && (
+                <span class="chip bg-mint !py-1.5 text-mint-ink"><Icon name="whatsapp-logo" class="h-4 w-4" />wishdrop.site/w/maria</span>
+              )}
+              {s.n === 3 && (
+                <span class="chip bg-mint-ink !py-1.5 text-white"><Icon name="check-circle" weight="fill" class="h-4 w-4" />{t("home.demo3")}</span>
+              )}
+            </div>
           </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <!-- What else it does -->
+  <section class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24">
+    <div class="text-center">
+      <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("home.featTitle")}</h2>
+      <p class="mx-auto mt-2 max-w-lg text-ink-soft">{t("home.featText")}</p>
+    </div>
+    <ul class="mt-8 grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
+      {
+        FEATURES.map((f) => (
+          <li class="card flex items-start gap-4 p-5">
+            <span class:list={["grid h-11 w-11 shrink-0 place-items-center rounded-2xl", f.tile]}>
+              <Icon name={f.icon} class="h-5 w-5" />
+            </span>
+            <span class="min-w-0">
+              <span class="block font-extrabold tracking-tight">{t(f.title)}</span>
+              <span class="mt-1 block text-sm leading-relaxed text-ink-soft">{t(f.text)}</span>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+
+  <!-- Questions -->
+  <section class="mx-auto max-w-3xl px-4 pb-16 sm:px-6 sm:pb-24">
+    <h2 class="text-center text-3xl font-extrabold tracking-tight sm:text-4xl">{t("home.faqTitle")}</h2>
+    <div class="card mt-8 divide-y divide-line px-5 sm:px-6">
+      {
+        FAQ.map((n) => (
+          <details class="group py-4">
+            <summary class="flex cursor-pointer list-none items-center justify-between gap-3 font-bold [&::-webkit-details-marker]:hidden">
+              {t(`home.q${n}`)}
+              <Icon name="caret-down" weight="bold" class="h-4 w-4 shrink-0 text-ink-soft transition group-open:rotate-180" />
+            </summary>
+            <p class="mt-2 text-sm leading-relaxed text-ink-soft">{t(`home.a${n}`)}</p>
+          </details>
         ))
       }
     </div>
@@ -179,13 +313,12 @@ const STEPS = [
   {
     !user && (
       <section class="mx-auto max-w-6xl px-4 pb-16 sm:px-6 sm:pb-24">
-        <div class="rounded-[2rem] bg-accent-100 px-6 py-12 text-center sm:py-16">
-          <span class="mx-auto grid h-16 w-16 place-items-center rounded-3xl bg-white text-accent-600 shadow-soft">
-            <Icon name="gift" class="h-8 w-8" />
-          </span>
-          <h2 class="mx-auto mt-5 max-w-xl text-3xl font-extrabold tracking-tight sm:text-4xl">{t("home.ctaTitle")}</h2>
-          <p class="mx-auto mt-3 max-w-md text-ink-soft">{t("home.ctaText")}</p>
-          <a href={startHref} class="btn btn-primary mt-8 px-7 py-4 text-base">
+        <div class="relative overflow-hidden rounded-[2rem] bg-accent-500 px-6 py-12 text-center text-white shadow-coral sm:py-16">
+          <Icon name="gift" class="pointer-events-none absolute -left-6 -top-6 h-32 w-32 -rotate-12 text-white/10" />
+          <Icon name="heart" class="pointer-events-none absolute -bottom-6 -right-4 h-28 w-28 rotate-12 text-white/10" />
+          <h2 class="relative mx-auto max-w-xl text-3xl font-extrabold tracking-tight sm:text-4xl">{t("home.ctaTitle")}</h2>
+          <p class="relative mx-auto mt-3 max-w-md text-white/85">{t("home.ctaText")}</p>
+          <a href={startHref} class="btn relative mt-8 bg-white px-7 py-4 text-base text-accent-700 hover:bg-accent-50">
             {t("home.ctaBtn")}
             <Icon name="arrow-right" weight="bold" class="h-5 w-5" />
           </a>

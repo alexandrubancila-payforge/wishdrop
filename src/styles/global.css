@@ -296,6 +296,30 @@ body {
     color: #fff;
   }
 
+  /* Home page phone: "Reserve" turns into "Reserved" and back (index.astro). */
+  .demo-swap > * {
+    grid-area: 1 / 1;
+    justify-self: start;
+    animation: demo-swap 6s ease-in-out infinite;
+  }
+  .demo-swap .demo-b {
+    animation-name: demo-swap-b;
+  }
+  @keyframes demo-swap {
+    0%, 42% { opacity: 1; transform: scale(1); }
+    50%, 92% { opacity: 0; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+  @keyframes demo-swap-b {
+    0%, 42% { opacity: 0; transform: scale(0.9); }
+    50%, 92% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.9); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .demo-swap > * { animation: none; }
+    .demo-swap .demo-b { opacity: 0; }
+  }
+
   /* Category chips on /popular: dark when picked. */
   .cat-chip {
     flex-shrink: 0;
