@@ -275,44 +275,52 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
                       <span class="hidden max-w-[14ch] truncate text-sm font-semibold text-ink sm:block">{displayName}</span>
                       <Icon name="caret-down" weight="bold" class="hidden h-3 w-3 text-ink-soft sm:block" />
                     </button>
-                    <div id="user-menu-panel" class="absolute right-0 mt-2 hidden w-64 origin-top-right rounded-3xl bg-white p-2 shadow-lift ring-1 ring-line">
-                      <a href={profileHref} class="flex items-center gap-3 rounded-2xl px-2 py-2 transition hover:bg-sand">
+                    <div id="user-menu-panel" class="absolute right-0 mt-2 hidden w-72 origin-top-right rounded-3xl bg-white p-2 shadow-lift ring-1 ring-line">
+                      {/* You, then: your things · discover · account · log out. */}
+                      <a href={profileHref} class="group flex items-center gap-3 rounded-2xl bg-sand/60 p-2.5 transition hover:bg-sand">
                         <Avatar user={user} size={44} class="h-11 w-11" />
-                        <div class="min-w-0">
+                        <div class="min-w-0 flex-1">
                           <p class="truncate text-sm font-bold text-ink">{displayName}</p>
                           <p class="truncate text-xs text-ink-soft">{user.username ? `@${user.username}` : user.email}</p>
                         </div>
+                        <span class="shrink-0 text-xs font-bold text-accent-700 group-hover:underline">{t("menu.viewProfile")}</span>
                       </a>
-                      <div class="my-1.5 h-px bg-line" />
                       {[
-                        { href: profileHref, icon: "user-circle", label: t("nav.profile") },
-                        { href: href("/dashboard"), icon: "list-heart", label: t("nav.myLists") },
-                        { href: href("/dashboard/reservations"), icon: "hand-heart", label: t("nav.myReservations") },
-                        { href: href("/popular"), icon: "fire", label: t("nav.popular") },
-                        { href: href("/santa"), icon: "gift", label: t("nav.santa") },
-                      ].map((item) => (
-                        <a href={item.href} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
-                          <Icon name={item.icon} class="h-5 w-5 text-accent-500" /> {item.label}
-                        </a>
+                        {
+                          label: t("menu.mine"),
+                          items: [
+                            { href: href("/dashboard"), icon: "list-heart", label: t("nav.myLists") },
+                            { href: href("/dashboard/reservations"), icon: "hand-heart", label: t("nav.myReservations") },
+                            ...(user.is_private || requests > 0 ? [{ href: href("/requests"), icon: "user-plus", label: t("nav.requests"), badge: requests }] : []),
+                          ],
+                        },
+                        {
+                          label: t("menu.discover"),
+                          items: [
+                            { href: href("/popular"), icon: "fire", label: t("nav.popular") },
+                            { href: href("/santa"), icon: "gift", label: t("nav.santa") },
+                          ],
+                        },
+                        {
+                          label: t("menu.account"),
+                          items: [
+                            { href: href("/settings"), icon: "gear", label: t("nav.settings") },
+                            ...(isAdmin(user) ? [{ href: href("/admin"), icon: "chart-line-up", label: "Admin" }] : []),
+                            { href: reportHref, icon: "bug", label: t("footer.report") },
+                          ],
+                        },
+                      ].map((group) => (
+                        <div class="mt-2">
+                          <p class="px-2.5 pb-1 text-[11px] font-bold uppercase tracking-wide text-ink-soft">{group.label}</p>
+                          {group.items.map((item: { href: string; icon: string; label: string; badge?: number }) => (
+                            <a href={item.href} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
+                              <Icon name={item.icon} class="h-5 w-5 text-accent-500" />
+                              <span class="flex-1">{item.label}</span>
+                              {item.badge ? <span class="chip bg-accent-500 !py-0.5 text-white">{item.badge}</span> : null}
+                            </a>
+                          ))}
+                        </div>
                       ))}
-                      {(user.is_private || requests > 0) && (
-                        <a href={href("/requests")} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
-                          <Icon name="user-plus" class="h-5 w-5 text-accent-500" />
-                          <span class="flex-1">{t("nav.requests")}</span>
-                          {requests > 0 && <span class="chip bg-accent-500 !py-0.5 text-white">{requests}</span>}
-                        </a>
-                      )}
-                      <a href={href("/settings")} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
-                        <Icon name="gear" class="h-5 w-5 text-accent-500" /> {t("nav.settings")}
-                      </a>
-                      {isAdmin(user) && (
-                        <a href={href("/admin")} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
-                          <Icon name="chart-line-up" class="h-5 w-5 text-accent-500" /> Admin
-                        </a>
-                      )}
-                      <a href={reportHref} class="flex items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-ink transition hover:bg-sand">
-                        <Icon name="bug" class="h-5 w-5 text-accent-500" /> {t("footer.report")}
-                      </a>
                       <div class="my-1.5 h-px bg-line" />
                       <button id="logout-btn" type="button" class="flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-sm font-semibold text-accent-700 transition hover:bg-accent-50">
                         <Icon name="sign-out" class="h-5 w-5" /> {t("nav.logout")}

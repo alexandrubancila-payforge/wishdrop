@@ -3,6 +3,10 @@ import type { Bundle } from "@/lib/i18n";
 /** Header, footer, mobile tab bar and the shared modals. */
 export default {
   ro: {
+    "menu.mine": "Ale mele",
+    "menu.discover": "Descoperă",
+    "menu.account": "Cont",
+    "menu.viewProfile": "Vezi profilul",
     "cover.change": "Schimbă coperta",
     "cover.remove": "Scoate coperta",
     "cover.fail": "Nu am putut încărca poza. Încearcă alta.",
@@ -67,6 +71,10 @@ export default {
     "ph.listName": "Numele listei",
   },
   en: {
+    "menu.mine": "Yours",
+    "menu.discover": "Discover",
+    "menu.account": "Account",
+    "menu.viewProfile": "View profile",
     "cover.change": "Change cover photo",
     "cover.remove": "Remove cover photo",
     "cover.fail": "Couldn't upload the photo. Try another one.",
@@ -131,6 +139,10 @@ export default {
     "ph.listName": "List name",
   },
   de: {
+    "menu.mine": "Deins",
+    "menu.discover": "Entdecken",
+    "menu.account": "Konto",
+    "menu.viewProfile": "Profil ansehen",
     "cover.change": "Titelbild ändern",
     "cover.remove": "Titelbild entfernen",
     "cover.fail": "Das Foto konnte nicht hochgeladen werden. Versuch ein anderes.",
@@ -195,6 +207,10 @@ export default {
     "ph.listName": "Name der Liste",
   },
   ru: {
+    "menu.mine": "Моё",
+    "menu.discover": "Обзор",
+    "menu.account": "Аккаунт",
+    "menu.viewProfile": "Открыть профиль",
     "cover.change": "Сменить обложку",
     "cover.remove": "Убрать обложку",
     "cover.fail": "Не удалось загрузить фото. Попробуйте другое.",

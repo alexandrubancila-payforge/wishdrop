@@ -52,13 +52,13 @@ const domain = (url: string | null) => {
         </a>
       </div>
     ) : (
-      <ul class="mt-8 grid gap-4">
+      <ul class="mt-8 grid grid-cols-[minmax(0,1fr)] gap-4">
         {items.map((item) => {
           const img = imageUrl(item.image_key);
           const host = domain(item.product_url);
           const owner = { name: item.owner_name, email: item.owner_email, avatar_url: item.owner_avatar };
           return (
-            <li class="card flex gap-4 p-2.5 sm:p-3">
+            <li class="card flex min-w-0 gap-4 p-2.5 sm:p-3">
               <div class="relative h-28 w-28 shrink-0 overflow-hidden rounded-2xl bg-accent-50 sm:h-32 sm:w-32">
                 {img ? (
                   <img src={img} alt={item.title ?? ""} loading="lazy" class="h-full w-full object-cover" />
@@ -73,7 +73,7 @@ const domain = (url: string | null) => {
                   <span class="truncate">{owner.name || owner.email.split("@")[0]}</span>
                 </p>
                 {item.title && <p class="mt-1.5 line-clamp-2 text-sm font-semibold leading-snug">{item.title}</p>}
-                {item.price && <p class="mt-1.5 truncate text-lg font-extrabold leading-tight tracking-tight">{item.price}</p>}
+                {item.price && <p class="mt-1.5 line-clamp-2 break-words text-lg font-extrabold leading-tight tracking-tight">{item.price}</p>}
                 <p class="mt-1.5">
                   {item.group_count != null ? (
                     <span class="chip bg-lav text-lav-ink">
