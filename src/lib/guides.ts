@@ -1,6 +1,6 @@
 /**
  * Gift guides (SEO pages, texts in src/i18n/guides.ts). Each language has its
- * own folder and slugs: /idei/… (ro), /en/ideas/…, /de/ideen/…, /ru/idei/….
+ * own folder and slugs: /ideas/… (en), /ro/idei/…, /de/ideen/…, /ru/idei/….
  * The route files in src/pages/{idei,ideas,ideen}/ all call resolveGuide().
  */
 import { LANGS, type Lang } from "./i18n";
@@ -24,7 +24,7 @@ export type Resolved =
 
 /**
  * What /<folder>/<slug> shows in this language. A folder or slug from another
- * language redirects to this language's address (e.g. /en/idei/… → /en/ideas/…).
+ * language redirects to this language's address (e.g. /idei/… → /ideas/…).
  */
 export function resolveGuide(lang: Lang, folder: string, slug: string | undefined): Resolved {
   const own = guidesHub[lang].slug === folder;

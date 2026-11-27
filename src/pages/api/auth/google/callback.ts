@@ -4,7 +4,7 @@ import { env } from "cloudflare:workers";
 import { createUser, getUserByEmail, getUserByGoogleId, updateUser } from "@/lib/db";
 import { markSignup } from "@/lib/tracking";
 import { OAUTH_COOKIE, startSession } from "@/lib/auth";
-import { isLang, localePath, type Lang } from "@/lib/i18n";
+import { isLang, DEFAULT_LANG, localePath, type Lang } from "@/lib/i18n";
 import { suggestUsername } from "@/lib/social";
 
 interface GoogleUser {
@@ -21,7 +21,7 @@ export const GET: APIRoute = async (ctx) => {
     saved = JSON.parse(ctx.cookies.get(OAUTH_COOKIE)?.value || "{}");
   } catch {}
   ctx.cookies.delete(OAUTH_COOKIE, { path: "/api/auth/google" });
-  const lang: Lang = isLang(saved.lang) ? saved.lang : "ro";
+  const lang: Lang = isLang(saved.lang) ? saved.lang : DEFAULT_LANG;
   const loginUrl = localePath(lang, "/login");
 
   const code = ctx.url.searchParams.get("code");

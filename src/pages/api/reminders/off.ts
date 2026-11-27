@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { db, getUserById } from "@/lib/db";
 import { checkUnsubscribe } from "@/lib/reminders";
-import { isLang, localePath, makeT } from "@/lib/i18n";
+import { isLang, DEFAULT_LANG, localePath, makeT } from "@/lib/i18n";
 import strings from "@/i18n/reminders";
 
 /** One-click "no more reminder emails" from the link in the email (signed, no login needed). */
@@ -10,7 +10,7 @@ export const GET: APIRoute = async ({ url }) => {
   if (!(await checkUnsubscribe(userId, url.searchParams.get("s") ?? ""))) return new Response("Invalid link", { status: 400 });
   const user = await getUserById(userId);
   if (user) await db().prepare("UPDATE users SET reminder_emails = 0 WHERE id = ?").bind(userId).run();
-  const lang = isLang(user?.lang) ? user!.lang : "ro";
+  const lang = isLang(user?.lang) ? user!.lang : DEFAULT_LANG;
   const t = makeT(lang, strings);
   const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
   return new Response(

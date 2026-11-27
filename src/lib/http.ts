@@ -1,7 +1,7 @@
 /** Small helpers for the JSON API in `src/pages/api/`. */
 import type { APIContext } from "astro";
 import type { User } from "./db";
-import { splitLang, isLang, makeT, LANG_COOKIE, type Lang, type T } from "./i18n";
+import { splitLang, isLang, DEFAULT_LANG, makeT, LANG_COOKIE, type Lang, type T } from "./i18n";
 import apiStrings from "@/i18n/api";
 
 /** API calls have no language prefix: use the page that made the request, then the saved language. */
@@ -14,7 +14,7 @@ export function requestLang(ctx: APIContext): Lang {
     } catch {}
   }
   const saved = ctx.cookies.get(LANG_COOKIE)?.value;
-  return isLang(saved) ? saved : "ro";
+  return isLang(saved) ? saved : DEFAULT_LANG;
 }
 
 /** Translated API error messages for this request. */

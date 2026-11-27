@@ -1,9 +1,14 @@
 User-agent: *
 Disallow: /dashboard
+Disallow: /*/dashboard
 Disallow: /api/
 Disallow: /w/
+Disallow: /*/w/
 Disallow: /verify-email
+Disallow: /*/verify-email
 Disallow: /forgot-password
+Disallow: /*/forgot-password
 Disallow: /reset-password
+Disallow: /*/reset-password
 
 Sitemap: https://wishdrop.site/sitemap.xml

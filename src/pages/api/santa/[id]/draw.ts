@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import { env } from "cloudflare:workers";
 import { apiT, fail, json, requireUser } from "@/lib/http";
 import { db } from "@/lib/db";
-import { isLang, localePath, makeT, type Lang } from "@/lib/i18n";
+import { isLang, DEFAULT_LANG, localePath, makeT, type Lang } from "@/lib/i18n";
 import { sendEmail } from "@/lib/email";
 import { renderEmail } from "@/lib/email-template";
 import { notify } from "@/lib/notifications";
@@ -39,7 +39,7 @@ export const POST: APIRoute = async (ctx) => {
       const giver = byId.get(giverId)!;
       const giftee = byId.get(gifteeId)!;
       await notify(giverId, user.id, "santa_drawn", { santaGroupId: group.id }).catch(() => {});
-      const lang: Lang = langOf.get(giverId) ?? (giverId === user.id ? ctx.locals.lang : "ro");
+      const lang: Lang = langOf.get(giverId) ?? (giverId === user.id ? ctx.locals.lang : DEFAULT_LANG);
       const s = makeT(lang, strings);
       const url = env.APP_URL + localePath(lang, `/santa/${group.id}`);
       const lines = [

@@ -1,15 +1,16 @@
 /**
  * Languages and translations.
  *
- * Romanian is served at the root (`/dashboard`), the others under a prefix
- * (`/en/dashboard`, `/de/…`, `/ru/…`). The middleware strips the prefix and sets
- * `Astro.locals.lang`, so every page exists once in `src/pages/`.
+ * English is served at the root (`/dashboard`), the others under a prefix
+ * (`/ro/dashboard`, `/de/…`, `/ru/…`). The middleware strips the prefix and sets
+ * `Astro.locals.lang`, so every page exists once in `src/pages/`. Until
+ * 2026-11 Romanian was at the root and English under /en (now redirected).
  *
  * Strings live in `src/i18n/<namespace>.ts`, one object per language.
  */
 export const LANGS = ["ro", "en", "de", "ru"] as const;
 export type Lang = (typeof LANGS)[number];
-export const DEFAULT_LANG: Lang = "ro";
+export const DEFAULT_LANG: Lang = "en";
 
 export const LANG_NAMES: Record<Lang, string> = {
   ro: "Română",
@@ -32,14 +33,16 @@ export function isLang(value: unknown): value is Lang {
   return typeof value === "string" && (LANGS as readonly string[]).includes(value);
 }
 
-/** "/en/dashboard" → { lang: "en", path: "/dashboard" }; "/dashboard" → { lang: "ro", … } */
+const PREFIX_RE = new RegExp(`^/(${LANGS.filter((l) => l !== DEFAULT_LANG).join("|")})(/.*)?$`);
+
+/** "/ro/dashboard" → { lang: "ro", path: "/dashboard" }; "/dashboard" → { lang: "en", … } */
 export function splitLang(pathname: string): { lang: Lang; path: string; prefixed: boolean } {
-  const m = pathname.match(/^\/(en|de|ru)(\/.*)?$/);
+  const m = pathname.match(PREFIX_RE);
   if (m) return { lang: m[1] as Lang, path: m[2] || "/", prefixed: true };
   return { lang: DEFAULT_LANG, path: pathname || "/", prefixed: false };
 }
 
-/** The URL of `path` in `lang`: localePath("en", "/dashboard") → "/en/dashboard". */
+/** The URL of `path` in `lang`: localePath("ro", "/dashboard") → "/ro/dashboard". */
 export function localePath(lang: Lang, path = "/"): string {
   if (lang === DEFAULT_LANG) return path;
   return path === "/" ? `/${lang}` : `/${lang}${path}`;
@@ -48,6 +51,24 @@ export function localePath(lang: Lang, path = "/"): string {
 export type Dict = Record<string, string>;
 export type Bundle = Record<Lang, Dict>;
 export type T = (key: string, vars?: Record<string, string | number>) => string;
+
+/**
+ * The visitor's language from the browser's Accept-Language header
+ * ("ro-RO,ro;q=0.9,en;q=0.8" → "ro"), or null when none of ours is listed.
+ */
+export function browserLang(header: string | null): Lang | null {
+  if (!header) return null;
+  const ranked = header
+    .split(",")
+    .map((part, i) => {
+      const [tag, ...params] = part.trim().toLowerCase().split(";");
+      const q = Number(params.find((p) => p.trim().startsWith("q="))?.trim().slice(2) ?? 1);
+      return { lang: tag.split("-")[0], q: Number.isFinite(q) ? q : 0, i };
+    })
+    .filter((x) => x.q > 0)
+    .sort((a, b) => b.q - a.q || a.i - b.i);
+  return (ranked.find((x) => isLang(x.lang))?.lang as Lang | undefined) ?? null;
+}
 
 /** Merge namespaces and return `t(key, vars)` for one language (English as fallback). */
 export function makeT(lang: Lang, ...bundles: Bundle[]): T {

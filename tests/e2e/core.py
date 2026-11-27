@@ -1,5 +1,5 @@
 """Core flows: sign-up, lists, gifts, photos, reservations. Usage: python3 -I tests/e2e/core.py http://localhost:4400 public/demo/watch.jpg"""
-import http.cookiejar, json, secrets, sys, time, urllib.request, urllib.error, uuid
+import http.cookiejar, json, secrets, sys, time, urllib.request, urllib.error, uuid, re
 
 B, PHOTO = sys.argv[1], sys.argv[2]
 ok_count = fail_count = 0
@@ -15,15 +15,23 @@ def client():
     return urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar), NoRedirect)
 
 
+def ro(path):
+    """The checks read Romanian texts: pages go to /ro/…, "/en/…" means the English (unprefixed) page."""
+    if path.startswith("/en/") or path == "/en":
+        return path[3:] or "/"
+    if path.startswith("/api/") or re.match(r"^/(ro|de|ru)(/|\?|$)", path) or (not path.startswith("/@") and re.search(r"\.[a-z]+$", path.split("?")[0])):
+        return path
+    return "/ro" + (path if path != "/" else "")
+
+
 def call(op, method, path, body=None, referer=None, raw=None, ctype="application/json"):
     data = raw if raw is not None else (json.dumps(body).encode() if body is not None else None)
-    req = urllib.request.Request(B + path, data=data, method=method)
+    req = urllib.request.Request(B + ro(path), data=data, method=method)
     req.add_header("origin", B)
     req.add_header("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36 wishdrop-e2e")
     if data is not None:
         req.add_header("content-type", ctype)
-    if referer:
-        req.add_header("referer", B + referer)
+    req.add_header("referer", B + (referer or "/ro/"))
     try:
         r = op.open(req, timeout=30)
         status, text = r.status, r.read().decode("utf-8", "replace")
@@ -94,7 +102,7 @@ s, r = call(owner, "PATCH", f"/api/wishlists/{lid}", {"name": "Ziua mea"})
 check("rename list", s == 200, (s, r))
 
 for path in ["/dashboard", f"/dashboard/{lid}", "/dashboard/reservations", "/settings", "/settings/password", "/settings/account",
-             "/en/dashboard", f"/de/dashboard/{lid}", "/ru/settings"]:
+             "/ro/dashboard", f"/de/dashboard/{lid}", "/ru/settings"]:
     s, page = call(owner, "GET", path)
     check(f"page {path}", s == 200 and "Ziua mea" in page if path.endswith(lid) else s == 200, s)
 s, page = call(owner, "GET", "/dashboard")

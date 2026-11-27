@@ -15,10 +15,20 @@ def client():
     return urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()), NoRedirect)
 
 
+def ro(path):
+    """The checks read Romanian texts: pages go to /ro/…, "/en/…" means the English (unprefixed) page."""
+    if path.startswith("/en/") or path == "/en":
+        return path[3:] or "/"
+    if path.startswith("/api/") or re.match(r"^/(ro|de|ru)(/|\?|$)", path) or (not path.startswith("/@") and re.search(r"\.[a-z]+$", path.split("?")[0])):
+        return path
+    return "/ro" + (path if path != "/" else "")
+
+
 def call(op, method, path, body=None):
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(B + path, data=data, method=method)
+    req = urllib.request.Request(B + ro(path), data=data, method=method)
     req.add_header("origin", B)
+    req.add_header("referer", B + "/ro/")
     req.add_header("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36 wishdrop-e2e")
     if data is not None:
         req.add_header("content-type", "application/json")
@@ -104,7 +114,7 @@ check("guest is sent to login from a followers page", s == 302, s)
 s, page = call(dan, "GET", f"/@{ua}")
 check("stranger sees ana's public profile", s == 200 and "Ana Test" in page and "Îmi plac cărțile" in page, s)
 check("stranger sees public list only", shows(page, "public") and not shows(page, "followers") and not shows(page, "link"), "")
-s, page = call(dan, "GET", f"/en/@{ua}")
+s, page = call(dan, "GET", f"/de/@{ua}")
 check("profile works with language prefix", s == 200, s)
 s, page = call(dan, "GET", f"/@{ua}/followers")
 check("public profile followers page open", s == 200, s)

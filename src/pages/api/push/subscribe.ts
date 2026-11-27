@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import { db, now } from "@/lib/db";
 import { apiT, fail, json, readJson, requireUser } from "@/lib/http";
-import { isLang } from "@/lib/i18n";
+import { isLang, DEFAULT_LANG } from "@/lib/i18n";
 import { pushConfigured } from "@/lib/push";
 
 interface Body {
@@ -27,7 +27,7 @@ export const POST: APIRoute = async (ctx) => {
       `INSERT INTO push_subscriptions (endpoint, user_id, p256dh, auth, lang, created_at) VALUES (?, ?, ?, ?, ?, ?)
        ON CONFLICT (endpoint) DO UPDATE SET user_id = excluded.user_id, p256dh = excluded.p256dh, auth = excluded.auth, lang = excluded.lang`,
     )
-    .bind(endpoint, user.id, p256dh, auth, isLang(lang) ? lang : "ro", now())
+    .bind(endpoint, user.id, p256dh, auth, isLang(lang) ? lang : DEFAULT_LANG, now())
     .run();
   return json({ ok: true });
 };

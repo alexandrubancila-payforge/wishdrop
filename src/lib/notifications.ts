@@ -11,7 +11,7 @@
  * Rows older than 90 days are deleted whenever a new one is written.
  */
 import { db, newId, now } from "./db";
-import { localePath, makeT, isLang, type Lang, type T } from "./i18n";
+import { localePath, makeT, isLang, DEFAULT_LANG, type Lang, type T } from "./i18n";
 import { pushToUsers } from "./push";
 import strings from "@/i18n/notifications";
 import { plural } from "@/components/dashboard/plural";
@@ -219,7 +219,7 @@ export function notificationUrl(
 function pushNotification(userIds: string[], actorId: string, type: NotificationType, ref: Ref, count: number) {
   if (!userIds.length) return;
   pushToUsers(userIds, async (l) => {
-    const lang: Lang = isLang(l) ? l : "ro";
+    const lang: Lang = isLang(l) ? l : DEFAULT_LANG;
     const t = makeT(lang, strings);
     const [actor, list] = await Promise.all([
       db().prepare("SELECT name, username, email FROM users WHERE id = ?").bind(actorId).first<{ name: string | null; username: string | null; email: string }>(),

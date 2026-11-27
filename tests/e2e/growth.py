@@ -15,10 +15,20 @@ def client():
     return urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()), NoRedirect)
 
 
+def ro(path):
+    """The checks read Romanian texts: pages go to /ro/…, "/en/…" means the English (unprefixed) page."""
+    if path.startswith("/en/") or path == "/en":
+        return path[3:] or "/"
+    if path.startswith("/api/") or re.match(r"^/(ro|de|ru)(/|\?|$)", path) or (not path.startswith("/@") and re.search(r"\.[a-z]+$", path.split("?")[0])):
+        return path
+    return "/ro" + (path if path != "/" else "")
+
+
 def call(op, method, path, body=None):
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(B + path, data=data, method=method)
+    req = urllib.request.Request(B + ro(path), data=data, method=method)
     req.add_header("origin", B)
+    req.add_header("referer", B + "/ro/")
     req.add_header("user-agent", "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/131.0 Safari/537.36 wishdrop-e2e")
     if data is not None:
         req.add_header("content-type", "application/json")
@@ -101,7 +111,30 @@ check("other-language slug redirects", s == 301, s)
 s, page = call(client(), "GET", "/idei/lista-de-nunta-online")
 check("guide has FAQ structured data and hreflang", "FAQPage" in page and 'hreflang="de" href="https://wishdrop.site/de/ideen/hochzeitsliste-online"' in page, "")
 s, xml = call(client(), "GET", "/sitemap.xml")
-check("sitemap lists the guides", s == 200 and "/en/ideas/wedding-registry-online" in xml and xml.count("<url>") >= 40, s)
+check("sitemap lists the guides", s == 200 and "wishdrop.site/ideas/wedding-registry-online<" in xml and "wishdrop.site/ro/idei/lista-de-nunta-online<" in xml and xml.count("<url>") >= 40, s)
+check("sitemap x-default is English", 'hreflang="x-default" href="https://wishdrop.site/ideas/wedding-registry-online"' in xml, "")
+
+# --- English at the root, other languages by prefix ---
+def raw(path, headers):
+    req = urllib.request.Request(B + path, headers={"user-agent": "Mozilla/5.0 Chrome/131 wishdrop-e2e", **headers})
+    try:
+        r = urllib.request.build_opener(NoRedirect).open(req, timeout=30)
+        return r.status, r.headers.get("location"), r.read().decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        return e.code, e.headers.get("location"), ""
+
+s, loc, page = raw("/", {})
+check("root is English for search engines", s == 200 and '<html lang="en"' in page and 'rel="canonical" href="https://wishdrop.site/"' in page, s)
+s, loc, _ = raw("/", {"accept-language": "ro-RO,ro;q=0.9,en;q=0.8"})
+check("Romanian browser goes to /ro", s == 302 and loc.endswith("/ro"), (s, loc))
+s, loc, _ = raw("/popular", {"accept-language": "fr-FR,fr;q=0.9"})
+check("unsupported browser language stays English", s == 200, (s, loc))
+s, loc, _ = raw("/", {"accept-language": "ro", "user-agent": "Mozilla/5.0 (compatible; Googlebot/2.1)"})
+check("crawler never redirected by language", s == 200, (s, loc))
+s, loc, _ = raw("/", {"accept-language": "ro", "cookie": "wd_lang=en"})
+check("switcher choice beats the browser", s == 200, (s, loc))
+s, loc, _ = raw("/en/ideas?x=1", {})
+check("old /en link → 301 to the root", s == 301 and loc.endswith("/ideas?x=1"), (s, loc))
 
 # --- popular gifts ---
 import os, uuid
@@ -114,6 +147,7 @@ def upload(op):
     req = urllib.request.Request(B + "/api/upload", data=body, method="POST")
     req.add_header("content-type", f"multipart/form-data; boundary={boundary}")
     req.add_header("origin", B)
+    req.add_header("referer", B + "/ro/")
     req.add_header("user-agent", "Mozilla/5.0 Chrome/131 wishdrop-e2e")
     return json.loads(op.open(req, timeout=30).read())["image_key"]
 

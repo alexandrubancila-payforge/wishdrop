@@ -23,7 +23,7 @@ if (card) {
   const btn = card.querySelector<HTMLButtonElement>("[data-push-btn]")!;
   const note = card.querySelector<HTMLElement>("[data-push-note]")!;
   const onText = card.querySelector<HTMLElement>("[data-push-on]")!;
-  const lang = card.dataset.lang || "ro";
+  const lang = card.dataset.lang || "en";
   const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   const standalone = matchMedia("(display-mode: standalone)").matches || (navigator as any).standalone === true;
 

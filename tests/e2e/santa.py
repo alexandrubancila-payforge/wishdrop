@@ -15,10 +15,20 @@ def client():
     return urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()), NoRedirect)
 
 
+def ro(path):
+    """The checks read Romanian texts: pages go to /ro/…, "/en/…" means the English (unprefixed) page."""
+    if path.startswith("/en/") or path == "/en":
+        return path[3:] or "/"
+    if path.startswith("/api/") or re.match(r"^/(ro|de|ru)(/|\?|$)", path) or (not path.startswith("/@") and re.search(r"\.[a-z]+$", path.split("?")[0])):
+        return path
+    return "/ro" + (path if path != "/" else "")
+
+
 def call(op, method, path, body=None):
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(B + path, data=data, method=method)
+    req = urllib.request.Request(B + ro(path), data=data, method=method)
     req.add_header("origin", B)
+    req.add_header("referer", B + "/ro/")
     req.add_header("user-agent", "Mozilla/5.0 (Macintosh) AppleWebKit/537.36 Chrome/131.0 Safari/537.36 wishdrop-e2e")
     if data is not None:
         req.add_header("content-type", "application/json")

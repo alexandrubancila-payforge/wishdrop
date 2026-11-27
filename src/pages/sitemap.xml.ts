@@ -1,5 +1,5 @@
 import type { APIRoute } from "astro";
-import { LANGS, localePath, type Lang } from "@/lib/i18n";
+import { DEFAULT_LANG, LANGS, localePath, type Lang } from "@/lib/i18n";
 import { guideAlternates } from "@/lib/guides";
 import { guides } from "@/i18n/guides";
 
@@ -16,7 +16,7 @@ export const GET: APIRoute = () => {
     same("/privacy"),
     same("/terms"),
     guideAlternates(null),
-    ...guides.ro.map((g) => guideAlternates(g.key)),
+    ...guides[DEFAULT_LANG].map((g) => guideAlternates(g.key)),
   ];
   const url = (l: Lang, path: string) => SITE + localePath(l, path);
   const body = pages
@@ -25,7 +25,7 @@ export const GET: APIRoute = () => {
         (l) => `  <url>
     <loc>${url(l, alts[l])}</loc>
 ${LANGS.map((a) => `    <xhtml:link rel="alternate" hreflang="${a}" href="${url(a, alts[a])}"/>`).join("\n")}
-    <xhtml:link rel="alternate" hreflang="x-default" href="${url("ro", alts.ro)}"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="${url(DEFAULT_LANG, alts[DEFAULT_LANG])}"/>
   </url>`,
       ),
     )

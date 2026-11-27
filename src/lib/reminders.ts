@@ -7,7 +7,7 @@
  */
 import { env } from "cloudflare:workers";
 import { db, now } from "./db";
-import { isLang, localePath, makeT, type Lang } from "./i18n";
+import { isLang, DEFAULT_LANG, localePath, makeT, type Lang } from "./i18n";
 import { sendEmail } from "./email";
 import { renderEmail } from "./email-template";
 import strings from "@/i18n/reminders";
@@ -87,7 +87,7 @@ export async function sendReminders(today = new Date()) {
   const due = await dueReminders(today);
   let emails = 0;
   for (const [userId, rows] of due) {
-    const lang: Lang = isLang(rows[0].r_lang) ? rows[0].r_lang : "ro";
+    const lang: Lang = isLang(rows[0].r_lang) ? rows[0].r_lang : DEFAULT_LANG;
     const t = makeT(lang, strings);
     const fmt = new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", timeZone: "UTC" });
     const lines = rows.map((r) => {
