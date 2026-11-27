@@ -6,9 +6,12 @@
  */
 import Layout from "@/layouts/Layout.astro";
 import Icon from "@/components/Icon.astro";
-import { localePath } from "@/lib/i18n";
+import { localePath, makeT } from "@/lib/i18n";
+import common from "@/i18n/common";
+import home from "@/i18n/home";
 import { guideAlternates, guidePath, hubPath } from "@/lib/guides";
 import { guides, guidesHub, type GuideDoc } from "@/i18n/guides";
+import { giftIcon, giftTint } from "@/lib/gift-icon";
 
 interface Props {
   guide: GuideDoc | null;
@@ -51,6 +54,7 @@ const jsonLd = guide
       ],
     }
   : undefined;
+const ht = makeT(lang, common, home);
 ---
 
 <Layout
@@ -59,41 +63,54 @@ const jsonLd = guide
   alternates={guideAlternates(guide ? guide.key : null)}
   jsonLd={jsonLd}
   ogType={guide ? "article" : "website"}
-  mainClass="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12"
+  mainClass="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12"
 >
   {
     guide ? (
       <article>
         <nav class="text-sm font-semibold text-ink-soft">
-          <a href={href(hubPath(lang))} class="hover:text-accent-700">← {hub.h1}</a>
-        </nav>
-        <header class="mt-4">
-          <span class:list={["grid h-14 w-14 place-items-center rounded-2xl", TINTS[guides[lang].findIndex((g) => g.key === guide.key) % 4]]}>
-            <Icon name={ICONS[guide.key]} class="h-7 w-7" />
-          </span>
-          <h1 class="mt-4 text-4xl font-extrabold tracking-tight sm:text-5xl">{guide.h1}</h1>
-          <p class="mt-4 max-w-2xl text-lg text-ink-soft">{guide.intro}</p>
-          <a href={ctaHref} class="btn btn-primary mt-6 !px-6 !py-3.5">
-            <Icon name="plus" weight="bold" class="h-4 w-4" />
-            {guide.cta}
+          <a href={href(hubPath(lang))} class="inline-flex items-center gap-1 hover:text-accent-700">
+            <Icon name="arrow-left" weight="bold" class="h-3.5 w-3.5" />
+            {hub.h1}
           </a>
+        </nav>
+
+        {/* Hero: the words left, the occasion's photo right (on top on phones). */}
+        <header class="mt-5 grid items-center gap-8 md:grid-cols-[1.1fr_1fr]">
+          <div class="order-2 md:order-1">
+            <h1 class="text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl">{guide.h1}</h1>
+            <p class="mt-4 text-lg leading-relaxed text-ink-soft">{guide.intro}</p>
+            <a href={ctaHref} class="btn btn-primary mt-6 !px-6 !py-3.5">
+              <Icon name="plus" weight="bold" class="h-4 w-4" />
+              {guide.cta}
+            </a>
+          </div>
+          <div class="relative order-1 md:order-2">
+            <picture>
+              <source srcset={`/home/${guide.key}.webp`} type="image/webp" />
+              <img src={`/home/${guide.key}.jpg`} alt="" width="800" height="600" class="aspect-[4/3] w-full rounded-[2rem] object-cover shadow-lift" />
+            </picture>
+            <span class="absolute -bottom-4 -left-3 grid h-14 w-14 -rotate-6 place-items-center rounded-2xl bg-white text-accent-500 shadow-lift" aria-hidden="true">
+              <Icon name="gift" weight="fill" class="h-7 w-7" />
+            </span>
+          </div>
         </header>
 
         {
           guide.sections.map((sec) => (
-            <section class="mt-12">
-              <h2 class="text-2xl font-extrabold tracking-tight">{sec.h}</h2>
+            <section class="mt-14">
+              <h2 class="text-2xl font-extrabold tracking-tight sm:text-3xl">{sec.h}</h2>
               {sec.p && <p class="mt-3 max-w-3xl leading-relaxed text-ink">{sec.p}</p>}
               {sec.ideas && (
-                <ul class="mt-5 grid gap-3 sm:grid-cols-2">
-                  {sec.ideas.map((idea, i) => (
-                    <li class="card flex gap-3 p-4">
-                      <span class:list={["grid h-10 w-10 shrink-0 place-items-center rounded-xl", TINTS[i % 4]]}>
-                        <Icon name="gift" class="h-5 w-5" />
+                <ul class="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {sec.ideas.map((idea) => (
+                    <li class="card group flex gap-3.5 p-4 transition hover:-translate-y-0.5 hover:shadow-lift">
+                      <span class:list={["grid h-12 w-12 shrink-0 place-items-center rounded-2xl transition group-hover:scale-105", giftTint(idea.name)]}>
+                        <Icon name={giftIcon(idea.name)} class="h-6 w-6" />
                       </span>
                       <span class="min-w-0">
-                        <span class="block font-bold">{idea.name}</span>
-                        <span class="mt-0.5 block text-sm leading-snug text-ink-soft">{idea.text}</span>
+                        <span class="block font-bold leading-snug">{idea.name}</span>
+                        <span class="mt-1 block text-sm leading-snug text-ink-soft">{idea.text}</span>
                       </span>
                     </li>
                   ))}
@@ -103,9 +120,9 @@ const jsonLd = guide
           ))
         }
 
-        <section class="mt-12">
-          <h2 class="text-2xl font-extrabold tracking-tight">FAQ</h2>
-          <div class="card mt-4 divide-y divide-line px-5">
+        <section class="mt-14">
+          <h2 class="text-2xl font-extrabold tracking-tight sm:text-3xl">FAQ</h2>
+          <div class="card mt-5 divide-y divide-line px-5">
             {
               guide.faq.map((f) => (
                 <details class="group py-4">
@@ -120,22 +137,33 @@ const jsonLd = guide
           </div>
         </section>
 
-        <section class="card mt-12 flex flex-col items-center bg-accent-50 p-8 text-center">
-          <h2 class="text-2xl font-extrabold tracking-tight">{guide.cta}</h2>
-          <a href={ctaHref} class="btn btn-primary mt-5 !px-6 !py-3.5">
+        {/* Closing band: the same coral call to action as the home page. */}
+        <section class="relative mt-14 overflow-hidden rounded-[2rem] bg-gradient-to-br from-accent-500 to-accent-700 px-6 py-10 text-center text-white shadow-coral sm:py-12">
+          <Icon name={ICONS[guide.key]} class="pointer-events-none absolute -left-4 -top-4 h-28 w-28 -rotate-12 text-white/10" />
+          <Icon name="heart" class="pointer-events-none absolute -bottom-5 -right-3 h-24 w-24 rotate-12 text-white/10" />
+          <h2 class="relative mx-auto max-w-xl text-2xl font-extrabold tracking-tight sm:text-3xl">{ht("home.ctaTitle")}</h2>
+          <p class="relative mx-auto mt-2 max-w-md text-white/85">{ht("home.ctaText")}</p>
+          <a href={ctaHref} class="btn relative mt-6 bg-white !px-6 !py-3.5 text-accent-700 hover:bg-accent-50">
             <Icon name="gift" class="h-4 w-4" />
             {guide.cta}
           </a>
         </section>
 
-        <section class="mt-12">
+        <section class="mt-14">
           <h2 class="text-lg font-extrabold">{hub.h1}</h2>
-          <ul class="mt-3 grid gap-3 sm:grid-cols-3">
+          <ul class="mt-4 grid gap-3 sm:grid-cols-3">
             {others.map((g) => (
               <li>
-                <a href={href(guidePath(lang, g.key))} class="card flex h-full items-center gap-3 p-4 font-bold transition hover:-translate-y-0.5 hover:shadow-lift">
-                  <Icon name={ICONS[g.key]} class="h-5 w-5 shrink-0 text-accent-500" />
-                  {g.h1}
+                <a href={href(guidePath(lang, g.key))} class="group relative block aspect-[2/1] overflow-hidden rounded-2xl shadow-soft sm:aspect-[4/3]">
+                  <picture>
+                    <source srcset={`/home/${g.key}.webp`} type="image/webp" />
+                    <img src={`/home/${g.key}.jpg`} alt="" loading="lazy" width="800" height="600" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  </picture>
+                  <span class="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent"></span>
+                  <span class="absolute inset-x-0 bottom-0 flex items-center gap-1.5 p-3 font-extrabold leading-tight text-white">
+                    <Icon name={ICONS[g.key]} weight="fill" class="h-4 w-4 shrink-0" />
+                    {g.h1}
+                  </span>
                 </a>
               </li>
             ))}
@@ -146,17 +174,25 @@ const jsonLd = guide
       <section>
         <h1 class="text-4xl font-extrabold tracking-tight sm:text-5xl">{hub.h1}</h1>
         <p class="mt-4 max-w-2xl text-lg text-ink-soft">{hub.intro}</p>
-        <ul class="mt-8 grid gap-4 sm:grid-cols-2">
+        <ul class="mt-8 grid gap-5 sm:grid-cols-2">
           {guides[lang].map((g, i) => (
             <li>
-              <a href={href(guidePath(lang, g.key))} class="card flex h-full flex-col p-6 transition hover:-translate-y-1 hover:shadow-lift">
-                <span class:list={["grid h-12 w-12 place-items-center rounded-2xl", TINTS[i % 4]]}>
-                  <Icon name={ICONS[g.key]} class="h-6 w-6" />
+              <a href={href(guidePath(lang, g.key))} class="card group flex h-full flex-col overflow-hidden !p-0 transition hover:-translate-y-1 hover:shadow-lift">
+                <span class="relative block aspect-[16/9] overflow-hidden">
+                  <picture>
+                    <source srcset={`/home/${g.key}.webp`} type="image/webp" />
+                    <img src={`/home/${g.key}.jpg`} alt="" loading={i < 2 ? "eager" : "lazy"} width="800" height="600" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                  </picture>
+                  <span class:list={["absolute left-4 top-4 grid h-11 w-11 place-items-center rounded-2xl shadow-soft", TINTS[i % 4]]}>
+                    <Icon name={ICONS[g.key]} weight="fill" class="h-5 w-5" />
+                  </span>
                 </span>
-                <span class="mt-4 text-xl font-extrabold tracking-tight">{g.h1}</span>
-                <span class="mt-2 text-sm text-ink-soft">{g.description}</span>
-                <span class="mt-4 inline-flex items-center gap-1 text-sm font-bold text-accent-700">
-                  {g.cta} <Icon name="caret-right" weight="bold" class="h-4 w-4" />
+                <span class="flex flex-1 flex-col p-5">
+                  <span class="text-xl font-extrabold tracking-tight">{g.h1}</span>
+                  <span class="mt-2 text-sm text-ink-soft">{g.description}</span>
+                  <span class="mt-4 inline-flex items-center gap-1 text-sm font-bold text-accent-700">
+                    {g.cta} <Icon name="arrow-right" weight="bold" class="h-4 w-4 transition group-hover:translate-x-0.5" />
+                  </span>
                 </span>
               </a>
             </li>
