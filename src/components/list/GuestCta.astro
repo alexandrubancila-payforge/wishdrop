@@ -15,16 +15,52 @@ const t = makeT(lang, publiclist);
 ---
 
 <section class="mt-14">
-  <div class="card flex flex-col items-center !rounded-3xl px-6 py-10 text-center sm:py-12">
-    <span class="grid h-16 w-16 place-items-center rounded-3xl bg-accent-100 text-accent-600">
-      <Icon name="gift" class="h-8 w-8" />
-    </span>
-    <h2 class="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">{t("cta.heading")}</h2>
-    <div class="mt-5 flex flex-wrap justify-center gap-2">
-      <span class="chip bg-mint !px-3.5 !py-1.5 text-mint-ink"><Icon name="check" weight="bold" class="h-3.5 w-3.5" />{t("cta.free")}</span>
-      <span class="chip bg-lav !px-3.5 !py-1.5 text-lav-ink"><Icon name="device-mobile" class="h-3.5 w-3.5" />{t("cta.noApp")}</span>
-      <span class="chip bg-sun !px-3.5 !py-1.5 text-sun-ink"><Icon name="clock" class="h-3.5 w-3.5" />{t("cta.ready")}</span>
+  <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-accent-500 to-accent-700 px-6 py-10 text-white shadow-coral sm:px-10 sm:py-12">
+    <span class="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/10" aria-hidden="true"></span>
+    <span class="pointer-events-none absolute -bottom-20 -left-10 h-48 w-48 rounded-full bg-white/10" aria-hidden="true"></span>
+
+    <div class="relative grid items-center gap-10 md:grid-cols-[1.25fr_1fr]">
+      <div class="text-center md:text-left">
+        <span class="chip bg-white/15 !px-3 !py-1.5 text-white">
+          <Icon name="sparkle" weight="fill" class="h-3.5 w-3.5" />
+          {t("cta.kicker")}
+        </span>
+        <h2 class="mt-4 text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">{t("cta.heading")}</h2>
+        <p class="mx-auto mt-3 max-w-md text-white/85 md:mx-0">{t("cta.sub")}</p>
+        <div class="mt-5 flex flex-wrap justify-center gap-2 md:justify-start">
+          <span class="chip bg-white/15 !px-3 !py-1.5 text-white"><Icon name="check" weight="bold" class="h-3.5 w-3.5" />{t("cta.free")}</span>
+          <span class="chip bg-white/15 !px-3 !py-1.5 text-white"><Icon name="device-mobile" class="h-3.5 w-3.5" />{t("cta.noApp")}</span>
+          <span class="chip bg-white/15 !px-3 !py-1.5 text-white"><Icon name="clock" class="h-3.5 w-3.5" />{t("cta.ready")}</span>
+        </div>
+        <div class="mt-7 flex flex-col items-center gap-3 sm:flex-row sm:justify-center md:justify-start">
+          <a href={localePath(lang, "/register")} class="btn bg-white !px-7 !py-3.5 text-accent-700 shadow-lift hover:bg-accent-50">{t("cta.button")}</a>
+          <a href="/api/auth/google" class="btn border border-white/40 !px-5 !py-3.5 text-white hover:bg-white/10">
+            <Icon name="google-logo" weight="bold" class="h-4 w-4" />
+            {t("cta.google")}
+          </a>
+        </div>
+      </div>
+
+      {/* Two tilted gift cards: what your own list will look like. */}
+      <div class="relative mx-auto h-60 w-72 sm:h-64 sm:w-80" aria-hidden="true">
+        <div class="absolute left-0 top-1 w-40 -rotate-6 rounded-2xl bg-white p-2 text-ink shadow-lift sm:w-44">
+          <img src="/demo/headphones.jpg" alt="" loading="lazy" class="aspect-[4/3] w-full rounded-xl object-cover" />
+          <p class="px-1 pt-2 text-sm font-extrabold">349 lei</p>
+          <span class="mt-1.5 block truncate rounded-full bg-accent-500 px-2 py-1 text-center text-[11px] font-bold text-white">{t("list.reserve")}</span>
+        </div>
+        <div class="absolute bottom-0 right-0 w-36 rotate-6 rounded-2xl bg-white p-2 text-ink shadow-lift sm:w-40">
+          <div class="relative">
+            <img src="/demo/books.jpg" alt="" loading="lazy" class="aspect-[4/3] w-full rounded-xl object-cover" />
+            <span class="absolute inset-x-1.5 bottom-1.5 flex items-center justify-center gap-1 rounded-full bg-mint-ink/95 py-1 text-[11px] font-bold text-white">
+              <Icon name="check" weight="bold" class="h-3 w-3" />{t("list.reserved")}
+            </span>
+          </div>
+          <p class="px-1 pt-2 text-sm font-extrabold">120 lei</p>
+        </div>
+        <span class="absolute right-4 top-6 grid h-11 w-11 place-items-center rounded-2xl bg-white text-accent-500 shadow-lift">
+          <Icon name="heart" weight="fill" class="h-5 w-5" />
+        </span>
+      </div>
     </div>
-    <a href={localePath(lang, "/register")} class="btn btn-primary mt-7 !px-7 !py-3.5">{t("cta.button")}</a>
   </div>
 </section>

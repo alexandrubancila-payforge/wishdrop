@@ -114,16 +114,17 @@ const STEPS = [
             </div>
           )
         }
-        <div class="mt-6 flex flex-col items-center gap-3 text-sm sm:flex-row sm:justify-center lg:justify-start">
-          <span class="inline-flex items-center gap-1.5 text-ink-soft">
-            <Icon name="check-circle" class="h-5 w-5 text-mint-ink" />
+        {/* "Free…" on its own line, the two links under it; nothing breaks mid-phrase. */}
+        <div class="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2.5 text-sm lg:justify-start">
+          <span class="inline-flex w-full items-center justify-center gap-1.5 text-ink-soft lg:justify-start">
+            <Icon name="check-circle" class="h-5 w-5 shrink-0 text-mint-ink" />
             {t("home.free")}
           </span>
-          <a href={href("/example")} class="inline-flex items-center gap-1 font-bold text-accent-700 transition hover:underline">
+          <a href={href("/example")} class="inline-flex items-center gap-1 whitespace-nowrap font-bold text-accent-700 transition hover:underline">
             {t("home.example")}
             <Icon name="caret-right" weight="bold" class="h-4 w-4" />
           </a>
-          {!user && <a href={href("/login")} class="font-semibold text-ink-soft transition hover:text-ink">{t("home.haveAccount")}</a>}
+          {!user && <a href={href("/login")} class="whitespace-nowrap font-semibold text-ink-soft transition hover:text-ink">{t("home.haveAccount")}</a>}
         </div>
       </div>
 

@@ -3,6 +3,9 @@ import type { Bundle } from "@/lib/i18n";
 /** The public wishlist page /w/[slug]: hero, gift cards, reserve modal, guest CTA, seasonal greetings. */
 export default {
   ro: {
+    "cta.kicker": "Ți-a plăcut lista asta?",
+    "cta.sub": "Fă-ți și tu una în două minute și trimite linkul celor dragi. Așa primești exact ce-ți dorești.",
+    "cta.google": "Continuă cu Google",
     "filter.all": "Toate",
     "filter.free": "Libere",
     "filter.reserved": "Rezervate",
@@ -77,6 +80,9 @@ export default {
     "event.in.other": "peste {n} de zile",
   },
   en: {
+    "cta.kicker": "Like this list?",
+    "cta.sub": "Make your own in two minutes and send the link to your loved ones. That's how you get exactly what you wish for.",
+    "cta.google": "Continue with Google",
     "filter.all": "All",
     "filter.free": "Free",
     "filter.reserved": "Reserved",
@@ -150,6 +156,9 @@ export default {
     "event.in.other": "in {n} days",
   },
   de: {
+    "cta.kicker": "Gefällt dir diese Liste?",
+    "cta.sub": "Erstelle deine eigene in zwei Minuten und schick den Link an deine Liebsten. So bekommst du genau, was du dir wünschst.",
+    "cta.google": "Weiter mit Google",
     "filter.all": "Alle",
     "filter.free": "Frei",
     "filter.reserved": "Reserviert",
@@ -223,6 +232,9 @@ export default {
     "event.in.other": "in {n} Tagen",
   },
   ru: {
+    "cta.kicker": "Понравился этот список?",
+    "cta.sub": "Создайте свой за две минуты и отправьте ссылку близким. Так вы получите именно то, что хотите.",
+    "cta.google": "Продолжить с Google",
     "filter.all": "Все",
     "filter.free": "Свободные",
     "filter.reserved": "Забронированные",
