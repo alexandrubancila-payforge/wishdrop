@@ -431,14 +431,17 @@ body {
       display: grid;
     }
   }
-  .stories-wrap.fade-right #stories {
-    mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent);
-  }
-  .stories-wrap.fade-left #stories {
-    mask-image: linear-gradient(to right, transparent, #000 3rem);
-  }
-  .stories-wrap.fade-left.fade-right #stories {
-    mask-image: linear-gradient(to right, transparent, #000 3rem, #000 calc(100% - 3rem), transparent);
+  /* Edge fades only where the arrows show (a mouse, a wide screen); a phone swipes without them. */
+  @media (hover: hover) and (min-width: 640px) {
+    .stories-wrap.fade-right #stories {
+      mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent);
+    }
+    .stories-wrap.fade-left #stories {
+      mask-image: linear-gradient(to right, transparent, #000 3rem);
+    }
+    .stories-wrap.fade-left.fade-right #stories {
+      mask-image: linear-gradient(to right, transparent, #000 3rem, #000 calc(100% - 3rem), transparent);
+    }
   }
   .story {
     scroll-snap-align: start;
