@@ -1,0 +1,27 @@
+---
+/**
+ * The next page of the feed for infinite scroll (pages/feed.astro fetches it):
+ * just the posts, then a marker with the address of the page after it (empty
+ * at the end).
+ */
+import FeedPost from "@/components/feed/FeedPost.astro";
+import { feedPage } from "@/lib/feed";
+import { reactionsFor } from "@/lib/gifts";
+import { localePath } from "@/lib/i18n";
+
+export const partial = true;
+
+const { lang } = Astro.locals;
+const user = Astro.locals.user!;
+const at = Number(Astro.url.searchParams.get("at"));
+const id = Astro.url.searchParams.get("id") ?? "";
+if (!Number.isFinite(at) || at <= 0 || !id) return new Response("Bad request", { status: 400 });
+
+const { posts, next } = await feedPage(user.id, { at, id });
+const reactions = await reactionsFor(posts.flat().map((a) => a.id), user.id);
+const nextUrl = next ? `${localePath(lang, "/feed/more")}?at=${next.at}&id=${encodeURIComponent(next.id)}` : "";
+Astro.response.headers.set("cache-control", "private, no-store");
+---
+
+{posts.map((group) => <FeedPost lang={lang} group={group} reactions={reactions} />)}
+<template data-feed-next={nextUrl}></template>

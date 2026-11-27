@@ -150,6 +150,28 @@ check("404 has no canonical or hreflang", s == 404 and 'rel="canonical"' not in 
 s, loc, _ = raw("/en/ideas?x=1", {})
 check("old /en link → 301 to the root", s == 301 and loc.endswith("/ideas?x=1"), (s, loc))
 
+# --- feed: older posts load while scrolling ---
+fa, ufa = user("feeda"); fb, ufb = user("feedb")
+call(fa, "POST", "/api/follows", {"username": ufb})
+feed_lists = []
+for k in range(2):
+    s, r = call(fb, "POST", "/api/wishlists", {"name": f"Feed {k} {stamp}"})
+    call(fb, "PATCH", f"/api/wishlists/{r['id']}", {"visibility": "public"})
+    feed_lists.append(r["id"])
+for n in range(40):  # alternating lists: every gift is its own post
+    call(fb, "POST", f"/api/wishlists/{feed_lists[n % 2]}/items", {"product_url": f"https://example.com/feed{n}", "price": f"{n}0 feedlei"})
+s, page = call(fa, "GET", "/feed")
+first = re.findall(r">(\d+)0 feedlei<", page)
+nxt = re.search(r'data-next="([^"]*)"', page)
+check("feed shows the first page", s == 200 and len(first) == 29 and "39" in first, (s, len(first)))
+check("feed has a next page", bool(nxt and nxt.group(1)), "")
+s, more = call(fa, "GET", nxt.group(1).replace("&amp;", "&") if nxt else "/feed/more")
+rest = re.findall(r">(\d+)0 feedlei<", more)
+check("next page has the older posts, no repeats", s == 200 and sorted(map(int, first + rest)) == list(range(40)), (s, len(rest)))
+check("last page says there is no more", re.search(r'data-feed-next(=""|[ >])', more) and "<html" not in more, "")
+s, _ = call(fa, "GET", "/feed/more?at=x")
+check("bad cursor refused", s == 400, s)
+
 # --- popular gifts ---
 import os, uuid
 photo = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "public", "demo", "books.jpg"), "rb").read()

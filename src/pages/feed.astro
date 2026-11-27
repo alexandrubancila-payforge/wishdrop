@@ -12,16 +12,13 @@ import { localePath, makeT } from "@/lib/i18n";
 import common from "@/i18n/common";
 import feed from "@/i18n/feed";
 import social from "@/i18n/social";
-import { friendsActivity, suggestedPeople, upcomingBirthdays, upcomingEvents } from "@/lib/feed";
+import FeedPost from "@/components/feed/FeedPost.astro";
+import { feedPage, suggestedPeople, upcomingBirthdays, upcomingEvents } from "@/lib/feed";
 import { followCounts } from "@/lib/social";
-import { imageUrl } from "@/lib/storage";
 import { db } from "@/lib/db";
 import { unreadCount } from "@/lib/notifications";
 import notifStrings from "@/i18n/notifications";
 import santaStrings from "@/i18n/santa";
-import { plural } from "@/components/dashboard/plural";
-import type { FeedEntry } from "@/lib/feed";
-import Reactions from "@/components/gifts/Reactions.astro";
 import { reactionsFor } from "@/lib/gifts";
 
 const { lang } = Astro.locals;
@@ -29,10 +26,10 @@ const user = Astro.locals.user!;
 const t = makeT(lang, common, social, feed);
 const href = (p: string) => localePath(lang, p);
 
-const [bdays, events, activity, counts, suggestions, myLists, unread] = await Promise.all([
+const [bdays, events, firstPage, counts, suggestions, myLists, unread] = await Promise.all([
   upcomingBirthdays(user.id),
   upcomingEvents(user.id),
-  friendsActivity(user.id),
+  feedPage(user.id),
   followCounts(user.id),
   suggestedPeople(user.id, 5),
   db().prepare("SELECT COUNT(*) AS n FROM wishlists WHERE user_id = ?").bind(user.id).first<{ n: number }>(),
@@ -43,6 +40,8 @@ const birthdays = [
   ...bdays.map((b) => ({ ...b, kind: "bday" as const, title: b.name || `@${b.username}`, link: b.username ? href(`/@${b.username}`) : "#" })),
   ...events.map((e) => ({ ...e, kind: "event" as const, title: e.list_name, link: href(`/w/${e.list_slug}`) })),
 ].sort((a, b) => a.inDays - b.inDays);
+const { posts, next } = firstPage;
+const activity = posts.flat();
 const reactions = await reactionsFor(activity.map((a) => a.id), user.id);
 const notifLabel = makeT(lang, notifStrings)("title");
 // Secret Santa card in the gift season (November to January).
@@ -54,31 +53,7 @@ const displayName = user.name || (user.username ? `@${user.username}` : user.ema
 const firstName = (user.name || user.username || user.email.split("@")[0]).trim().split(/\s+/)[0];
 const day = new Intl.DateTimeFormat(lang, { day: "2-digit", timeZone: "UTC" });
 const month = new Intl.DateTimeFormat(lang, { month: "short", timeZone: "UTC" });
-const rtf = new Intl.RelativeTimeFormat(lang, { numeric: "auto" });
-function ago(ms: number) {
-  const s = (ms - Date.now()) / 1000;
-  const steps: [Intl.RelativeTimeFormatUnit, number][] = [["minute", 60], ["hour", 3600], ["day", 86400], ["week", 604800]];
-  if (-s < 60) return rtf.format(0, "minute");
-  let unit: Intl.RelativeTimeFormatUnit = "minute";
-  let size = 60;
-  for (const [u, sz] of steps) if (-s >= sz) [unit, size] = [u, sz];
-  return rtf.format(Math.round(s / size), unit);
-}
 const when = (n: number) => (n === 0 ? t("today") : n === 1 ? t("tomorrow") : t("inDays", { n }));
-const domain = (url: string | null) => {
-  try {
-    return url ? new URL(url).hostname.replace(/^www\./, "") : "";
-  } catch {
-    return "";
-  }
-};
-// Several gifts added to the same list in a row become one post.
-const posts: FeedEntry[][] = [];
-for (const it of activity) {
-  const last = posts.at(-1);
-  if (last && last[0].list_slug === it.list_slug) last.push(it);
-  else posts.push([it]);
-}
 const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav text-lav-ink", "bg-sun text-sun-ink"];
 ---
 
@@ -246,92 +221,20 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
               </a>
             </div>
           ) : (
-            <ul class="mt-3 grid grid-cols-1 gap-6">
-              {posts.map((group) => {
-                const it = group[0];
-                const owner = { name: it.owner_name, email: it.owner_email, avatar_url: it.owner_avatar };
-                const ownerName = it.owner_name || (it.owner_username ? `@${it.owner_username}` : "");
-                const ownerHref = it.owner_username ? href(`/@${it.owner_username}`) : href(`/w/${it.list_slug}`);
-                const listHref = href(`/w/${it.list_slug}`);
-                const shown = group.slice(0, 4);
-                return (
-                  <li class="card !rounded-3xl p-3 sm:p-4">
-                    <div class="flex items-center gap-3 px-1">
-                      <a href={ownerHref}>
-                        <Avatar user={owner} size={40} class="h-10 w-10" />
-                      </a>
-                      <p class="min-w-0 flex-1 text-sm leading-tight">
-                        <a href={ownerHref} class="font-bold hover:text-accent-700">{ownerName}</a>
-                        <span class="block truncate text-xs text-ink-soft">
-                          {group.length > 1
-                            ? plural(t, lang, "addedMany", group.length, { list: it.list_name })
-                            : t("addedTo", { list: it.list_name })}{" "}
-                          · {ago(it.created_at)}
-                        </span>
-                      </p>
-                      <a href={listHref} class="btn btn-soft hidden !px-4 !py-2 text-xs sm:inline-flex">
-                        {t("open")}
-                        <Icon name="caret-right" weight="bold" class="h-3.5 w-3.5" />
-                      </a>
-                    </div>
-                    {group.length === 1 ? (
-                      <a href={listHref} class="mt-3 grid grid-cols-[96px_1fr_auto] items-center gap-4 rounded-2xl bg-sand/60 p-2.5 transition hover:bg-sand sm:grid-cols-[140px_1fr_auto]">
-                        {it.image_key ? (
-                          <img src={imageUrl(it.image_key)} alt="" loading="lazy" class:list={["aspect-square w-full rounded-2xl bg-white object-cover", it.reserved_at && "opacity-50 grayscale"]} />
-                        ) : (
-                          <span class="grid aspect-square w-full place-items-center rounded-2xl bg-accent-50 text-accent-500">
-                            <Icon name="gift" class="h-9 w-9" />
-                          </span>
-                        )}
-                        <span class="min-w-0">
-                          <span class="block truncate font-bold sm:text-lg">{it.title || domain(it.product_url) || it.list_name}</span>
-                          <span class="mt-1.5 flex flex-wrap gap-1.5">
-                            {it.priority > 0 && <span class="chip bg-accent-100 text-accent-700">★ {t("mostWanted")}</span>}
-                            {it.reserved_at && <span class="chip bg-mint text-mint-ink">✓ {t("reserved")}</span>}
-                          </span>
-                          {it.price && <span class="mt-2 block text-lg font-extrabold sm:text-2xl">{it.price}</span>}
-                        </span>
-                        <Icon name="caret-right" weight="bold" class="mr-2 h-5 w-5 text-ink-soft" />
-                      </a>
-                    ) : (
-                      <div class="mt-3">
-                        <div class:list={["grid gap-2", shown.length === 2 ? "grid-cols-2" : shown.length === 3 ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4"]}>
-                          {shown.map((g, i) => {
-                            const more = i === shown.length - 1 && group.length > shown.length;
-                            return (
-                              <div class="relative">
-                                <a href={listHref} class="relative block overflow-hidden rounded-2xl">
-                                  {g.image_key ? (
-                                    <img src={imageUrl(g.image_key)} alt={g.title ?? ""} loading="lazy" class:list={["aspect-square w-full bg-sand object-cover transition duration-300 hover:scale-[1.03]", g.reserved_at && "opacity-50 grayscale"]} />
-                                  ) : (
-                                    <span class="grid aspect-square w-full place-items-center bg-accent-50 text-accent-500">
-                                      <Icon name="gift" class="h-9 w-9" />
-                                    </span>
-                                  )}
-                                  {g.price && <span class="chip absolute bottom-2 left-2 max-w-[85%] truncate bg-white/95 text-ink shadow-soft">{g.price}</span>}
-                                  {more && (
-                                    <span class="absolute inset-0 grid place-items-center bg-ink/45 text-2xl font-extrabold text-white">
-                                      +{group.length - shown.length}
-                                    </span>
-                                  )}
-                                </a>
-                                {/* A ❤️ on each photo, outside the link so tapping it never opens the list. */}
-                                {!more && <Reactions lang={lang} itemId={g.id} summary={reactions.get(g.id)} mode="react" heartOnly class="absolute right-2 top-2" />}
-                              </div>
-                            );
-                          })}
-                        </div>
-                        <a href={listHref} class="flex items-center justify-between px-1 pt-3 text-sm font-bold sm:hidden">
-                          {it.list_name}
-                          <span class="flex items-center gap-1 text-accent-700">{t("open")} <Icon name="caret-right" weight="bold" class="h-4 w-4" /></span>
-                        </a>
-                      </div>
-                    )}
-                    {group.length === 1 && <Reactions lang={lang} itemId={it.id} summary={reactions.get(it.id)} mode="react" class="mt-3 px-1" />}
-                  </li>
-                );
-              })}
-            </ul>
+            <>
+              <ul id="feed-posts" class="mt-3 grid grid-cols-1 gap-6">
+                {posts.map((group) => <FeedPost lang={lang} group={group} reactions={reactions} />)}
+              </ul>
+              {/* Scrolling near the end loads older posts (pages/feed/more.astro), like Instagram. */}
+              <div id="feed-more" data-next={next ? `${href("/feed/more")}?at=${next.at}&id=${encodeURIComponent(next.id)}` : ""} class="py-8 text-center text-sm text-ink-soft">
+                <span data-loading class="inline-flex items-center gap-2" hidden={!next}>
+                  <span class="h-4 w-4 animate-spin rounded-full border-2 border-accent-200 border-t-accent-500"></span>
+                  {t("loadingMore")}
+                </span>
+                <button type="button" data-retry class="btn btn-soft !px-4 !py-2 text-xs" hidden>{t("loadMoreRetry")}</button>
+                <span data-end hidden={!!next}>{t("allCaughtUp")}</span>
+              </div>
+            </>
           )
         }
       </section>
@@ -411,3 +314,48 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
     </aside>
   </div>
 </Layout>
+
+<script>
+  // Older posts load as the end of the feed comes into view (pages/feed/more.astro).
+  const box = document.getElementById("feed-more");
+  const list = document.getElementById("feed-posts");
+  if (box && list && box.dataset.next) {
+    const loading = box.querySelector<HTMLElement>("[data-loading]")!;
+    const retry = box.querySelector<HTMLElement>("[data-retry]")!;
+    const end = box.querySelector<HTMLElement>("[data-end]")!;
+    let busy = false;
+    const load = async () => {
+      const url = box.dataset.next;
+      if (busy || !url) return;
+      busy = true;
+      loading.hidden = false;
+      retry.hidden = true;
+      try {
+        const res = await fetch(url, { headers: { accept: "text/html" } });
+        // A redirect means the session ended (the login page came back instead of posts).
+        if (!res.ok || res.redirected) throw new Error(String(res.status));
+        const tpl = document.createElement("template");
+        tpl.innerHTML = await res.text();
+        const nextEl = tpl.content.querySelector<HTMLElement>("[data-feed-next]");
+        box.dataset.next = nextEl?.dataset.feedNext ?? "";
+        nextEl?.remove();
+        list.append(tpl.content);
+        if (!box.dataset.next) {
+          observer.disconnect();
+          loading.hidden = true;
+          end.hidden = false;
+        }
+      } catch {
+        loading.hidden = true;
+        retry.hidden = false;
+      } finally {
+        busy = false;
+      }
+      // Still on screen (a short page)? Keep going.
+      if (box.dataset.next && box.getBoundingClientRect().top < innerHeight + 800) load();
+    };
+    const observer = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && load(), { rootMargin: "800px 0px" });
+    observer.observe(box);
+    retry.addEventListener("click", load);
+  }
+</script>

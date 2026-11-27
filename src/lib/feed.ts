@@ -16,8 +16,14 @@ export interface FeedEntry extends Item {
   list_slug: string;
 }
 
-/** Gifts added recently on lists of people I follow. */
-export async function friendsActivity(userId: string, limit = 30) {
+/** Where the next page of the feed starts: just older than this gift. */
+export interface FeedCursor {
+  at: number;
+  id: string;
+}
+
+/** Gifts added recently on lists of people I follow, newest first; `before` pages further back. */
+export async function friendsActivity(userId: string, limit = 30, before?: FeedCursor) {
   const { results } = await db()
     .prepare(
       `SELECT i.*, u.id AS owner_id, u.username AS owner_username, u.name AS owner_name, u.email AS owner_email,
@@ -27,12 +33,37 @@ export async function friendsActivity(userId: string, limit = 30) {
          JOIN wishlists w ON w.user_id = u.id AND w.visibility IN ('public', 'followers') AND w.hidden_at IS NULL
          JOIN items i ON i.wishlist_id = w.id AND i.received_at IS NULL
         WHERE f.follower_id = ? AND f.status = 'accepted'
-        ORDER BY i.created_at DESC
+          AND (? IS NULL OR i.created_at < ? OR (i.created_at = ? AND i.id < ?))
+        ORDER BY i.created_at DESC, i.id DESC
         LIMIT ?`,
     )
-    .bind(userId, limit)
+    .bind(userId, before?.at ?? null, before?.at ?? null, before?.at ?? null, before?.id ?? "", limit)
     .all<FeedEntry>();
   return results;
+}
+
+export const FEED_PAGE = 30;
+
+/**
+ * One page of the feed as posts: gifts added to the same list in a row become
+ * one post. The last post may go on into the next page, so unless this is the
+ * end it waits for the next page (where it arrives whole).
+ */
+export async function feedPage(userId: string, before?: FeedCursor) {
+  const items = await friendsActivity(userId, FEED_PAGE + 1, before);
+  const more = items.length > FEED_PAGE;
+  const page = items.slice(0, FEED_PAGE);
+  const posts: FeedEntry[][] = [];
+  for (const it of page) {
+    const last = posts.at(-1);
+    if (last && last[0].list_slug === it.list_slug) last.push(it);
+    else posts.push([it]);
+  }
+  // Hold the last post back for the next page, unless it's the only one (a list with 30+ new gifts).
+  if (more && posts.length > 1) posts.pop();
+  const lastItem = posts.at(-1)?.at(-1);
+  const next: FeedCursor | null = more && lastItem ? { at: lastItem.created_at, id: lastItem.id } : null;
+  return { posts, next };
 }
 
 export interface Birthday {
