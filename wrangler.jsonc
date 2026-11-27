@@ -10,7 +10,11 @@
   "compatibility_flags": ["nodejs_compat"],
   "assets": { "directory": "./dist", "binding": "ASSETS" },
   // The live domain. Cloudflare creates the DNS record; remove this line to hand the domain back.
-  "routes": [{ "pattern": "wishdrop.site", "custom_domain": true }],
+  // www gets its own DNS record and certificate from Cloudflare; the middleware sends it to the bare domain (301).
+  "routes": [
+    { "pattern": "wishdrop.site", "custom_domain": true },
+    { "pattern": "www.wishdrop.site", "custom_domain": true }
+  ],
   "workers_dev": true,
   "placement": { "mode": "smart" },
   "observability": { "enabled": true },

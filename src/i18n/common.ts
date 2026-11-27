@@ -3,6 +3,10 @@ import type { Bundle } from "@/lib/i18n";
 /** Header, footer, mobile tab bar and the shared modals. */
 export default {
   ro: {
+    "adult.label": "Conținut pentru adulți",
+    "adult.show": "Arată",
+    "adult.confirm": "Acest cadou e pentru adulți. Confirmi că ai cel puțin 18 ani?",
+    "adult.yes": "Da, am 18+",
     "cover.add": "Adaugă copertă",
     "cover.edit": "Editează coperta",
     "cover.replace": "Altă poză",
@@ -74,6 +78,10 @@ export default {
     "ph.listName": "Numele listei",
   },
   en: {
+    "adult.label": "Adult content",
+    "adult.show": "Show",
+    "adult.confirm": "This gift is for adults. Do you confirm you're at least 18?",
+    "adult.yes": "Yes, I'm 18+",
     "cover.add": "Add cover photo",
     "cover.edit": "Edit cover photo",
     "cover.replace": "Choose another photo",
@@ -145,6 +153,10 @@ export default {
     "ph.listName": "List name",
   },
   de: {
+    "adult.label": "Inhalt für Erwachsene",
+    "adult.show": "Anzeigen",
+    "adult.confirm": "Dieses Geschenk ist für Erwachsene. Bestätigst du, dass du mindestens 18 bist?",
+    "adult.yes": "Ja, ich bin 18+",
     "cover.add": "Titelbild hinzufügen",
     "cover.edit": "Titelbild bearbeiten",
     "cover.replace": "Anderes Foto wählen",
@@ -216,6 +228,10 @@ export default {
     "ph.listName": "Name der Liste",
   },
   ru: {
+    "adult.label": "Контент для взрослых",
+    "adult.show": "Показать",
+    "adult.confirm": "Этот подарок для взрослых. Подтверждаете, что вам есть 18?",
+    "adult.yes": "Да, мне 18+",
     "cover.add": "Добавить обложку",
     "cover.edit": "Изменить обложку",
     "cover.replace": "Выбрать другое фото",

@@ -13,3 +13,4 @@ _recovered/backup-*.sql
 _recovered/fragments/
 _recovered/i18n/
 _recovered/site-public-list/
+tests/visual/out/

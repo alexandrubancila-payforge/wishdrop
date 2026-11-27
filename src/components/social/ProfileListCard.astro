@@ -6,6 +6,7 @@ import common from "@/i18n/common";
 import social from "@/i18n/social";
 import { imageUrl } from "@/lib/storage";
 import GiftArt from "@/components/gifts/GiftArt.astro";
+import { isAdultGift } from "@/lib/adult";
 import type { Cover } from "@/lib/db";
 import { plural } from "@/components/dashboard/plural";
 
@@ -33,7 +34,8 @@ const href = localePath(lang, `/w/${list.slug}`);
           ]}
         >
           {list.covers.map((c, i) => (
-            <div class:list={["relative overflow-hidden bg-sand", list.covers.length === 3 && i === 0 && "row-span-2"]}>
+            <div class:list={["relative overflow-hidden bg-sand", list.covers.length === 3 && i === 0 && "row-span-2", !showVisibility && isAdultGift(c) && "adult-gift"]}>
+              {!showVisibility && isAdultGift(c) && <span class="adult-cover absolute inset-0 z-[1] grid place-items-center"><span class="rounded-full bg-ink px-2.5 py-0.5 text-xs font-extrabold text-white">18+</span></span>}
               {c.image_key ? (
                 <img src={imageUrl(c.image_key)} alt="" loading="lazy" class="h-full w-full object-cover transition duration-300 group-hover:scale-[1.04]" />
               ) : (

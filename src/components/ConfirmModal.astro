@@ -2,6 +2,8 @@
 /**
  * A styled confirm() for destructive actions. In page scripts:
  *   const ok = await window.wdConfirm("Delete this gift?", "Delete");
+ * Other questions can set their own title and a text badge instead of the trash icon:
+ *   await window.wdConfirm("Are you over 18?", "Yes", { title: "Adult content", badge: "18+" });
  */
 import { makeT } from "@/lib/i18n";
 import common from "@/i18n/common";
@@ -18,7 +20,7 @@ const t = makeT(Astro.locals.lang, common);
   aria-labelledby="confirm-title"
 >
   <div class="card w-full max-w-sm p-6 text-center" data-confirm-panel>
-    <div class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-accent-100 text-accent-600">
+    <div id="confirm-icon" class="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-accent-100 text-xl font-extrabold text-accent-600">
       <Icon name="trash" class="h-7 w-7" />
     </div>
     <h2 id="confirm-title" class="mt-4 text-xl font-extrabold tracking-tight">{t("confirm.title")}</h2>
@@ -40,7 +42,7 @@ const t = makeT(Astro.locals.lang, common);
 <script>
   declare global {
     interface Window {
-      wdConfirm: (message?: string, okLabel?: string) => Promise<boolean>;
+      wdConfirm: (message?: string, okLabel?: string, opts?: { title?: string; badge?: string }) => Promise<boolean>;
     }
   }
 
@@ -49,6 +51,10 @@ const t = makeT(Astro.locals.lang, common);
   const ok = document.getElementById("confirm-ok");
   const cancel = document.getElementById("confirm-cancel");
   const defaultLabel = ok?.dataset.defaultLabel || "OK";
+  const titleEl = document.getElementById("confirm-title");
+  const iconEl = document.getElementById("confirm-icon");
+  const defaultTitle = titleEl?.textContent ?? "";
+  const defaultIcon = iconEl?.innerHTML ?? "";
   let resolve: ((v: boolean) => void) | null = null;
 
   function finish(result: boolean) {
@@ -59,8 +65,13 @@ const t = makeT(Astro.locals.lang, common);
     r?.(result);
   }
 
-  window.wdConfirm = (text = "", okLabel) => {
+  window.wdConfirm = (text = "", okLabel, opts = {}) => {
     if (message) message.textContent = text;
+    if (titleEl) titleEl.textContent = opts.title || defaultTitle;
+    if (iconEl) {
+      if (opts.badge) iconEl.textContent = opts.badge;
+      else iconEl.innerHTML = defaultIcon;
+    }
     if (ok) ok.textContent = okLabel || defaultLabel;
     modal?.classList.remove("hidden");
     modal?.classList.add("flex");

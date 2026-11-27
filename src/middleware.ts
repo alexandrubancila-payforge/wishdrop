@@ -6,7 +6,7 @@
  *    (`wd_lang`), else the account's language, else the browser's (not for
  *    crawlers, so search engines index the English pages). Old "/en/…"
  *    addresses redirect (301) to the unprefixed ones.
- *    Pages have one address: http → https and "/page/" → "/page" (301).
+ *    Pages have one address: www → bare domain, http → https and "/page/" → "/page" (301).
  * 2. Session: `locals.user` is the signed-in user or null (a suspended
  *    account counts as signed out).
  * 3. Pages behind login redirect to /login?next=….
@@ -62,7 +62,10 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
   const { pathname, search } = ctx.url;
   const read = ctx.request.method === "GET" || ctx.request.method === "HEAD";
 
-  // One address per page for search engines: https, and no trailing slash ("/ideas/" → "/ideas").
+  // One address per page for search engines: no www, https, and no trailing slash ("/ideas/" → "/ideas").
+  if (ctx.url.hostname.startsWith("www.")) {
+    return permanent(`https://${ctx.url.host.slice(4)}${pathname}${search}`);
+  }
   if (ctx.url.protocol === "http:" && !LOCAL_HOST.test(ctx.url.hostname)) {
     return permanent(`https://${ctx.url.host}${pathname}${search}`);
   }

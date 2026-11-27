@@ -8,6 +8,7 @@
  * have the same product.
  */
 import { db } from "./db";
+import { isAdultGift } from "./adult";
 
 export interface PopularGift {
   /** The gift shown (the one with the most reactions in its group). */
@@ -57,11 +58,9 @@ async function candidates(limit = 2000) {
   return results;
 }
 
-/** Adult shops never appear on /popular, whatever the list's visibility. */
-const ADULT_SHOP = /sex|xshop|adult|erotic|porn/i;
-
 export async function popularGifts(limit = 24) {
-  const rows = (await candidates()).filter((r) => !ADULT_SHOP.test(r.product_url ?? ""));
+  // 18+ gifts (lib/adult.ts) never appear here.
+  const rows = (await candidates()).filter((r) => !isAdultGift(r));
   // Group the same product (or a gift with its copies) into one card.
   const groups = new Map<string, typeof rows>();
   for (const r of rows) {

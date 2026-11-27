@@ -170,6 +170,30 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
     <slot name="head" />
   </head>
   <body class:list={["flex min-h-screen flex-col antialiased", { "has-tabbar": tabbar }]}>
+    <script is:inline>
+      // 18+ gifts: shown plainly once this browser confirmed (components/gifts/AdultCover.astro).
+      try {
+        if (localStorage.getItem("wd_adult_ok") === "1") document.documentElement.classList.add("adult-ok");
+      } catch {}
+      document.addEventListener(
+        "click",
+        async (e) => {
+          const b = e.target.closest && e.target.closest("[data-adult-reveal]");
+          if (!b) return;
+          e.preventDefault();
+          e.stopPropagation();
+          const ok = window.wdConfirm
+            ? await window.wdConfirm(b.dataset.confirm, b.dataset.ok, { title: b.dataset.title, badge: "18+" })
+            : confirm(b.dataset.confirm);
+          if (!ok) return;
+          document.documentElement.classList.add("adult-ok");
+          try {
+            localStorage.setItem("wd_adult_ok", "1");
+          } catch {}
+        },
+        true,
+      );
+    </script>
     {
       header && (
         <header class="sticky top-0 z-30 bg-paper/85 backdrop-blur-md">

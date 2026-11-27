@@ -20,6 +20,8 @@ import GuestCta from "@/components/list/GuestCta.astro";
 import SeasonGreeting from "@/components/list/SeasonGreeting.astro";
 import Avatar from "@/components/Avatar.astro";
 import GiftArt from "@/components/gifts/GiftArt.astro";
+import AdultCover from "@/components/gifts/AdultCover.astro";
+import { isAdultGift } from "@/lib/adult";
 import Icon from "@/components/Icon.astro";
 import Reactions from "@/components/gifts/Reactions.astro";
 import { localePath, makeT, pick } from "@/lib/i18n";
@@ -240,13 +242,14 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
               const mine = !!user && !!item.reserver_user_id && item.reserver_user_id === user.id;
               const img = imageUrl(item.image_key);
               const site = host(item.product_url);
+              const adult = !isOwner && isAdultGift(item);
               const Wrapper = item.product_url ? "a" : "div";
               const wrapperProps = item.product_url
                 ? { href: item.product_url, target: "_blank", rel: "noopener noreferrer", title: t("list.openProduct") }
                 : {};
               return (
                 <article
-                  class="card group relative flex flex-col !rounded-3xl p-2 transition duration-200 hover:-translate-y-1 hover:shadow-lift"
+                  class:list={["card group relative flex flex-col !rounded-3xl p-2 transition duration-200 hover:-translate-y-1 hover:shadow-lift", adult && "adult-gift"]}
                   data-item-id={item.id}
                   data-reserved={reserved ? "true" : "false"}
                   data-my-reservation={mine ? "true" : "false"}
@@ -257,6 +260,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                   data-my-join={group.some((c) => user && c.user_id === user.id) ? "true" : "false"}
                 >
                   <Wrapper class="relative block aspect-square overflow-hidden rounded-2xl bg-sand" {...wrapperProps}>
+                    {adult && <AdultCover />}
                     {img ? (
                       <img
                         src={img}
@@ -299,14 +303,14 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                   ) : null}
                   <div class="flex flex-1 flex-col px-1.5 pb-1 pt-3">
                     <div class="min-w-0 px-0.5">
-                      {item.title && <p class="line-clamp-2 text-sm font-bold leading-snug text-ink">{item.title}</p>}
+                      {item.title && <p class="adult-text line-clamp-2 text-sm font-bold leading-snug text-ink">{item.title}</p>}
                       {item.price ? (
                         <>
-                          <p class="text-xl font-extrabold tracking-tight">{item.price}</p>
-                          {site && <p class="mt-0.5 truncate text-xs font-medium text-ink-soft">{site}</p>}
+                          <p class="line-clamp-2 break-words text-xl font-extrabold tracking-tight">{item.price}</p>
+                          {site && <p class="adult-text mt-0.5 truncate text-xs font-medium text-ink-soft">{site}</p>}
                         </>
                       ) : (
-                        site && <p class="truncate text-sm font-semibold text-ink-soft">{site}</p>
+                        site && <p class="adult-text truncate text-sm font-semibold text-ink-soft">{site}</p>
                       )}
                     </div>
                     <Reactions lang={lang} itemId={item.id} summary={reactions.get(item.id)} mode={reactMode} loginHref={loginHref} class="mt-2.5" />

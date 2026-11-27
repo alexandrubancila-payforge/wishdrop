@@ -111,7 +111,7 @@ export async function profileLists(owner: User, rel: Relation) {
   const covers = await db()
     .prepare(
       // Photos first; gifts without one fill the collage with their icon (components/gifts/GiftArt.astro).
-      `SELECT wishlist_id, id, title, image_key FROM items
+      `SELECT wishlist_id, id, title, image_key, product_url FROM items
         WHERE received_at IS NULL AND wishlist_id IN (SELECT id FROM wishlists WHERE user_id = ?)
         ORDER BY image_key <> '' DESC, priority DESC, created_at DESC`,
     )
@@ -119,7 +119,7 @@ export async function profileLists(owner: User, rel: Relation) {
     .all<Cover & { wishlist_id: string }>();
   return results.map((w) => ({
     ...w,
-    covers: covers.results.filter((c) => c.wishlist_id === w.id).slice(0, 4).map(({ id, title, image_key }) => ({ id, title, image_key })),
+    covers: covers.results.filter((c) => c.wishlist_id === w.id).slice(0, 4).map(({ id, title, image_key, product_url }) => ({ id, title, image_key, product_url })),
   }));
 }
 

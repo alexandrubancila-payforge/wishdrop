@@ -342,6 +342,25 @@ body {
     opacity: 1;
   }
 
+  /* 18+ gifts (lib/adult.ts): photo and name blurred until the visitor confirms they're over 18. */
+  .adult-gift img,
+  .adult-gift [data-card-img] {
+    filter: blur(18px);
+  }
+  .adult-gift .adult-text {
+    filter: blur(5px);
+    user-select: none;
+  }
+  html.adult-ok .adult-gift img,
+  html.adult-ok .adult-gift [data-card-img],
+  html.adult-ok .adult-gift .adult-text {
+    filter: none;
+    user-select: auto;
+  }
+  html.adult-ok .adult-cover {
+    display: none !important; /* over the cover's own flex/grid utility */
+  }
+
   /* Copy button (list editor): the copy icon turns into a check for a moment. */
   .copy-btn .when-copied {
     display: none;
