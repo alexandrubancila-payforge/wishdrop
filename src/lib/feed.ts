@@ -22,7 +22,10 @@ export interface FeedCursor {
   id: string;
 }
 
-/** Gifts added recently on lists of people I follow, newest first; `before` pages further back. */
+/** The feed only goes this far back (older gifts are on each friend's profile), so scrolling stays cheap. */
+export const FEED_DAYS = 30;
+
+/** Gifts added in the last FEED_DAYS on lists of people I follow, newest first; `before` pages further back. */
 export async function friendsActivity(userId: string, limit = 30, before?: FeedCursor) {
   const { results } = await db()
     .prepare(
@@ -33,11 +36,12 @@ export async function friendsActivity(userId: string, limit = 30, before?: FeedC
          JOIN wishlists w ON w.user_id = u.id AND w.visibility IN ('public', 'followers') AND w.hidden_at IS NULL
          JOIN items i ON i.wishlist_id = w.id AND i.received_at IS NULL
         WHERE f.follower_id = ? AND f.status = 'accepted'
+          AND i.created_at > ?
           AND (? IS NULL OR i.created_at < ? OR (i.created_at = ? AND i.id < ?))
         ORDER BY i.created_at DESC, i.id DESC
         LIMIT ?`,
     )
-    .bind(userId, before?.at ?? null, before?.at ?? null, before?.at ?? null, before?.id ?? "", limit)
+    .bind(userId, Date.now() - FEED_DAYS * 86_400_000, before?.at ?? null, before?.at ?? null, before?.at ?? null, before?.id ?? "", limit)
     .all<FeedEntry>();
   return results;
 }
