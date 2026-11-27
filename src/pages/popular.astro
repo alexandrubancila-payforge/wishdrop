@@ -30,8 +30,8 @@ const domain = (url: string | null) => {
   }
 };
 const sections = [
-  { key: "popular", icon: "star", title: t("popular"), gifts: popular },
-  { key: "recent", icon: "sparkle", title: t("recent"), gifts: recent },
+  { key: "popular", title: t("popular"), gifts: popular },
+  { key: "recent", title: t("recent"), gifts: recent },
 ].filter((s) => s.gifts.length);
 const own = (g: PopularGift) => !!user && g.owner_id === user.id;
 // Filter chips only for categories that have gifts on the page.
@@ -91,10 +91,7 @@ const shopName = (site: string) => {
     ) : (
       sections.map((sec) => (
         <section class="mt-8" data-section>
-          <h2 class="flex items-center gap-2 text-xl font-extrabold tracking-tight">
-            <Icon name={sec.icon} class="h-5 w-5 text-accent-500" />
-            {sec.title}
-          </h2>
+          <h2 class="text-xl font-extrabold tracking-tight">{sec.title}</h2>
           <ul class="mt-4 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
             {sec.gifts.map((g) => {
               const img = imageUrl(g.image_key);
