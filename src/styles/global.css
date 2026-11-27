@@ -772,15 +772,33 @@ html {
 [data-owner="true"] [data-leave-btn] {
   display: none !important;
 }
-/* The ❤️ pill over a feed photo. */
+/* ❤️ / ✨ over a photo: solid white with a hairline and a clear shadow, so they read on
+   white product shots too; the icons carry their colour (coral heart, gold sparkle). */
 .react-btn.is-overlay {
   min-height: 1.9rem;
   padding: 0.25rem 0.55rem;
-  background: rgb(255 255 255 / 0.95);
-  box-shadow: 0 2px 8px rgb(43 36 51 / 0.15);
+  background: #fff;
+  border: 1px solid rgb(43 36 51 / 0.1);
+  box-shadow: 0 3px 10px rgb(43 36 51 / 0.22);
 }
-.react-btn.is-overlay[aria-pressed="true"] {
+.react-btn.is-overlay.react-heart {
+  color: var(--color-accent-600);
+}
+.react-btn.is-overlay.react-want {
+  color: var(--color-sun-ink);
+}
+.react-btn.is-overlay:not(.is-static):hover {
+  background: #fff;
+  transform: scale(1.06);
+}
+.react-btn.is-overlay.react-heart[aria-pressed="true"] {
+  border-color: transparent;
   background: var(--color-accent-500);
+  color: #fff;
+}
+.react-btn.is-overlay.react-want[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--color-sun-ink);
   color: #fff;
 }
 

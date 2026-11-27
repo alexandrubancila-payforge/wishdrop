@@ -115,7 +115,7 @@ const shown = group.slice(0, 4);
                 )}
               </a>
               {/* A ❤️ on each photo, outside the link so tapping it never opens the list. */}
-              {!more && <Reactions lang={lang} itemId={g.id} summary={reactions.get(g.id)} mode="react" heartOnly class="absolute right-2 top-2" />}
+              {!more && <Reactions lang={lang} itemId={g.id} summary={reactions.get(g.id)} mode="react" heartOnly class="absolute right-2 top-2 z-[2]" />}
             </div>
           );
         })}

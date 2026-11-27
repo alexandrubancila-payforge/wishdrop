@@ -117,7 +117,7 @@ const shopName = (site: string) => {
                         <Icon name="check" weight="bold" class="h-4 w-4" />
                       </span>
                     ) : (
-                      <Reactions lang={lang} itemId={g.id} summary={reactions.get(g.id)} mode={user ? "react" : "login"} loginHref={loginHref} heartOnly class="absolute right-2 top-2" />
+                      <Reactions lang={lang} itemId={g.id} summary={reactions.get(g.id)} mode={user ? "react" : "login"} loginHref={loginHref} heartOnly class="absolute right-2 top-2 z-[2]" />
                     )}
                   </div>
                   <div class="flex flex-1 flex-col px-1.5 pb-1 pt-2.5">
