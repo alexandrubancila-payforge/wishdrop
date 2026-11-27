@@ -13,7 +13,7 @@ const t = makeT(lang, common, auth, api);
 // ?next=/path (without language prefix): where to go after signing up, e.g. a Secret Santa invite.
 const rawNext = Astro.url.searchParams.get("next") ?? "";
 const next = rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "";
-if (user) return Astro.redirect(localePath(lang, next || "/dashboard"));
+if (user) return Astro.redirect(localePath(lang, next || "/"));
 
 const M = {
   invalidEmail: t("invalidEmail"),

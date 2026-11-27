@@ -1,4 +1,4 @@
-/** The link from the confirmation email. Marks the address verified, then goes to the dashboard. */
+/** The link from the confirmation email. Marks the address verified, then goes to the home page (the feed). */
 import type { APIRoute } from "astro";
 import { db, updateUser, type User } from "@/lib/db";
 import { localePath } from "@/lib/i18n";
@@ -12,5 +12,5 @@ export const GET: APIRoute = async (ctx) => {
     }
   }
   const { lang, user } = ctx.locals;
-  return ctx.redirect(localePath(lang, user ? "/dashboard" : "/login"));
+  return ctx.redirect(localePath(lang, user ? "/" : "/login"));
 };

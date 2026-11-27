@@ -1,4 +1,4 @@
-/** Google redirects here: find or create the user, start the session, go to the dashboard. */
+/** Google redirects here: find or create the user, start the session, go to the home page (the feed). */
 import type { APIRoute } from "astro";
 import { env } from "cloudflare:workers";
 import { createUser, getUserByEmail, getUserByGoogleId, updateUser } from "@/lib/db";
@@ -73,5 +73,5 @@ export const GET: APIRoute = async (ctx) => {
   }
 
   await startSession(ctx.cookies, user.id, ctx.url.protocol === "https:");
-  return ctx.redirect(saved.next ? localePath(lang, saved.next) : localePath(lang, "/dashboard"));
+  return ctx.redirect(saved.next ? localePath(lang, saved.next) : localePath(lang, "/"));
 };
