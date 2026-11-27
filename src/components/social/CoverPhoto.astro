@@ -24,17 +24,39 @@ const t = makeT(Astro.locals.lang, common);
   {url && <img src={url} alt="" class="h-full w-full object-cover" />}
   {
     editable && (
-      <div class:list={["absolute right-2 flex gap-1.5", labeled ? "top-2" : "bottom-2 cover-actions"]}>
-        {url && (
-          <button type="button" data-cover-remove class="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-ink-soft shadow-soft transition hover:text-rose-600" aria-label={t("cover.remove")} title={t("cover.remove")}>
-            <Icon name="trash" class="h-4 w-4" />
-          </button>
+      <div class:list={["absolute right-2", labeled ? "top-2" : "bottom-2 cover-actions"]}>
+        {url ? (
+          // A cover is set: one button opens "Choose another photo" / "Remove cover photo".
+          <details class="relative" data-cover-menu>
+            <summary
+              class:list={["cover-btn list-none [&::-webkit-details-marker]:hidden", labeled ? "px-3.5" : "w-8 !px-0"]}
+              aria-label={t("cover.edit")}
+              title={t("cover.edit")}
+            >
+              <Icon name={labeled ? "pencil-simple" : "camera"} class="h-4 w-4" />
+              {labeled && <span>{t("cover.edit")}</span>}
+            </summary>
+            {/* Placed by the script with position: fixed, so the cover's rounded, clipped box can't cut it. */}
+            <div data-cover-menu-panel class="fixed z-50 w-56 rounded-2xl border border-line bg-white p-1.5 text-sm shadow-lift">
+              <label class="flex cursor-pointer items-center gap-2.5 rounded-xl px-2.5 py-2 font-semibold text-ink transition hover:bg-sand">
+                <Icon name="image" class="h-[18px] w-[18px] text-accent-500" />
+                {t("cover.replace")}
+                <input type="file" accept="image/*" class="hidden" data-cover-input data-fail={t("cover.fail")} />
+              </label>
+              <button type="button" data-cover-remove class="flex w-full items-center gap-2.5 rounded-xl px-2.5 py-2 text-left font-semibold text-rose-600 transition hover:bg-accent-50">
+                <Icon name="trash" class="h-[18px] w-[18px]" />
+                {t("cover.remove")}
+              </button>
+            </div>
+          </details>
+        ) : (
+          // No cover yet: the button picks a photo right away.
+          <label class:list={["cover-btn cursor-pointer", labeled ? "px-3.5" : "w-8 !px-0"]} aria-label={t("cover.add")} title={t("cover.add")}>
+            <Icon name={labeled ? "image" : "camera"} class="h-4 w-4" />
+            {labeled && <span>{t("cover.add")}</span>}
+            <input type="file" accept="image/*" class="hidden" data-cover-input data-fail={t("cover.fail")} />
+          </label>
         )}
-        <label class:list={["flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-white/90 text-accent-600 shadow-soft transition hover:text-accent-700", labeled ? "px-3 text-xs font-bold" : "w-8"]} aria-label={t("cover.change")} title={t("cover.change")}>
-          <Icon name={labeled ? "image" : "camera"} class="h-4 w-4" />
-          {labeled && <span>{t("cover.change")}</span>}
-          <input type="file" accept="image/*" class="hidden" data-cover-input data-fail={t("cover.fail")} />
-        </label>
       </div>
     )
   }
@@ -77,6 +99,22 @@ const t = makeT(Astro.locals.lang, common);
         box.classList.remove("animate-pulse");
         alert((e instanceof Error && e.message) || input.dataset.fail);
       }
+    });
+  });
+  // The cover menu opens under its button (fixed, so nothing clips it) and closes on a click outside or a scroll.
+  document.querySelectorAll<HTMLDetailsElement>("[data-cover-menu]").forEach((d) =>
+    d.addEventListener("toggle", () => {
+      if (!d.open) return;
+      const r = d.querySelector("summary")!.getBoundingClientRect();
+      const panel = d.querySelector<HTMLElement>("[data-cover-menu-panel]")!;
+      panel.style.top = `${r.bottom + 6}px`;
+      panel.style.left = `${Math.max(8, r.right - panel.offsetWidth)}px`;
+    }),
+  );
+  addEventListener("scroll", () => document.querySelectorAll<HTMLDetailsElement>("[data-cover-menu][open]").forEach((d) => (d.open = false)), { passive: true });
+  document.addEventListener("click", (e) => {
+    document.querySelectorAll<HTMLDetailsElement>("[data-cover-menu][open]").forEach((d) => {
+      if (!d.contains(e.target as Node)) d.open = false;
     });
   });
   document.querySelectorAll<HTMLButtonElement>("[data-cover-remove]").forEach((b) =>

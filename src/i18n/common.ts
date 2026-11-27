@@ -3,6 +3,9 @@ import type { Bundle } from "@/lib/i18n";
 /** Header, footer, mobile tab bar and the shared modals. */
 export default {
   ro: {
+    "cover.add": "Adaugă copertă",
+    "cover.edit": "Editează coperta",
+    "cover.replace": "Altă poză",
     "menu.mine": "Ale mele",
     "menu.discover": "Descoperă",
     "menu.account": "Cont",
@@ -71,6 +74,9 @@ export default {
     "ph.listName": "Numele listei",
   },
   en: {
+    "cover.add": "Add cover photo",
+    "cover.edit": "Edit cover photo",
+    "cover.replace": "Choose another photo",
     "menu.mine": "Yours",
     "menu.discover": "Discover",
     "menu.account": "Account",
@@ -139,6 +145,9 @@ export default {
     "ph.listName": "List name",
   },
   de: {
+    "cover.add": "Titelbild hinzufügen",
+    "cover.edit": "Titelbild bearbeiten",
+    "cover.replace": "Anderes Foto wählen",
     "menu.mine": "Deins",
     "menu.discover": "Entdecken",
     "menu.account": "Konto",
@@ -207,6 +216,9 @@ export default {
     "ph.listName": "Name der Liste",
   },
   ru: {
+    "cover.add": "Добавить обложку",
+    "cover.edit": "Изменить обложку",
+    "cover.replace": "Выбрать другое фото",
     "menu.mine": "Моё",
     "menu.discover": "Обзор",
     "menu.account": "Аккаунт",

@@ -185,13 +185,13 @@ const P = {
       </div>
     </section>
 
-    {/* Save stays at the bottom of the screen (above the phone tab bar) while you edit. */}
-    <div class="settings-savebar">
-      <p id="settings-status" class="hidden min-w-0 flex-1 truncate text-sm font-medium"></p>
-      <button type="submit" id="settings-save" class="btn btn-primary ml-auto !px-6 !py-3">
+    {/* Save appears once something changed, pinned above the phone tab bar; "Saved" shows on it, then it goes. */}
+    <div class="settings-savebar" hidden>
+      <button type="submit" id="settings-save" class="btn btn-primary w-full !py-3.5 shadow-lift sm:w-auto sm:!px-8">
         <span data-save-label>{t("save")}</span>
       </button>
     </div>
+    <p id="settings-status" class="hidden mt-3 text-center text-sm font-medium"></p>
   </form>
 
   <script is:inline define:vars={{ M, initialAvatar, P }}>
@@ -201,6 +201,12 @@ const P = {
     const initialEl = document.getElementById("avatar-initial");
     const saveBtn = document.getElementById("settings-save");
     const saveLabel = form.querySelector("[data-save-label]");
+    const saveBar = form.querySelector(".settings-savebar");
+    // Show Save as soon as a field changes.
+    form.addEventListener("input", () => (saveBar.hidden = false));
+    form.addEventListener("change", (e) => {
+      if (e.target.id !== "seasons-toggle") saveBar.hidden = false;
+    });
     const status = document.getElementById("settings-status");
     const MAX_BYTES = 5 * 1024 * 1024;
 
@@ -262,6 +268,7 @@ const P = {
         avatarUrl = data.url;
         avatarChanged = true;
         showAvatar(avatarUrl);
+        saveBar.hidden = false;
       } catch {
         setStatus(M.saveFail, false);
       } finally {
@@ -289,13 +296,17 @@ const P = {
         });
         if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "");
         avatarChanged = false;
-        setStatus(M.saved, true);
+        saveLabel.textContent = M.saved;
+        setTimeout(() => {
+          saveBar.hidden = true;
+          saveLabel.textContent = M.save;
+        }, 1500);
         showUsernameHint(body.username);
       } catch (err) {
         setStatus((err instanceof Error && err.message) || M.saveFail, false);
+        saveLabel.textContent = M.save;
       } finally {
         saveBtn.disabled = false;
-        saveLabel.textContent = M.save;
       }
     });
 
