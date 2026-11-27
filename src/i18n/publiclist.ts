@@ -3,6 +3,10 @@ import type { Bundle } from "@/lib/i18n";
 /** The public wishlist page /w/[slug]: hero, gift cards, reserve modal, guest CTA, seasonal greetings. */
 export default {
   ro: {
+    "filter.all": "Toate",
+    "filter.free": "Libere",
+    "filter.reserved": "Rezervate",
+    "filter.none": "Niciun cadou aici.",
     "list.share": "Trimite lista",
     "list.shareText": "Uite lista de dorințe „{list}”:",
     "list.copied": "Link copiat",
@@ -73,6 +77,10 @@ export default {
     "event.in.other": "peste {n} de zile",
   },
   en: {
+    "filter.all": "All",
+    "filter.free": "Free",
+    "filter.reserved": "Reserved",
+    "filter.none": "No gifts here.",
     "list.share": "Share the list",
     "list.shareText": "Here's the wish list “{list}”:",
     "list.copied": "Link copied",
@@ -142,6 +150,10 @@ export default {
     "event.in.other": "in {n} days",
   },
   de: {
+    "filter.all": "Alle",
+    "filter.free": "Frei",
+    "filter.reserved": "Reserviert",
+    "filter.none": "Hier sind keine Geschenke.",
     "list.share": "Liste teilen",
     "list.shareText": "Hier ist die Wunschliste „{list}“:",
     "list.copied": "Link kopiert",
@@ -211,6 +223,10 @@ export default {
     "event.in.other": "in {n} Tagen",
   },
   ru: {
+    "filter.all": "Все",
+    "filter.free": "Свободные",
+    "filter.reserved": "Забронированные",
+    "filter.none": "Здесь нет подарков.",
     "list.share": "Поделиться списком",
     "list.shareText": "Вот список желаний «{list}»:",
     "list.copied": "Ссылка скопирована",

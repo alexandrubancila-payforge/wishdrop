@@ -278,6 +278,24 @@ body {
     }
   }
 
+  /* All · Free · Reserved on a public list: the picked tab is dark. */
+  .gift-filter-tab {
+    flex: 1;
+    border-radius: 999px;
+    padding: 0.5rem 0.25rem;
+    font-weight: 700;
+    color: var(--color-ink-soft);
+    white-space: nowrap;
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .gift-filter-tab[data-filter="free"] {
+    color: var(--color-mint-ink);
+  }
+  .gift-filter-tab[aria-selected="true"] {
+    background: var(--color-ink);
+    color: #fff;
+  }
+
   /* Category chips on /popular: dark when picked. */
   .cat-chip {
     flex-shrink: 0;
