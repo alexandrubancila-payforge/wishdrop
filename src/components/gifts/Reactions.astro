@@ -5,6 +5,7 @@
  *   login     guest: the buttons lead to the login page
  *   readonly  the owner: counts only, shown when there are any
  * `heartOnly`: just the ❤️, as a small pill over a photo (feed tiles).
+ * `compact`: ❤️ and ✨ as small round pills over a photo, no text (public list cards).
  */
 import Icon from "@/components/Icon.astro";
 import { makeT, type Lang } from "@/lib/i18n";
@@ -18,9 +19,11 @@ interface Props {
   mode: "react" | "login" | "readonly";
   loginHref?: string;
   heartOnly?: boolean;
+  compact?: boolean;
   class?: string;
 }
-const { lang, itemId, mode, loginHref = "/login", heartOnly = false, class: cls } = Astro.props;
+const { lang, itemId, mode, loginHref = "/login", heartOnly = false, compact = false, class: cls } = Astro.props;
+const overlay = heartOnly || compact;
 const summary = Astro.props.summary ?? { heart: 0, want: 0, mine: [] };
 const t = makeT(lang, gifts);
 const kinds = (
@@ -41,21 +44,21 @@ const hidden = mode === "readonly" && !summary.heart && !summary.want;
           <>
             <Icon name={icon} class="when-off h-4 w-4" />
             <Icon name={icon} weight="fill" class="when-on h-4 w-4" />
-            {kind === "want" && <span class="text-xs">{label}</span>}
+            {kind === "want" && !compact && <span class="text-xs">{label}</span>}
             <span data-count class:list={["text-xs tabular-nums", !n && "hidden"]}>{n}</span>
           </>
         );
         return mode === "react" ? (
-          <button type="button" class:list={["react-btn", `react-${kind}`, heartOnly && "is-overlay"]} data-react={kind} aria-pressed={on ? "true" : "false"} aria-label={label} title={label}>
+          <button type="button" class:list={["react-btn", `react-${kind}`, overlay && "is-overlay"]} data-react={kind} aria-pressed={on ? "true" : "false"} aria-label={label} title={label}>
             {inner}
           </button>
         ) : mode === "login" ? (
-          <a href={loginHref} class:list={["react-btn", `react-${kind}`, heartOnly && "is-overlay"]} aria-label={t("react.login")} title={t("react.login")}>
+          <a href={loginHref} class:list={["react-btn", `react-${kind}`, overlay && "is-overlay"]} aria-label={t("react.login")} title={t("react.login")}>
             {inner}
           </a>
         ) : (
           n > 0 && (
-            <span class:list={["react-btn is-static", `react-${kind}`]} aria-pressed="true" title={label}>
+            <span class:list={["react-btn is-static", `react-${kind}`, overlay && "is-overlay"]} aria-pressed="true" title={label}>
               {inner}
             </span>
           )

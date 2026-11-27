@@ -3,6 +3,10 @@ import type { Bundle } from "@/lib/i18n";
 /** The public wishlist page /w/[slug]: hero, gift cards, reserve modal, guest CTA, seasonal greetings. */
 export default {
   ro: {
+    "list.share": "Trimite lista",
+    "list.shareText": "Uite lista de dorințe „{list}”:",
+    "list.copied": "Link copiat",
+    "list.of": "Lista lui {name}",
     "list.description": "Creează wishlist-uri frumoase și împarte-le cu cei dragi.",
     "list.subtitle": "Alege un cadou și rezervă-l. Ceilalți vor vedea instant ce mai e liber.",
     "list.ownerSubtitle": "Asta e lista ta — așa o văd vizitatorii.",
@@ -69,6 +73,10 @@ export default {
     "event.in.other": "peste {n} de zile",
   },
   en: {
+    "list.share": "Share the list",
+    "list.shareText": "Here's the wish list “{list}”:",
+    "list.copied": "Link copied",
+    "list.of": "{name}'s list",
     "list.description": "Create beautiful wishlists and share them with your loved ones.",
     "list.subtitle": "Pick a gift and reserve it. Others instantly see what's still available.",
     "list.ownerSubtitle": "This is your list — here's how visitors see it.",
@@ -134,6 +142,10 @@ export default {
     "event.in.other": "in {n} days",
   },
   de: {
+    "list.share": "Liste teilen",
+    "list.shareText": "Hier ist die Wunschliste „{list}“:",
+    "list.copied": "Link kopiert",
+    "list.of": "Liste von {name}",
     "list.description": "Erstelle schöne Wunschlisten und teile sie mit deinen Liebsten.",
     "list.subtitle": "Wähle ein Geschenk und reserviere es. Andere sehen sofort, was noch verfügbar ist.",
     "list.ownerSubtitle": "Das ist deine Liste — so sehen sie Besucher.",
@@ -199,6 +211,10 @@ export default {
     "event.in.other": "in {n} Tagen",
   },
   ru: {
+    "list.share": "Поделиться списком",
+    "list.shareText": "Вот список желаний «{list}»:",
+    "list.copied": "Ссылка скопирована",
+    "list.of": "Список: {name}",
     "list.description": "Создавайте красивые вишлисты и делитесь ими с близкими.",
     "list.subtitle": "Выберите подарок и забронируйте его. Остальные сразу увидят, что ещё свободно.",
     "list.ownerSubtitle": "Это ваш список — так его видят гости.",

@@ -63,6 +63,12 @@ const host = (url: string | null) => {
     return "";
   }
 };
+/** A gift with no name shows its shop's ("store.steampowered.com" → "Steampowered"). */
+const shopName = (site: string) => {
+  const parts = site.split(".");
+  const main = parts.length > 2 && ["store", "shop", "m"].includes(parts[0]) ? parts[1] : parts[0];
+  return main ? main.charAt(0).toUpperCase() + main.slice(1) : "";
+};
 
 const RM = {
   ...pick(t, {
@@ -151,29 +157,45 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
               <span>Wish<span class="text-accent-600">Drop</span></span>
             </a>
           </div>
-          {owner && !owner.disable_seasons && <SeasonGreeting lang={lang} birthday={owner.birthday} />}
+          <button
+            type="button"
+            id="share-list"
+            data-url={`${Astro.url.origin}/w/${list.slug}`}
+            data-title={list.name}
+            data-text={t("list.shareText", { list: list.name })}
+            data-copied={t("list.copied")}
+            aria-label={t("list.share")}
+            title={t("list.share")}
+            class="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-ink shadow-soft transition hover:text-accent-700"
+          >
+            <Icon name="share-network" class="h-5 w-5" />
+          </button>
         </div>
 
-        <div class="relative z-10 mt-8 sm:mt-10 sm:max-w-[60%]">
+        <div class="relative z-10 mt-7 sm:mt-10 sm:max-w-[60%]">
           <h1 class="break-words text-4xl font-extrabold tracking-tight sm:text-5xl">{list.name}</h1>
-          <div class="mt-4 flex flex-wrap items-center gap-2">
-            {
-              owner && ownerName && (owner.username ? (
-                <a
-                  href={localePath(lang, `/@${owner.username}`)}
-                  title={t("list.ownerProfile", { username: owner.username })}
-                  class="chip bg-white !py-1 !pl-1 !pr-3 text-sm text-ink shadow-soft transition hover:text-accent-700"
-                >
-                  <Avatar user={owner} size={24} class="h-6 w-6" />
-                  {ownerName}
-                </a>
-              ) : (
-                <span class="chip bg-white !py-1 !pl-1 !pr-3 text-sm text-ink shadow-soft">
-                  <Avatar user={owner} size={24} class="h-6 w-6" />
-                  {ownerName}
+          {/* Whose list it is, then the season/birthday and event chips. */}
+          {
+            owner && ownerName && (
+              <a
+                href={owner.username ? localePath(lang, `/@${owner.username}`) : undefined}
+                title={owner.username ? t("list.ownerProfile", { username: owner.username }) : undefined}
+                class="mt-4 flex w-fit items-center gap-3 transition hover:opacity-90"
+              >
+                <span class="rounded-full bg-gradient-to-br from-accent-300 to-accent-600 p-[3px]">
+                  <span class="block rounded-full bg-white p-[2px]">
+                    <Avatar user={owner} size={44} class="h-11 w-11" />
+                  </span>
                 </span>
-              ))
-            }
+                <span class="min-w-0">
+                  <span class="block truncate font-extrabold leading-tight text-ink">{ownerName}</span>
+                  {owner.username && <span class="block truncate text-xs text-ink-soft">@{owner.username}</span>}
+                </span>
+              </a>
+            )
+          }
+          <div class="mt-3 flex flex-wrap items-center gap-2 empty:hidden">
+            {owner && !owner.disable_seasons && <SeasonGreeting lang={lang} birthday={owner.birthday} />}
             {
               eventLabel && (
                 <span class:list={["chip !py-1.5", eventDays === 0 ? "bg-accent-500 text-white" : "bg-lav text-lav-ink"]}>
@@ -182,16 +204,22 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                 </span>
               )
             }
-            {
-              items.length > 0 && !surprise && (
-                <span class="chip bg-sun !py-1.5 text-sun-ink">
-                  <Icon name="gift" weight="bold" class="h-3.5 w-3.5" />
-                  {t("list.available", { available, total: items.length })}
-                </span>
-              )
-            }
           </div>
-          <p class="mt-4 max-w-md text-ink-soft">{isOwner ? t("list.ownerSubtitle") : t("list.subtitle")}</p>
+          {
+            items.length > 0 && !surprise && (
+              // How much is still free: a bar that fills as gifts get reserved.
+              <div class="mt-4 max-w-sm rounded-2xl bg-white/80 p-3 shadow-soft">
+                <p class="flex items-center gap-1.5 text-sm font-bold text-ink">
+                  <Icon name="gift" class="h-4 w-4 text-accent-500" />
+                  {t("list.available", { available, total: items.length })}
+                </p>
+                <div class="mt-2 h-2 overflow-hidden rounded-full bg-sand">
+                  <div class="h-full rounded-full bg-mint-ink" style={`width:${Math.round(((items.length - available) / items.length) * 100)}%`} />
+                </div>
+              </div>
+            )
+          }
+          <p class="mt-4 max-w-md text-sm text-ink-soft">{isOwner ? t("list.ownerSubtitle") : t("list.subtitle")}</p>
           {isOwner && list.hidden_at && (
             <p class="mt-3 flex max-w-md items-start gap-2 rounded-2xl bg-sun px-3 py-2 text-sm font-medium text-sun-ink">
               <Icon name="eye-slash" class="mt-0.5 h-4 w-4 shrink-0" />
@@ -243,6 +271,8 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
               const img = imageUrl(item.image_key);
               const site = host(item.product_url);
               const adult = !isOwner && isAdultGift(item);
+              // A short price sits on the photo; a long one ("made in…, size 38") goes under the name.
+              const shortPrice = !!item.price && item.price.length <= 18;
               const Wrapper = item.product_url ? "a" : "div";
               const wrapperProps = item.product_url
                 ? { href: item.product_url, target: "_blank", rel: "noopener noreferrer", title: t("list.openProduct") }
@@ -259,6 +289,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                   data-group-size={item.group_size ?? ""}
                   data-my-join={group.some((c) => user && c.user_id === user.id) ? "true" : "false"}
                 >
+                  <div class="relative">
                   <Wrapper class="relative block aspect-square overflow-hidden rounded-2xl bg-sand" {...wrapperProps}>
                     {adult && <AdultCover />}
                     {img ? (
@@ -275,8 +306,14 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                     ) : (
                       <GiftArt id={item.id} title={item.title} host={site} size="lg" class={reserved && "opacity-50 grayscale"} data-card-img />
                     )}
-                    {(item.priority < 0 || item.group_size) && (
+                    {(item.priority !== 0 || item.group_size) && (
                       <span class="absolute left-2 top-2 flex flex-col items-start gap-1">
+                        {item.priority > 0 && (
+                          <span class="chip bg-accent-500 text-white shadow-soft" title={t("list.mostWanted")}>
+                            <Icon name="star" weight="fill" class="h-3.5 w-3.5" />
+                            {t("prio.short.1")}
+                          </span>
+                        )}
                         {item.group_size && (
                           <span class="chip bg-white/95 text-mint-ink shadow-soft">
                             <Icon name="users-three" weight="bold" class="h-3.5 w-3.5" />
@@ -291,29 +328,43 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                         )}
                       </span>
                     )}
+                    {shortPrice && <span data-price-chip class="chip absolute bottom-2 left-2 max-w-[85%] truncate bg-white/95 text-sm text-ink shadow-soft">{item.price}</span>}
+                    {
+                      !item.group_size && (
+                        // "Reserved by Ana" (the prefix drawn by CSS, the script sets the name) or just "Reserved", over the photo.
+                        <span
+                          data-reserved-overlay
+                          class:list={["absolute inset-x-2 bottom-2 flex min-w-0 items-center justify-center gap-1.5 rounded-full bg-mint-ink/95 px-2.5 py-1.5 text-xs font-bold text-white shadow-soft", { hidden: !reserved }]}
+                        >
+                          <Icon name="check-circle" weight="fill" class="h-4 w-4 shrink-0" />
+                          <span
+                            class:list={["peer line-clamp-2 min-w-0 break-words text-center leading-tight before:mr-1 before:content-[attr(data-prefix)]", { hidden: !(reserved && item.reserved_by) }]}
+                            data-prefix={t("list.reservedBy")}
+                            data-reserved-name
+                          >
+                            {reserved ? item.reserved_by : ""}
+                          </span>
+                          <span class="peer-[:not(.hidden)]:hidden">{t("list.reserved")}</span>
+                        </span>
+                      )
+                    }
                   </Wrapper>
-                  {/* "Most wanted" star — kept OUTSIDE the image link so tapping it never navigates. Indicator for visitors. */}
-                  {item.priority > 0 ? (
-                    <span
-                      class="absolute right-4 top-4 z-10 grid h-9 w-9 place-items-center rounded-full bg-white text-accent-500 shadow-soft"
-                      title={t("list.mostWanted")}
-                    >
-                      <Icon name="star" weight="fill" class="h-5 w-5" label={t("list.mostWanted")} />
-                    </span>
-                  ) : null}
-                  <div class="flex flex-1 flex-col px-1.5 pb-1 pt-3">
+                  {/* ❤️ and ✨ on the photo, outside the link so tapping them never opens the shop. */}
+                  <Reactions lang={lang} itemId={item.id} summary={reactions.get(item.id)} mode={reactMode} loginHref={loginHref} compact class="absolute right-2 top-2 !flex-nowrap" />
+                  </div>
+                  <div class="flex flex-1 flex-col px-1.5 pb-1 pt-2.5">
                     <div class="min-w-0 px-0.5">
-                      {item.title && <p class="adult-text line-clamp-2 text-sm font-bold leading-snug text-ink">{item.title}</p>}
-                      {item.price ? (
-                        <>
-                          <p class="line-clamp-2 break-words text-xl font-extrabold tracking-tight">{item.price}</p>
-                          {site && <p class="adult-text mt-0.5 truncate text-xs font-medium text-ink-soft">{site}</p>}
-                        </>
-                      ) : (
-                        site && <p class="adult-text truncate text-sm font-semibold text-ink-soft">{site}</p>
-                      )}
+                      <p class="adult-text line-clamp-2 min-h-[2.5rem] break-words text-sm font-bold leading-snug text-ink">{item.title || shopName(site) || t("list.giftAlt")}</p>
+                      {!shortPrice && item.price && <p class="mt-0.5 line-clamp-2 break-words text-xs text-ink-soft">{item.price}</p>}
+                      {
+                        site && item.product_url && (
+                          <a href={item.product_url} target="_blank" rel="noopener noreferrer" class="adult-text mt-0.5 inline-flex max-w-full items-center gap-1 text-xs font-medium text-ink-soft transition hover:text-accent-700">
+                            <span class="truncate">{site}</span>
+                            <Icon name="arrow-square-out" class="h-3 w-3 shrink-0" />
+                          </a>
+                        )
+                      }
                     </div>
-                    <Reactions lang={lang} itemId={item.id} summary={reactions.get(item.id)} mode={reactMode} loginHref={loginHref} class="mt-2.5" />
                     <div class="mt-auto pt-3">
                       {item.group_size ? (
                         <div data-group>
@@ -339,40 +390,18 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                         </div>
                       ) : (
                         <>
-                      <button data-reserve-btn class:list={["btn btn-soft w-full !py-3 text-sm", { hidden: reserved }]}>
+                      <button data-reserve-btn class:list={["btn btn-primary h-10 w-full !py-0 text-sm", { hidden: reserved }]}>
                         {t("list.reserve")}
                       </button>
-                      <div class:list={["text-center", { hidden: !reserved }]} data-reserved-overlay>
-                        <p class="flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-2xl bg-mint px-3 py-2 text-sm font-bold leading-tight text-mint-ink">
-                          {/* With a name: "Reserved by Ana" (the prefix drawn by CSS, the script only sets the name); without one: "Reserved". */}
-                          <Icon name="check-circle" weight="fill" class="h-4 w-4 shrink-0" />
-                          <span
-                            class:list={[
-                              "peer min-w-0 break-words before:mr-1 before:content-[attr(data-prefix)]",
-                              { hidden: !(reserved && item.reserved_by) },
-                            ]}
-                            data-prefix={t("list.reservedBy")}
-                            data-reserved-name
-                          >
-                            {reserved ? item.reserved_by : ""}
-                          </span>
-                          <span class="peer-[:not(.hidden)]:hidden">{t("list.reserved")}</span>
-                        </p>
-                        <button data-unreserve-btn class="mt-1.5 text-xs font-semibold text-ink-soft transition hover:text-rose-600 hidden">
-                          {t("list.cancelReservation")}
-                        </button>
-                      </div>
+                      {/* Reserved by someone else: a quiet "Reserved"; your own reservation: Cancel instead. */}
+                      <p data-reserved-pill class:list={["flex h-10 items-center justify-center gap-1.5 rounded-full bg-sand text-xs font-bold text-ink-soft", { hidden: !reserved }]}>
+                        <Icon name="check" weight="bold" class="h-3.5 w-3.5" />
+                        {t("list.reserved")}
+                      </p>
+                      <button data-unreserve-btn class="btn btn-ghost hidden h-10 w-full !py-0 text-xs !text-ink-soft hover:!text-rose-600">
+                        {t("list.cancelReservation")}
+                      </button>
                         </>
-                      )}
-                      {item.product_url && (
-                        <a
-                          href={item.product_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          class="mt-2 flex items-center justify-center gap-1 py-1 text-xs font-semibold text-ink-soft transition hover:text-accent-700"
-                        >
-                          {t("list.viewProduct")} <Icon name="arrow-square-out" class="h-3.5 w-3.5" />
-                        </a>
                       )}
                     </div>
                   </div>
@@ -603,6 +632,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
           card.querySelector("[data-card-img]")?.classList.add("opacity-50", "grayscale");
           card.querySelector("[data-reserve-btn]")?.classList.add("hidden");
           card.querySelector("[data-reserved-overlay]")?.classList.remove("hidden");
+          card.querySelector("[data-reserved-pill]")?.classList.remove("hidden");
           const nameEl = card.querySelector("[data-reserved-name]");
           if (nameEl) {
             if (name) {
@@ -684,12 +714,14 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
         }
         function showCancel(card) {
           card?.querySelector("[data-unreserve-btn]")?.classList.remove("hidden");
+          card?.querySelector("[data-reserved-pill]")?.classList.add("hidden");
         }
         function markAvailable(card) {
           card.dataset.reserved = "false";
           card.querySelector("[data-card-img]")?.classList.remove("opacity-50", "grayscale");
           card.querySelector("[data-reserve-btn]")?.classList.remove("hidden");
           card.querySelector("[data-reserved-overlay]")?.classList.add("hidden");
+          card.querySelector("[data-reserved-pill]")?.classList.add("hidden");
           card.querySelector("[data-unreserve-btn]")?.classList.add("hidden");
         }
 
@@ -851,6 +883,28 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
           revealBtn.textContent = next ? RM.hide : RM.reveal;
         });
       </script>
-    </Layout>
+      <script>
+    // Share the list: the phone's share sheet (WhatsApp, Telegram…); without one, copy the link.
+    const shareBtn = document.getElementById("share-list");
+    shareBtn?.addEventListener("click", async () => {
+      const d = shareBtn.dataset;
+      const data = { title: d.title, text: d.text, url: d.url };
+      if (navigator.share && (!navigator.canShare || navigator.canShare(data))) {
+        try {
+          await navigator.share(data);
+        } catch {}
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(d.url!);
+        shareBtn.title = d.copied!;
+        shareBtn.classList.add("!bg-mint", "!text-mint-ink");
+        setTimeout(() => shareBtn.classList.remove("!bg-mint", "!text-mint-ink"), 1500);
+      } catch {
+        window.prompt("", d.url);
+      }
+    });
+  </script>
+</Layout>
   )
 }
