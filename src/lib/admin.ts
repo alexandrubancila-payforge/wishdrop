@@ -110,6 +110,11 @@ export interface ReportRow {
   list_name: string | null;
   list_slug: string | null;
   list_hidden: number | null;
+  /** The account behind a reported list. */
+  owner_id: string | null;
+  owner_name: string | null;
+  owner_username: string | null;
+  owner_suspended: number | null;
   /** How many reports this target has in total. */
   same_target: number;
 }
@@ -122,11 +127,13 @@ export async function adminReports() {
         `SELECT r.*, ru.name AS reporter_name, ru.username AS reporter_username,
                 tu.username AS target_username, tu.name AS target_name, tu.suspended_at AS target_suspended,
                 tl.name AS list_name, tl.slug AS list_slug, tl.hidden_at AS list_hidden,
+                lo.id AS owner_id, lo.name AS owner_name, lo.username AS owner_username, lo.suspended_at AS owner_suspended,
                 (SELECT COUNT(*) FROM reports r2 WHERE r2.target_id = r.target_id AND r2.kind = r.kind) AS same_target
            FROM reports r
            LEFT JOIN users ru ON ru.id = r.reporter_id
            LEFT JOIN users tu ON r.kind IN ('user', 'photo') AND tu.id = r.target_id
            LEFT JOIN wishlists tl ON r.kind = 'list' AND tl.id = r.target_id
+           LEFT JOIN users lo ON lo.id = tl.user_id
           WHERE ${where} ORDER BY ${order} LIMIT ${limit}`,
       )
       .all<ReportRow>();

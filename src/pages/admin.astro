@@ -46,6 +46,18 @@ const more = [
   { key: "received", icon: "package" },
 ];
 const KIND_TINT: Record<string, string> = { bug: "bg-lav text-lav-ink", user: "bg-accent-100 text-accent-700", list: "bg-sun text-sun-ink", photo: "bg-rose-100 text-rose-700" };
+const KIND_ICON: Record<string, string> = { bug: "bug", user: "user", list: "list-heart", photo: "image" };
+/** Open reports about the same profile, list or uploader share one card. */
+const openGroups = [
+  ...reports.open
+    .reduce((m, r) => {
+      // A photo report is about one photo, so photos group by the photo itself.
+      const key = r.kind === "photo" ? `photo:${r.image_key ?? r.id}` : r.kind !== "bug" && r.target_id ? `${r.kind}:${r.target_id}` : r.id;
+      m.set(key, [...(m.get(key) ?? []), r]);
+      return m;
+    }, new Map<string, ReportRow[]>())
+    .values(),
+];
 const reasonLabel = (r: string | null) => (r ? t(`reason.${r}`) : "");
 const reporterOf = (r: ReportRow) => r.reporter_name || (r.reporter_username ? `@${r.reporter_username}` : r.email || t("anon"));
 const listName = (r: { owner_name: string | null; owner_username: string | null; owner_email: string }) =>
@@ -65,86 +77,127 @@ const listName = (r: { owner_name: string | null; owner_username: string | null;
     <h2 class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
       <Icon name="flag" class="h-5 w-5 text-accent-500" />
       {t("reports")}
-      {reports.open.length > 0 && <span class="chip bg-accent-500 !py-0.5 text-white">{t("reportsOpen", { n: reports.open.length })}</span>}
+      {openGroups.length > 0 && <span class="chip bg-accent-500 !py-0.5 text-white">{t("reportsOpen", { n: openGroups.length })}</span>}
     </h2>
+    {reports.open.length > 0 && <p class="mt-1 text-sm text-ink-soft">{t("reportsHint")}</p>}
     {
       reports.open.length === 0 ? (
         <p class="card mt-3 p-5 text-sm text-ink-soft">{t("reportsEmpty")}</p>
       ) : (
         <ul class="mt-3 grid gap-3">
-          {reports.open.map((r) => (
-            <li class="card p-4 sm:p-5" data-report={r.id}>
-              <div class="flex flex-wrap items-center gap-2 text-xs">
-                <span class:list={["chip", KIND_TINT[r.kind]]}>{t(`kind.${r.kind}`)}</span>
-                {r.reason && <span class="chip bg-sand text-ink">{reasonLabel(r.reason)}</span>}
-                {r.same_target > 1 && <span class="chip bg-accent-500 text-white">{t("sameTarget", { n: r.same_target })}</span>}
-                <span class="text-ink-soft">{dateTime.format(r.created_at)} · {reporterOf(r)}</span>
-              </div>
-              {r.kind === "user" && (
-                <p class="mt-2 font-bold">
-                  {r.target_username ? <a href={localePath(lang, `/@${r.target_username}`)} class="hover:text-accent-700">{r.target_name || `@${r.target_username}`}</a> : r.target_name || "—"}
-                  {r.target_suspended && <span class="chip ml-2 bg-ink text-white">{t("suspendedBadge")}</span>}
-                </p>
-              )}
-              {r.kind === "photo" && (
-                <p class="mt-2 text-sm">
-                  <span class="text-ink-soft">{t("uploadedBy")}: </span>
-                  <span class="font-bold">
-                    {r.target_username ? <a href={localePath(lang, `/@${r.target_username}`)} class="hover:text-accent-700">{r.target_name || `@${r.target_username}`}</a> : r.target_name || "—"}
+          {openGroups.map((g) => {
+            const r = g[0];
+            const reasons = [...new Set(g.map((x) => x.reason).filter(Boolean))] as string[];
+            const who = r.kind === "list" ? { id: r.owner_id, name: r.owner_name, username: r.owner_username, suspended: r.owner_suspended } : { id: r.target_id, name: r.target_name, username: r.target_username, suspended: r.target_suspended };
+            const whoName = who.name || (who.username ? `@${who.username}` : "—");
+            const suspendBtn = r.kind !== "bug" && who.id && (
+              <button type="button" class="btn btn-ghost !px-4 !py-2 text-xs !text-rose-600" data-admin-action={`/api/admin/users/${who.id}`} data-body={JSON.stringify({ suspended: !who.suspended })} data-confirm={who.suspended ? "" : t("confirmSuspend")}>
+                <Icon name={who.suspended ? "arrow-counter-clockwise" : "prohibit"} class="h-3.5 w-3.5" />
+                {who.suspended ? t("unsuspend") : r.kind === "list" ? t("suspendOwner") : t("suspend")}
+              </button>
+            );
+            return (
+              <li class="card overflow-hidden" data-report={r.id}>
+                <div class="flex gap-4 p-4 sm:p-5">
+                  <span class:list={["grid h-11 w-11 shrink-0 place-items-center rounded-2xl", KIND_TINT[r.kind]]}>
+                    <Icon name={KIND_ICON[r.kind]} class="h-5 w-5" />
                   </span>
-                  {r.target_suspended && <span class="chip ml-2 bg-ink text-white">{t("suspendedBadge")}</span>}
-                </p>
-              )}
-              {r.kind === "list" && (
-                <p class="mt-2 font-bold">
-                  {r.list_slug ? <a href={`/w/${r.list_slug}`} class="hover:text-accent-700">{r.list_name}</a> : "—"}
-                  {r.list_hidden && <span class="chip ml-2 bg-ink text-white">{t("hiddenBadge")}</span>}
-                </p>
-              )}
-              {r.message && <p class="mt-2 whitespace-pre-line text-sm text-ink">{r.message}</p>}
-              {r.kind === "bug" && (
-                <p class="mt-2 break-all text-xs text-ink-soft">
-                  {r.page_url && <span class="block">{r.page_url}</span>}
-                  {r.user_agent}
-                </p>
-              )}
-              {r.image_key && (
-                <a href={imageUrl(r.image_key)} target="_blank" rel="noopener" class="mt-3 inline-block">
-                  <img src={imageUrl(r.image_key)} alt={t("screenshot")} class="max-h-48 rounded-xl ring-1 ring-line" />
-                </a>
-              )}
-              <div class="mt-4 flex flex-wrap gap-2">
-                <button type="button" class="btn btn-primary !px-4 !py-2 text-xs" data-admin-action={`/api/admin/reports/${r.id}`} data-body='{"status":"done"}'>
-                  <Icon name="check" weight="bold" class="h-3.5 w-3.5" /> {t("markDone")}
-                </button>
-                {r.kind === "user" && r.target_id && (
-                  <button type="button" class="btn btn-ghost !px-4 !py-2 text-xs text-rose-600" data-admin-action={`/api/admin/users/${r.target_id}`} data-body={JSON.stringify({ suspended: !r.target_suspended })} data-confirm={r.target_suspended ? "" : t("confirmSuspend")}>
-                    {r.target_suspended ? t("unsuspend") : t("suspend")}
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <p class="text-xs font-bold uppercase tracking-wide text-ink-soft">{t(`head.${r.kind}`)}</p>
+                      {g.length > 1 && <span class="chip bg-accent-500 !py-0.5 text-xs text-white">{t("sameTarget", { n: g.length })}</span>}
+                    </div>
+
+                    {r.kind === "list" && !r.list_slug && <p class="mt-1 text-lg font-extrabold leading-tight text-ink-soft">{t("listGone")}</p>}
+                    {r.kind === "list" && r.list_slug && (
+                      <>
+                        <p class="mt-1 flex flex-wrap items-center gap-2 text-lg font-extrabold leading-tight">
+                          {r.list_name || "—"}
+                          {r.list_hidden && <span class="chip bg-ink !py-0.5 text-xs text-white">{t("hiddenBadge")}</span>}
+                          {r.list_slug && (
+                            <a href={`/w/${r.list_slug}`} target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-bold text-accent-700 hover:underline">
+                              {t("open")} <Icon name="arrow-square-out" class="h-3.5 w-3.5" />
+                            </a>
+                          )}
+                        </p>
+                        <p class="mt-1 text-sm text-ink-soft">
+                          {t("listOwner")}{" "}
+                          {who.username ? <a href={localePath(lang, `/@${who.username}`)} class="font-bold text-ink hover:text-accent-700">{whoName}</a> : <span class="font-bold text-ink">{whoName}</span>}
+                          {who.suspended && <span class="chip ml-2 bg-ink !py-0.5 text-xs text-white">{t("suspendedBadge")}</span>}
+                        </p>
+                      </>
+                    )}
+                    {(r.kind === "user" || r.kind === "photo") && (
+                      <p class="mt-1 flex flex-wrap items-center gap-2 text-lg font-extrabold leading-tight">
+                        {r.kind === "photo" && <span class="text-sm font-semibold text-ink-soft">{t("uploadedBy")}</span>}
+                        {who.username ? <a href={localePath(lang, `/@${who.username}`)} class="hover:text-accent-700">{whoName}</a> : whoName}
+                        {who.username && who.name && <span class="text-sm font-semibold text-ink-soft">@{who.username}</span>}
+                        {who.suspended && <span class="chip bg-ink !py-0.5 text-xs text-white">{t("suspendedBadge")}</span>}
+                      </p>
+                    )}
+
+                    {reasons.length > 0 && (
+                      <p class="mt-3 flex flex-wrap gap-1.5">
+                        {reasons.map((reason) => (
+                          <span class="inline-flex items-center gap-1.5 rounded-full bg-sand px-3 py-1 text-xs">
+                            <Icon name="warning" class="h-3.5 w-3.5 text-accent-600" />
+                            <span class="text-ink-soft">{t("reasonIs")}:</span>
+                            <span class="font-bold">{reasonLabel(reason)}</span>
+                          </span>
+                        ))}
+                      </p>
+                    )}
+                    {r.kind === "bug" && (r.page_url || r.user_agent) && (
+                      <p class="mt-2 break-all text-xs text-ink-soft">
+                        {r.page_url && <span class="block">{r.page_url}</span>}
+                        {r.user_agent}
+                      </p>
+                    )}
+
+                    <ul class="mt-3 space-y-2">
+                      {g.map((x) => (
+                        <li>
+                          {x.message && <p class="whitespace-pre-line rounded-xl border-l-4 border-line bg-sand/60 px-3 py-2 text-sm text-ink">{x.message}</p>}
+                          {x.image_key && (
+                            <a href={imageUrl(x.image_key)} target="_blank" rel="noopener" class="mt-2 inline-block">
+                              <img src={imageUrl(x.image_key)} alt={t("screenshot")} class="max-h-48 rounded-xl ring-1 ring-line" />
+                            </a>
+                          )}
+                          <p class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-ink-soft">
+                            <span class="inline-flex items-center gap-1"><Icon name="clock" class="h-3.5 w-3.5" />{dateTime.format(x.created_at)}</span>
+                            <span>{t("reportedBy", { who: reporterOf(x) })}</span>
+                            {x.email && (
+                              <a href={`mailto:${x.email}`} class="inline-flex items-center gap-1 font-bold text-accent-700 hover:underline" title={x.email}>
+                                <Icon name="envelope-simple" class="h-3.5 w-3.5" /> {t("writeTo")}
+                              </a>
+                            )}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 border-t border-line bg-sand/40 px-4 py-3 sm:px-5">
+                  {r.kind === "list" && r.list_slug && r.target_id && (
+                    <button type="button" class="btn btn-ghost !px-4 !py-2 text-xs !text-rose-600" data-admin-action={`/api/admin/lists/${r.target_id}`} data-body={JSON.stringify({ hidden: !r.list_hidden })} data-confirm={r.list_hidden ? "" : t("confirmHide")}>
+                      <Icon name={r.list_hidden ? "arrow-counter-clockwise" : "eye-slash"} class="h-3.5 w-3.5" />
+                      {r.list_hidden ? t("unhide") : t("hide")}
+                    </button>
+                  )}
+                  {r.kind === "photo" && r.image_key && (
+                    <button type="button" class="btn btn-ghost !px-4 !py-2 text-xs !text-rose-600" data-admin-action="/api/admin/photos/delete" data-body={JSON.stringify({ key: r.image_key, report: r.id })} data-confirm={t("confirmRemovePhoto")}>
+                      <Icon name="trash" class="h-3.5 w-3.5" /> {t("removePhoto")}
+                    </button>
+                  )}
+                  {suspendBtn}
+                  <button type="button" class="btn btn-primary ml-auto !px-4 !py-2 text-xs" data-admin-action={`/api/admin/reports/${r.id}`} data-body='{"status":"done"}'>
+                    <Icon name="check" weight="bold" class="h-3.5 w-3.5" /> {t("markDone")}
                   </button>
-                )}
-                {r.kind === "photo" && r.image_key && (
-                  <button type="button" class="btn btn-ghost !px-4 !py-2 text-xs text-rose-600" data-admin-action="/api/admin/photos/delete" data-body={JSON.stringify({ key: r.image_key, report: r.id })} data-confirm={t("confirmRemovePhoto")}>
-                    <Icon name="trash" class="h-3.5 w-3.5" /> {t("removePhoto")}
-                  </button>
-                )}
-                {r.kind === "photo" && r.target_id && (
-                  <button type="button" class="btn btn-ghost !px-4 !py-2 text-xs text-rose-600" data-admin-action={`/api/admin/users/${r.target_id}`} data-body={JSON.stringify({ suspended: !r.target_suspended })} data-confirm={r.target_suspended ? "" : t("confirmSuspend")}>
-                    {r.target_suspended ? t("unsuspend") : t("suspend")}
-                  </button>
-                )}
-                {r.kind === "list" && r.target_id && (
-                  <button type="button" class="btn btn-ghost !px-4 !py-2 text-xs text-rose-600" data-admin-action={`/api/admin/lists/${r.target_id}`} data-body={JSON.stringify({ hidden: !r.list_hidden })} data-confirm={r.list_hidden ? "" : t("confirmHide")}>
-                    {r.list_hidden ? t("unhide") : t("hide")}
-                  </button>
-                )}
-                {r.email && (
-                  <a href={`mailto:${r.email}`} class="btn btn-ghost !px-4 !py-2 text-xs">
-                    <Icon name="envelope-simple" class="h-3.5 w-3.5" /> {r.email}
-                  </a>
-                )}
-              </div>
-            </li>
-          ))}
+                </div>
+              </li>
+            );
+          })}
         </ul>
       )
     }
