@@ -67,9 +67,9 @@ const FEATURES = [
 const FAQ = [1, 2, 3, 4];
 
 const STEPS = [
-  { n: 1, icon: "list-heart", tile: "bg-accent-100 text-accent-600", title: "home.step1Title", text: "home.step1Text" },
-  { n: 2, icon: "paper-plane-tilt", tile: "bg-lav text-lav-ink", title: "home.step2Title", text: "home.step2Text" },
-  { n: 3, icon: "hand-heart", tile: "bg-mint text-mint-ink", title: "home.step3Title", text: "home.step3Text" },
+  { n: 1, icon: "list-heart", tile: "bg-accent-100 text-accent-600", scene: "bg-gradient-to-br from-accent-50 to-accent-100", title: "home.step1Title", text: "home.step1Text" },
+  { n: 2, icon: "paper-plane-tilt", tile: "bg-lav text-lav-ink", scene: "bg-gradient-to-br from-[#f5f2ff] to-lav", title: "home.step2Title", text: "home.step2Text" },
+  { n: 3, icon: "hand-heart", tile: "bg-mint text-mint-ink", scene: "bg-gradient-to-br from-[#effaf6] to-mint", title: "home.step3Title", text: "home.step3Text" },
 ];
 ---
 
@@ -237,36 +237,77 @@ const STEPS = [
   <!-- How it works -->
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
     <h2 class="text-center text-3xl font-extrabold tracking-tight sm:text-4xl">{t("home.stepsTitle")}</h2>
-    <div class="mt-10 grid gap-4 sm:grid-cols-3 sm:gap-5">
+    <ol class="mt-10 grid gap-5 sm:grid-cols-3">
       {
         STEPS.map((s) => (
-          <div class="card relative p-6">
-            <span class="absolute right-5 top-5 grid h-8 w-8 place-items-center rounded-full bg-sand text-sm font-extrabold text-ink-soft">{s.n}</span>
-            <span class:list={["grid h-14 w-14 place-items-center rounded-2xl", s.tile]}>
-              <Icon name={s.icon} class="h-7 w-7" />
-            </span>
-            <h3 class="mt-5 text-xl font-extrabold tracking-tight">{t(s.title)}</h3>
-            <p class="mt-2 text-sm leading-relaxed text-ink-soft">{t(s.text)}</p>
-            {/* A tiny piece of the app for each step. */}
-            <div class="mt-5 flex h-12 items-center justify-center gap-2 rounded-2xl bg-sand/70 px-3 text-xs font-bold" aria-hidden="true">
+          <li class="card group relative flex flex-col overflow-visible p-3 transition hover:-translate-y-1 hover:shadow-lift">
+            {/* A little scene from the app for each step. */}
+            <div class:list={["step-scene relative grid h-44 place-items-center overflow-hidden rounded-[1.4rem]", s.scene]} aria-hidden="true">
+              <span class="pointer-events-none absolute -right-3 -top-4 text-[7rem] font-black leading-none text-white/80">{s.n}</span>
               {s.n === 1 && (
-                <>
-                  <Icon name="link" class="h-4 w-4 text-accent-500" />
-                  <span class="truncate text-ink-soft">{t("home.demo1")}</span>
-                  <img src="/demo/headphones.jpg" alt="" class="h-8 w-8 shrink-0 rounded-lg object-cover" loading="lazy" />
-                </>
+                <div class="relative w-48">
+                  <div class="flex -rotate-3 items-center gap-2.5 rounded-2xl bg-white p-2.5 shadow-lift transition duration-500 group-hover:rotate-0">
+                    <img src="/demo/headphones.jpg" alt="" class="h-14 w-14 shrink-0 rounded-xl object-cover" loading="lazy" />
+                    <span class="flex-1 space-y-1.5">
+                      <span class="block h-2 w-full rounded-full bg-ink/15"></span>
+                      <span class="block h-2 w-2/3 rounded-full bg-ink/10"></span>
+                      <span class="block h-2.5 w-10 rounded-full bg-accent-300"></span>
+                    </span>
+                  </div>
+                  <span class="absolute -bottom-4 left-1/2 flex max-w-[17rem] -translate-x-1/2 items-center gap-1.5 whitespace-nowrap rounded-full bg-ink px-3 py-1.5 text-[11px] font-bold text-white shadow-soft">
+                    <Icon name="link" weight="bold" class="h-3.5 w-3.5 shrink-0 text-accent-300" />
+                    <span class="truncate">{t("home.demo1")}</span>
+                  </span>
+                </div>
               )}
               {s.n === 2 && (
-                <span class="chip bg-mint !py-1.5 text-mint-ink"><Icon name="whatsapp-logo" class="h-4 w-4" />wishdrop.site/w/maria</span>
+                <div class="relative flex flex-col items-center">
+                  <div class="flex items-center gap-2.5">
+                    <span class="grid h-11 w-11 -rotate-6 place-items-center rounded-2xl bg-[#25d366] text-white shadow-soft transition duration-500 group-hover:-translate-y-1"><Icon name="whatsapp-logo" weight="fill" class="h-6 w-6" /></span>
+                    <span class="grid h-12 w-12 place-items-center rounded-2xl bg-[#229ed9] text-white shadow-soft transition delay-75 duration-500 group-hover:-translate-y-1"><Icon name="telegram-logo" weight="fill" class="h-6 w-6" /></span>
+                    <span class="grid h-11 w-11 rotate-6 place-items-center rounded-2xl bg-gradient-to-br from-[#0a7cff] to-[#a334fa] text-white shadow-soft transition delay-150 duration-500 group-hover:-translate-y-1"><Icon name="messenger-logo" weight="fill" class="h-6 w-6" /></span>
+                  </div>
+                  <span class="mt-4 flex items-center gap-1.5 rounded-full bg-white px-3.5 py-2 text-xs font-bold text-ink shadow-lift">
+                    <Icon name="link" weight="bold" class="h-3.5 w-3.5 text-lav-ink" />
+                    wishdrop.site/w/maria
+                  </span>
+                </div>
               )}
               {s.n === 3 && (
-                <span class="chip bg-mint-ink !py-1.5 text-white"><Icon name="check-circle" weight="fill" class="h-4 w-4" />{t("home.demo3")}</span>
+                <div class="relative flex items-end gap-2.5">
+                  <div class="w-24 -rotate-3 overflow-hidden rounded-2xl bg-white shadow-soft">
+                    <img src="/demo/books.jpg" alt="" class="h-20 w-full object-cover" loading="lazy" />
+                    <span class="block p-2"><span class="block h-1.5 w-3/4 rounded-full bg-ink/15"></span></span>
+                  </div>
+                  <div class="relative w-28 rotate-2 overflow-hidden rounded-2xl bg-white shadow-lift transition duration-500 group-hover:rotate-0">
+                    <img src="/demo/watch.jpg" alt="" class="h-24 w-full object-cover" loading="lazy" />
+                    <span class="absolute inset-x-0 top-0 flex items-center justify-center gap-1 bg-mint-ink/90 py-1 text-[10px] font-bold text-white">
+                      <Icon name="check-circle" weight="fill" class="h-3 w-3" />{t("home.demo3")}
+                    </span>
+                    <span class="block p-2"><span class="block h-1.5 w-2/3 rounded-full bg-ink/15"></span></span>
+                  </div>
+                  <Icon name="confetti" weight="fill" class="absolute -right-5 -top-5 h-7 w-7 rotate-12 text-amber-400" />
+                </div>
               )}
             </div>
-          </div>
+            <div class="px-3 pb-3 pt-5">
+              <h3 class="flex items-center gap-2.5 text-xl font-extrabold tracking-tight">
+                <span class:list={["grid h-8 w-8 shrink-0 place-items-center rounded-xl", s.tile]}>
+                  <Icon name={s.icon} weight="bold" class="h-4 w-4" />
+                </span>
+                {t(s.title)}
+              </h3>
+              <p class="mt-2 text-sm leading-relaxed text-ink-soft">{t(s.text)}</p>
+            </div>
+            {s.n < 3 && (
+              <span class="absolute -right-[1.05rem] top-[5.5rem] z-[1] hidden h-8 w-8 place-items-center rounded-full bg-white text-accent-500 shadow-soft sm:grid" aria-hidden="true">
+                <Icon name="arrow-right" weight="bold" class="h-4 w-4" />
+              </span>
+            )}
+          </li>
         ))
       }
-    </div>
+    </ol>
   </section>
 
   <!-- What else it does -->

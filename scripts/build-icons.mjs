@@ -30,6 +30,8 @@ const ICONS = [
   "flower-tulip", "music-notes", "airplane-tilt", "puzzle-piece", "baby", "paint-brush", "barbell", "bicycle",
   "paw-print", "cooking-pot", "wine", "ticket", "plant", "television", "dress", "handbag",
   "whatsapp-logo",
+  "telegram-logo",
+  "messenger-logo",
 ];
 const WEIGHTS = ["duotone", "regular", "fill", "bold"];
 
