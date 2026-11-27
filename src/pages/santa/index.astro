@@ -59,6 +59,7 @@ const day = new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", timeZ
                     </span>
                   </span>
                   <span class:list={["chip shrink-0 text-xs", g.drawn_at ? "bg-mint text-mint-ink" : "bg-sand text-ink-soft"]}>
+                    {g.drawn_at && <Icon name="check" weight="bold" class="h-3.5 w-3.5" />}
                     {g.drawn_at ? t("drawnBadge") : t("openBadge")}
                   </span>
                 </a>

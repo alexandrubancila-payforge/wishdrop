@@ -21,9 +21,9 @@ const t = makeT(lang, publiclist);
     </span>
     <h2 class="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl">{t("cta.heading")}</h2>
     <div class="mt-5 flex flex-wrap justify-center gap-2">
-      <span class="chip bg-mint !px-3.5 !py-1.5 text-mint-ink">{t("cta.free")}</span>
-      <span class="chip bg-lav !px-3.5 !py-1.5 text-lav-ink">{t("cta.noApp")}</span>
-      <span class="chip bg-sun !px-3.5 !py-1.5 text-sun-ink">{t("cta.ready")}</span>
+      <span class="chip bg-mint !px-3.5 !py-1.5 text-mint-ink"><Icon name="check" weight="bold" class="h-3.5 w-3.5" />{t("cta.free")}</span>
+      <span class="chip bg-lav !px-3.5 !py-1.5 text-lav-ink"><Icon name="device-mobile" class="h-3.5 w-3.5" />{t("cta.noApp")}</span>
+      <span class="chip bg-sun !px-3.5 !py-1.5 text-sun-ink"><Icon name="clock" class="h-3.5 w-3.5" />{t("cta.ready")}</span>
     </div>
     <a href={localePath(lang, "/register")} class="btn btn-primary mt-7 !px-7 !py-3.5">{t("cta.button")}</a>
   </div>

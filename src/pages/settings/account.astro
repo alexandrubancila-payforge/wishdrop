@@ -32,7 +32,7 @@ const R = { resend: t("js.resend"), sending: t("js.sending"), sent: t("js.sent")
           <p class="truncate font-bold text-ink">{user.email}</p>
           {
             user.email_verified ? (
-              <p class="chip mt-1 bg-mint text-mint-ink">{t("verified")}</p>
+              <p class="chip mt-1 bg-mint text-mint-ink"><Icon name="seal-check" weight="fill" class="h-3.5 w-3.5" />{t("verified")}</p>
             ) : (
               <p class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-semibold">
                 <span class="chip bg-sun text-sun-ink">

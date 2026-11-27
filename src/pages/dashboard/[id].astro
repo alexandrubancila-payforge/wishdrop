@@ -78,7 +78,7 @@ const shareInfo = {
   title: list.name,
   owner: user.name || (user.username ? `@${user.username}` : ""),
   event: list.event_date
-    ? `🎉 ${new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(list.event_date + "T00:00:00Z"))}`
+    ? `${new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(list.event_date + "T00:00:00Z"))}`
     : "",
   photos: items.filter((i) => i.image_key).slice(0, 4).map((i) => imageUrl(i.image_key)),
   labels: { myList: t("share.myList"), scan: t("share.scan"), by: t("share.by") },
@@ -484,7 +484,7 @@ const shareInfo = {
                     )}
                     <div class:list={["absolute inset-0 grid place-items-center bg-mint/40", !reserved && "hidden"]} data-reserved-overlay>
                       <div class="flex flex-col items-center gap-1.5">
-                        <span class="gift-tag -rotate-6 shadow-soft">{t("reserved")}</span>
+                        <span class="gift-tag -rotate-6 shadow-soft"><Icon name="check" weight="bold" class="h-3.5 w-3.5" />{t("reserved")}</span>
                         <p
                           class:list={[
                             "max-w-[80%] truncate rounded-full bg-white/90 px-2.5 py-0.5 text-center text-xs font-semibold text-mint-ink",

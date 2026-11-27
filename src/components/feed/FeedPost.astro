@@ -80,8 +80,8 @@ const shown = group.slice(0, 4);
       <span class="min-w-0">
         <span class="block truncate font-bold sm:text-lg">{it.title || domain(it.product_url) || it.list_name}</span>
         <span class="mt-1.5 flex flex-wrap gap-1.5">
-          {it.priority > 0 && <span class="chip bg-accent-100 text-accent-700">★ {t("mostWanted")}</span>}
-          {it.reserved_at && <span class="chip bg-mint text-mint-ink">✓ {t("reserved")}</span>}
+          {it.priority > 0 && <span class="chip bg-accent-100 text-accent-700"><Icon name="star" weight="fill" class="h-3.5 w-3.5" />{t("mostWanted")}</span>}
+          {it.reserved_at && <span class="chip bg-mint text-mint-ink"><Icon name="check" weight="bold" class="h-3.5 w-3.5" />{t("reserved")}</span>}
         </span>
         {it.price && <span class="mt-2 block text-lg font-extrabold sm:text-2xl">{it.price}</span>}
       </span>

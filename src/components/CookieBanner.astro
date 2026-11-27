@@ -1,4 +1,5 @@
 ---
+import Icon from "@/components/Icon.astro";
 /**
  * The cookie question for Google Ads measurement. Shown until the visitor
  * picks Accept or Decline (kept in localStorage `wd_consent`); the footer's
@@ -23,7 +24,8 @@ const t = makeT(lang, common);
   class="cookie-banner fixed inset-x-3 z-50 mx-auto hidden max-w-xl rounded-3xl border border-sand bg-white p-4 shadow-xl sm:inset-x-auto sm:right-6 sm:left-6 sm:p-5"
 >
   <p class="text-sm leading-relaxed text-ink">
-    🍪 {t("cookie.text")}{" "}
+    <Icon name="cookie" class="mr-1 inline h-4 w-4 -translate-y-px text-accent-600" />
+    {t("cookie.text")}{" "}
     <a href={localePath(lang, "/privacy")} class="font-semibold text-accent-700 underline">{t("cookie.more")}</a>
   </p>
   <div class="mt-3 flex gap-2">

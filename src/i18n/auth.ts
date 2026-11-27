@@ -13,7 +13,7 @@ export default {
     "auth.error": "A apărut o eroare.",
 
     "login.title": "Autentificare — WishDrop",
-    "login.heading": "Bine ai revenit 👋",
+    "login.heading": "Bine ai revenit",
     "login.noAccount": "Nu ai cont?",
     "login.createOne": "Creează unul",
     "login.forgot": "Ai uitat parola?",
@@ -21,7 +21,7 @@ export default {
     "login.failed": "Autentificarea a eșuat.",
 
     "register.title": "Creează cont — WishDrop",
-    "register.heading": "Creează-ți lista 🎁",
+    "register.heading": "Creează-ți lista",
     "register.haveAccount": "Ai deja cont?",
     "register.login": "Autentifică-te",
     "register.submit": "Creează cont",
@@ -31,7 +31,7 @@ export default {
     "forgot.heading": "Ai uitat parola?",
     "forgot.intro": "Scrie-ți emailul și îți trimitem un link ca să-ți alegi o parolă nouă.",
     "forgot.submit": "Trimite linkul",
-    "forgot.done": "✓ Dacă există un cont cu acest email, ți-am trimis un link de resetare. Verifică-ți inboxul (și folderul Spam).",
+    "forgot.done": "Dacă există un cont cu acest email, ți-am trimis un link de resetare. Verifică-ți inboxul (și folderul Spam).",
 
     "reset.title": "Parolă nouă — WishDrop",
     "reset.heading": "Alege o parolă nouă",
@@ -54,7 +54,7 @@ export default {
     "auth.error": "An error occurred.",
 
     "login.title": "Log in — WishDrop",
-    "login.heading": "Welcome back 👋",
+    "login.heading": "Welcome back",
     "login.noAccount": "No account yet?",
     "login.createOne": "Create one",
     "login.forgot": "Forgot password?",
@@ -62,7 +62,7 @@ export default {
     "login.failed": "Login failed.",
 
     "register.title": "Sign up — WishDrop",
-    "register.heading": "Create your list 🎁",
+    "register.heading": "Create your list",
     "register.haveAccount": "Already have an account?",
     "register.login": "Log in",
     "register.submit": "Sign up",
@@ -72,7 +72,7 @@ export default {
     "forgot.heading": "Forgot your password?",
     "forgot.intro": "Enter your email and we'll send you a link to choose a new password.",
     "forgot.submit": "Send the link",
-    "forgot.done": "✓ If an account exists for this email, we've sent a reset link. Check your inbox (and Spam folder).",
+    "forgot.done": "If an account exists for this email, we've sent a reset link. Check your inbox (and Spam folder).",
 
     "reset.title": "New password — WishDrop",
     "reset.heading": "Choose a new password",
@@ -95,7 +95,7 @@ export default {
     "auth.error": "Ein Fehler ist aufgetreten.",
 
     "login.title": "Anmelden — WishDrop",
-    "login.heading": "Willkommen zurück 👋",
+    "login.heading": "Willkommen zurück",
     "login.noAccount": "Noch kein Konto?",
     "login.createOne": "Erstelle eins",
     "login.forgot": "Passwort vergessen?",
@@ -103,7 +103,7 @@ export default {
     "login.failed": "Anmeldung fehlgeschlagen.",
 
     "register.title": "Konto erstellen — WishDrop",
-    "register.heading": "Erstelle deine Liste 🎁",
+    "register.heading": "Erstelle deine Liste",
     "register.haveAccount": "Hast du schon ein Konto?",
     "register.login": "Anmelden",
     "register.submit": "Konto erstellen",
@@ -113,7 +113,7 @@ export default {
     "forgot.heading": "Passwort vergessen?",
     "forgot.intro": "Gib deine E-Mail ein und wir senden dir einen Link, um ein neues Passwort zu wählen.",
     "forgot.submit": "Link senden",
-    "forgot.done": "✓ Wenn ein Konto mit dieser E-Mail existiert, haben wir einen Link zum Zurücksetzen gesendet. Prüfe deinen Posteingang (und den Spam-Ordner).",
+    "forgot.done": "Wenn ein Konto mit dieser E-Mail existiert, haben wir einen Link zum Zurücksetzen gesendet. Prüfe deinen Posteingang (und den Spam-Ordner).",
 
     "reset.title": "Neues Passwort — WishDrop",
     "reset.heading": "Wähle ein neues Passwort",
@@ -136,7 +136,7 @@ export default {
     "auth.error": "Произошла ошибка.",
 
     "login.title": "Вход — WishDrop",
-    "login.heading": "С возвращением 👋",
+    "login.heading": "С возвращением",
     "login.noAccount": "Нет аккаунта?",
     "login.createOne": "Создайте",
     "login.forgot": "Забыли пароль?",
@@ -144,7 +144,7 @@ export default {
     "login.failed": "Не удалось войти.",
 
     "register.title": "Регистрация — WishDrop",
-    "register.heading": "Создайте свой список 🎁",
+    "register.heading": "Создайте свой список",
     "register.haveAccount": "Уже есть аккаунт?",
     "register.login": "Войти",
     "register.submit": "Создать аккаунт",
@@ -154,7 +154,7 @@ export default {
     "forgot.heading": "Забыли пароль?",
     "forgot.intro": "Введите ваш email — мы пришлём ссылку для выбора нового пароля.",
     "forgot.submit": "Отправить ссылку",
-    "forgot.done": "✓ Если аккаунт с таким email существует, мы отправили ссылку для сброса. Проверьте почту (и папку Спам).",
+    "forgot.done": "Если аккаунт с таким email существует, мы отправили ссылку для сброса. Проверьте почту (и папку Спам).",
 
     "reset.title": "Новый пароль — WishDrop",
     "reset.heading": "Выберите новый пароль",

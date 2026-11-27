@@ -1,4 +1,5 @@
 ---
+import Icon from "@/components/Icon.astro";
 /**
  * A small seasonal greeting in the top-right of a public list's hero
  * (the live site keeps a slot there: "logo stânga · salut sezon dreapta").
@@ -52,6 +53,7 @@ function westernEaster(year: number) {
 const easterWeek = (easter: number) => within(easter - 6 * DAY, easter + DAY);
 
 let greeting: string | null = null;
+let icon = "cake";
 
 if (birthday && /^\d{4}-\d{2}-\d{2}$/.test(birthday)) {
   const [, bm, bd] = birthday.split("-").map(Number);
@@ -64,16 +66,17 @@ if (birthday && /^\d{4}-\d{2}-\d{2}$/.test(birthday)) {
   }
 }
 if (!greeting) {
-  if (within(day(12, 1), day(12, 31))) greeting = t("season.christmas");
-  else if (within(day(1, 1), day(1, 7))) greeting = t("season.newYear");
-  else if (within(day(2, 7), day(2, 14))) greeting = t("season.valentine");
-  else if (easterWeek(orthodoxEaster(y)) || easterWeek(westernEaster(y))) greeting = t("season.easter");
+  if (within(day(12, 1), day(12, 31))) [greeting, icon] = [t("season.christmas"), "tree-evergreen"];
+  else if (within(day(1, 1), day(1, 7))) [greeting, icon] = [t("season.newYear"), "confetti"];
+  else if (within(day(2, 7), day(2, 14))) [greeting, icon] = [t("season.valentine"), "heart"];
+  else if (easterWeek(orthodoxEaster(y)) || easterWeek(westernEaster(y))) [greeting, icon] = [t("season.easter"), "egg"];
 }
 ---
 
 {
   greeting && (
     <span class="chip bg-sun !px-3.5 !py-1.5 text-sun-ink shadow-soft">
+      <Icon name={icon} weight="fill" class="h-4 w-4" />
       {greeting}
     </span>
   )

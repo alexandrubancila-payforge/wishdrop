@@ -340,11 +340,12 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                         {t("list.reserve")}
                       </button>
                       <div class:list={["text-center", { hidden: !reserved }]} data-reserved-overlay>
-                        <p class="flex min-h-11 min-w-0 items-center justify-center rounded-2xl bg-mint px-3 py-2 text-sm font-bold leading-tight text-mint-ink">
-                          {/* With a name: "Reserved by Ana ✓" (prefix and check drawn by CSS, the script only sets the name); without one: "✓ Reserved". */}
+                        <p class="flex min-h-11 min-w-0 items-center justify-center gap-1.5 rounded-2xl bg-mint px-3 py-2 text-sm font-bold leading-tight text-mint-ink">
+                          {/* With a name: "Reserved by Ana" (the prefix drawn by CSS, the script only sets the name); without one: "Reserved". */}
+                          <Icon name="check-circle" weight="fill" class="h-4 w-4 shrink-0" />
                           <span
                             class:list={[
-                              "peer min-w-0 break-words before:mr-1 before:content-[attr(data-prefix)] after:ml-1 after:content-['✓']",
+                              "peer min-w-0 break-words before:mr-1 before:content-[attr(data-prefix)]",
                               { hidden: !(reserved && item.reserved_by) },
                             ]}
                             data-prefix={t("list.reservedBy")}
@@ -402,8 +403,8 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
           <p class="mt-1 text-sm text-ink-soft" id="reserve-modal-text">{t("modal.text")}</p>
           <p class="mt-5 text-sm font-semibold text-ink" id="reserve-name-question">{t("modal.nameQuestion")}</p>
           <div class="mt-2 grid grid-cols-2 gap-2.5">
-            <button type="button" data-choice="named" class="reserve-choice">{t("modal.named")}</button>
-            <button type="button" data-choice="anon" class="reserve-choice">{t("modal.anon")}</button>
+            <button type="button" data-choice="named" class="reserve-choice"><Icon name="user-circle" class="h-5 w-5" />{t("modal.named")}</button>
+            <button type="button" data-choice="anon" class="reserve-choice"><Icon name="detective" class="h-5 w-5" />{t("modal.anon")}</button>
           </div>
           <div id="reserve-name-field" class="mt-3 hidden">
             <input id="reserve-name" type="text" maxlength="60" placeholder={t("modal.namePlaceholder")} class="field" />
