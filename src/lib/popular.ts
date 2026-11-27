@@ -57,8 +57,11 @@ async function candidates(limit = 2000) {
   return results;
 }
 
+/** Adult shops never appear on /popular, whatever the list's visibility. */
+const ADULT_SHOP = /sex|xshop|adult|erotic|porn/i;
+
 export async function popularGifts(limit = 24) {
-  const rows = await candidates();
+  const rows = (await candidates()).filter((r) => !ADULT_SHOP.test(r.product_url ?? ""));
   // Group the same product (or a gift with its copies) into one card.
   const groups = new Map<string, typeof rows>();
   for (const r of rows) {
@@ -73,6 +76,9 @@ export async function popularGifts(limit = 24) {
     const people = new Set(g.map((r) => r.owner_id)).size;
     const best = [...g].sort((a, b) => b.heart + b.want - (a.heart + a.want) || b.created_at - a.created_at)[0];
     const { copied_from: _, ...shown } = best;
+    // Old gifts may lack a name or price: borrow them from another copy of the same product.
+    shown.title ??= g.find((r) => r.title)?.title ?? null;
+    shown.price ??= g.find((r) => r.price)?.price ?? null;
     cards.push({ ...shown, heart, want, copies, people, score: heart + 2 * want + 3 * copies + 3 * (people - 1) });
   }
   const popular = cards.filter((c) => c.score > 0).sort((a, b) => b.score - a.score || b.created_at - a.created_at).slice(0, limit);

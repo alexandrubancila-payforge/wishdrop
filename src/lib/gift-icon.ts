@@ -53,3 +53,35 @@ export function giftTint(id: string): string {
   for (const c of id) h = (h * 31 + c.charCodeAt(0)) | 0;
   return TINTS[Math.abs(h) % TINTS.length];
 }
+
+/** Filter groups on /popular, picked from the gift's icon or, failing that, its shop. */
+export type GiftCategory = "fashion" | "tech" | "books" | "beauty" | "home" | "kids" | "other";
+export const CATEGORIES: Exclude<GiftCategory, "other">[] = ["fashion", "tech", "books", "beauty", "home", "kids"];
+
+const BY_ICON: Record<string, GiftCategory> = {
+  "t-shirt": "fashion", dress: "fashion", sneaker: "fashion", handbag: "fashion", diamond: "fashion", watch: "fashion",
+  headphones: "tech", "device-mobile": "tech", laptop: "tech", camera: "tech", television: "tech", "game-controller": "tech",
+  "book-open-text": "books",
+  drop: "beauty",
+  "cooking-pot": "home", plant: "home", coffee: "home", wine: "home",
+  "puzzle-piece": "kids", baby: "kids",
+};
+const BY_SHOP: [RegExp, GiftCategory][] = [
+  [/zalando|answear|hm\.com|zara|bershka|asos|shein|aboutyou|reserved|nike|adidas|pandora|fashiondays|modivo|temu/, "fashion"],
+  [/steampowered|playstation|xbox|nintendo|emag|darwin|altex|flanco|pcgarage|apple|samsung|xiaomi|enter\.online|maximum\.md/, "tech"],
+  [/librarius|carturesti|elefant|libris|bookdepository|okian|books|emag\.ro\/carti/, "books"],
+  [/notino|sephora|douglas|makeup|vizaje|esteelauder|parfum/, "beauty"],
+  [/ikea|jysk|dedeman|leroymerlin|mobexpert|kitchen|home/, "home"],
+  [/noriel|smyk|lego|toys|jucarii|babyshop/, "kids"],
+];
+
+export function giftCategory(title: string | null | undefined, url: string | null | undefined): GiftCategory {
+  const byIcon = BY_ICON[giftIcon(title)];
+  if (byIcon) return byIcon;
+  let host = "";
+  try {
+    host = url ? new URL(url).hostname.toLowerCase() + new URL(url).pathname.toLowerCase() : "";
+  } catch {}
+  for (const [re, cat] of BY_SHOP) if (re.test(host)) return cat;
+  return "other";
+}

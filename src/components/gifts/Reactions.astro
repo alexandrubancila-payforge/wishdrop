@@ -50,7 +50,7 @@ const hidden = mode === "readonly" && !summary.heart && !summary.want;
             {inner}
           </button>
         ) : mode === "login" ? (
-          <a href={loginHref} class:list={["react-btn", `react-${kind}`]} aria-label={t("react.login")} title={t("react.login")}>
+          <a href={loginHref} class:list={["react-btn", `react-${kind}`, heartOnly && "is-overlay"]} aria-label={t("react.login")} title={t("react.login")}>
             {inner}
           </a>
         ) : (

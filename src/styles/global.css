@@ -252,6 +252,27 @@ body {
     stroke: currentColor;
   }
 
+  /* Category chips on /popular: dark when picked. */
+  .cat-chip {
+    flex-shrink: 0;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    background: #fff;
+    padding: 0.45rem 0.9rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-ink);
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .cat-chip:hover {
+    border-color: var(--color-accent-300);
+  }
+  .cat-chip[aria-pressed="true"] {
+    border-color: var(--color-ink);
+    background: var(--color-ink);
+    color: #fff;
+  }
+
   /* Cover photo buttons (components/social/CoverPhoto.astro): always on phones, on hover with a mouse. */
   @media (hover: hover) {
     .cover-actions {
