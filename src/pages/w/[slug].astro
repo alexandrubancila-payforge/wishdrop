@@ -290,7 +290,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                   data-my-join={group.some((c) => user && c.user_id === user.id) ? "true" : "false"}
                 >
                   <div class="relative">
-                  <Wrapper class="relative block aspect-square overflow-hidden rounded-2xl bg-sand" {...wrapperProps}>
+                  <Wrapper class="photo-scrim relative block aspect-square overflow-hidden rounded-2xl bg-sand" {...wrapperProps}>
                     {adult && <AdultCover />}
                     {img ? (
                       <img
@@ -307,7 +307,7 @@ const ownerName = owner ? owner.name || (owner.username ? `@${owner.username}` :
                       <GiftArt id={item.id} title={item.title} host={site} size="lg" class={reserved && "opacity-50 grayscale"} data-card-img />
                     )}
                     {(item.priority !== 0 || item.group_size) && (
-                      <span class="absolute left-2 top-2 flex flex-col items-start gap-1">
+                      <span class="absolute left-2 top-2 z-[1] flex flex-col items-start gap-1">
                         {item.priority > 0 && (
                           <span class="chip bg-accent-500 text-white shadow-soft" title={t("list.mostWanted")}>
                             <Icon name="star" weight="fill" class="h-3.5 w-3.5" />

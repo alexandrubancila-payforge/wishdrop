@@ -98,7 +98,7 @@ const shown = group.slice(0, 4);
           const more = i === shown.length - 1 && group.length > shown.length;
           return (
             <div class:list={["relative", isAdultGift(g) && "adult-gift"]}>
-              <a href={listHref} class="relative block overflow-hidden rounded-2xl">
+              <a href={listHref} class="photo-scrim relative block overflow-hidden rounded-2xl">
                 {isAdultGift(g) && !more && <AdultCover />}
                 {g.image_key ? (
                   <img src={imageUrl(g.image_key)} alt={g.title ?? ""} loading="lazy" class:list={["aspect-square w-full bg-sand object-cover transition duration-300 hover:scale-[1.03]", g.reserved_at && "opacity-50 grayscale"]} />
