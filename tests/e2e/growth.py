@@ -121,7 +121,7 @@ def raw(path, headers):
         r = urllib.request.build_opener(NoRedirect).open(req, timeout=30)
         return r.status, r.headers.get("location"), r.read().decode("utf-8", "replace")
     except urllib.error.HTTPError as e:
-        return e.code, e.headers.get("location"), ""
+        return e.code, e.headers.get("location"), e.read().decode("utf-8", "replace")
 
 s, loc, page = raw("/", {})
 check("root is English for search engines", s == 200 and '<html lang="en"' in page and 'rel="canonical" href="https://wishdrop.site/"' in page, s)
@@ -133,6 +133,20 @@ s, loc, _ = raw("/", {"accept-language": "ro", "user-agent": "Mozilla/5.0 (compa
 check("crawler never redirected by language", s == 200, (s, loc))
 s, loc, _ = raw("/", {"accept-language": "ro", "cookie": "wd_lang=en"})
 check("switcher choice beats the browser", s == 200, (s, loc))
+s, loc, _ = raw("/ideas/?x=1", {})
+check("trailing slash → 301 to the bare address", s == 301 and loc.endswith("/ideas?x=1") and not loc.endswith("/?x=1"), (s, loc))
+s, loc, _ = raw("/ro/", {})
+check("/ro/ → /ro", s == 301 and loc.endswith("/ro"), (s, loc))
+s, loc, _ = raw("/api/health", {})
+check("API untouched by the slash rule", s == 200, (s, loc))
+s, loc, page = raw("/", {})
+check("home has WebSite + Organization structured data", '"@type":"WebSite"' in page and '"@type":"Organization"' in page and '"@type":"WebApplication"' in page, "")
+s, loc, page = raw("/ideas/christmas-gift-ideas", {})
+check("guides are og:type article", 'property="og:type" content="article"' in page, "")
+s, loc, page = raw("/ideas", {})
+check("guides hub stays og:type website", 'property="og:type" content="website"' in page, "")
+s, loc, page = raw("/nothing-here", {})
+check("404 has no canonical or hreflang", s == 404 and 'rel="canonical"' not in page and "hreflang" not in page, s)
 s, loc, _ = raw("/en/ideas?x=1", {})
 check("old /en link → 301 to the root", s == 301 and loc.endswith("/ideas?x=1"), (s, loc))
 

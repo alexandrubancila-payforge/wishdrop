@@ -36,6 +36,8 @@ interface Props {
   alternates?: Partial<Record<(typeof LANGS)[number], string>>;
   /** Structured data (JSON-LD) for search engines. */
   jsonLd?: object;
+  /** Open Graph type: "article" for the guides. */
+  ogType?: "website" | "article";
 }
 
 const { lang, path, user } = Astro.locals;
@@ -55,7 +57,10 @@ const {
   header = true,
   alternates,
   jsonLd,
+  ogType = "website",
 } = Astro.props;
+/** Error pages (404, 500) have no address of their own: no canonical or language links. */
+const isError = Astro.response.status >= 400;
 
 const site = import.meta.env.SITE ?? "https://wishdrop.site";
 const href = (p: string) => localePath(lang, p);
@@ -94,17 +99,23 @@ const ogImage = new URL(`/og/wishdrop-${lang}.png`, site).href;
     <!-- maximum-scale=1: no auto-zoom when a field gets focus on iPhone (pinch-zoom still works there). -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
     <meta name="description" content={description} />
-    <link rel="canonical" href={abs(lang)} />
-    {altLangs.map((l) => <link rel="alternate" hreflang={l} href={abs(l)} />)}
-    <link rel="alternate" hreflang="x-default" href={abs(DEFAULT_LANG)} />
+    {
+      !isError && (
+        <>
+          <link rel="canonical" href={abs(lang)} />
+          {altLangs.map((l) => <link rel="alternate" hreflang={l} href={abs(l)} />)}
+          <link rel="alternate" hreflang="x-default" href={abs(DEFAULT_LANG)} />
+        </>
+      )
+    }
     <meta name="robots" content={noindex ? "noindex, follow" : "index, follow"} />
     {jsonLd && <script type="application/ld+json" set:html={JSON.stringify(jsonLd).replace(/</g, "\\u003c")} />}
     <!-- Open Graph -->
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content="WishDrop" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={abs(lang)} />
+    {!isError && <meta property="og:url" content={abs(lang)} />}
     <meta property="og:locale" content={OG_LOCALE[lang]} />
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:type" content="image/png" />

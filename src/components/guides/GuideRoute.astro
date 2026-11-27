@@ -58,6 +58,7 @@ const jsonLd = guide
   description={guide ? guide.description : hub.description}
   alternates={guideAlternates(guide ? guide.key : null)}
   jsonLd={jsonLd}
+  ogType={guide ? "article" : "website"}
   mainClass="mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-12"
 >
   {

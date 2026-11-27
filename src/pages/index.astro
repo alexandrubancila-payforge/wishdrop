@@ -2,7 +2,7 @@
 /** Home: the pitch, how it works, and a closing call to action. */
 import Layout from "@/layouts/Layout.astro";
 import Icon from "@/components/Icon.astro";
-import { localePath, makeT } from "@/lib/i18n";
+import { localePath, makeT, OG_LOCALE } from "@/lib/i18n";
 import common from "@/i18n/common";
 import home from "@/i18n/home";
 
@@ -14,6 +14,28 @@ const href = (p: string) => localePath(lang, p);
 // Signed-in visitors go straight to their lists instead of the sign-up flow.
 const startHref = user ? href("/dashboard") : href("/register");
 
+// Tells search engines what the site is: its name (shown above results), the logo, and a free web app.
+const site = "https://wishdrop.site";
+const homeUrl = site + localePath(lang, "/");
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "WebSite", "@id": `${site}/#website`, name: "WishDrop", url: `${site}/`, publisher: { "@id": `${site}/#org` } },
+    { "@type": "Organization", "@id": `${site}/#org`, name: "WishDrop", url: `${site}/`, logo: `${site}/apple-touch-icon.png` },
+    {
+      "@type": "WebApplication",
+      name: "WishDrop",
+      url: homeUrl,
+      description: t("meta.description"),
+      applicationCategory: "LifestyleApplication",
+      operatingSystem: "Web, iOS, Android",
+      inLanguage: OG_LOCALE[lang].replace("_", "-"),
+      offers: { "@type": "Offer", price: "0", priceCurrency: "EUR" },
+      publisher: { "@id": `${site}/#org` },
+    },
+  ],
+};
+
 const STEPS = [
   { n: 1, icon: "list-heart", tile: "bg-accent-100 text-accent-600", title: "home.step1Title", text: "home.step1Text" },
   { n: 2, icon: "paper-plane-tilt", tile: "bg-lav text-lav-ink", title: "home.step2Title", text: "home.step2Text" },
@@ -21,7 +43,7 @@ const STEPS = [
 ];
 ---
 
-<Layout>
+<Layout jsonLd={jsonLd}>
   <!-- Hero -->
   <section class="mx-auto max-w-6xl px-4 pt-10 sm:px-6 sm:pt-16">
     <div class="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
