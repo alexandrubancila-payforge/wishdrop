@@ -296,6 +296,11 @@ body {
     color: #fff;
   }
 
+  /* Public list: a reserved gift's green band takes the bottom of the photo, so the price chip steps aside. */
+  [data-reserved="true"] [data-price-chip] {
+    display: none;
+  }
+
   /* Home page phone: "Reserve" turns into "Reserved" and back (index.astro). */
   .demo-swap > * {
     grid-area: 1 / 1;
