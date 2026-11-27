@@ -408,6 +408,41 @@ body {
     border-radius: 999px;
     border: 2px solid var(--color-paper, #fffaf7);
   }
+  /* Arrows over the bubble row on wider screens (feed.astro shows them only when it overflows). */
+  .stories-arrow {
+    position: absolute;
+    top: 1.55rem;
+    z-index: 2;
+    display: none;
+    width: 2rem;
+    height: 2rem;
+    place-items: center;
+    border-radius: 999px;
+    background: #fff;
+    color: var(--color-ink);
+    box-shadow: 0 2px 10px rgb(43 36 51 / 0.15);
+    transition: transform 0.15s;
+  }
+  .stories-arrow:hover {
+    transform: scale(1.08);
+  }
+  @media (hover: hover) and (min-width: 640px) {
+    .stories-arrow:not([hidden]) {
+      display: grid;
+    }
+  }
+  .stories-wrap.fade-right #stories {
+    mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent);
+  }
+  .stories-wrap.fade-left #stories {
+    mask-image: linear-gradient(to right, transparent, #000 3rem);
+  }
+  .stories-wrap.fade-left.fade-right #stories {
+    mask-image: linear-gradient(to right, transparent, #000 3rem, #000 calc(100% - 3rem), transparent);
+  }
+  .story {
+    scroll-snap-align: start;
+  }
   .story-name {
     max-width: 100%;
     overflow: hidden;

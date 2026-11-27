@@ -150,7 +150,14 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
     <div class="min-w-0">
       <header>
         <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("hi", { name: firstName })}</h1>
-        <ul id="stories" class="no-scrollbar -mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" aria-label={t("story.label")}>
+        <div class="stories-wrap relative mt-3">
+        <button type="button" data-stories-prev class="stories-arrow left-0" aria-label={t("story.prev")} hidden>
+          <Icon name="caret-left" weight="bold" class="h-4 w-4" />
+        </button>
+        <button type="button" data-stories-next class="stories-arrow right-0" aria-label={t("story.next")} hidden>
+          <Icon name="caret-right" weight="bold" class="h-4 w-4" />
+        </button>
+        <ul id="stories" class="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto scroll-smooth px-4 py-1 sm:mx-0 sm:px-0" aria-label={t("story.label")}>
           <li>
             <a href={myListsHref} class="story">
               <span class="story-ring is-you">
@@ -189,6 +196,7 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
             )
           }
         </ul>
+        </div>
       </header>
 
       <form action={href("/search")} method="get" class="mt-6" role="search">
@@ -437,6 +445,37 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
       li.querySelector(".story-ring")?.classList.add("is-seen");
       row.append(li);
     }
+    // On a computer the row can't be swiped: arrows appear at an edge that has more bubbles,
+    // the edge fades out, and the mouse wheel scrolls sideways.
+    const wrap = row.parentElement!;
+    const prev = wrap.querySelector<HTMLButtonElement>("[data-stories-prev]")!;
+    const next = wrap.querySelector<HTMLButtonElement>("[data-stories-next]")!;
+    const update = () => {
+      const more = row.scrollWidth - row.clientWidth;
+      const atStart = row.scrollLeft <= 2;
+      const atEnd = row.scrollLeft >= more - 2;
+      prev.hidden = more <= 2 || atStart;
+      next.hidden = more <= 2 || atEnd;
+      wrap.classList.toggle("fade-left", more > 2 && !atStart);
+      wrap.classList.toggle("fade-right", more > 2 && !atEnd);
+    };
+    const step = () => Math.max(160, row.clientWidth * 0.8);
+    prev.addEventListener("click", () => row.scrollBy({ left: -step() }));
+    next.addEventListener("click", () => row.scrollBy({ left: step() }));
+    row.addEventListener("scroll", update, { passive: true });
+    row.addEventListener(
+      "wheel",
+      (e) => {
+        if (Math.abs(e.deltaY) <= Math.abs(e.deltaX) || row.scrollWidth <= row.clientWidth) return;
+        const before = row.scrollLeft;
+        row.scrollLeft += e.deltaY;
+        if (row.scrollLeft !== before) e.preventDefault(); // at either end, let the page scroll
+      },
+      { passive: false },
+    );
+    new ResizeObserver(update).observe(row);
+    update();
+
     row.addEventListener("click", (e) => {
       const li = (e.target as HTMLElement).closest<HTMLElement>("li[data-story]");
       if (!li) return;
