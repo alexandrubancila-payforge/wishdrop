@@ -109,14 +109,34 @@ const shareInfo = {
       <h1 id="wl-title" title={list.name} class="min-w-0 truncate text-3xl font-extrabold tracking-tight sm:text-4xl">
         {list.name}
       </h1>
-      <button
-        id="rename-btn"
-        aria-label={t("rename")}
-        class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white text-ink-soft shadow-soft transition hover:text-accent-700"
-      >
-        <Icon name="pencil-simple" class="h-[18px] w-[18px]" />
-      </button>
+      {/* Rename, settings and the share modal keep their own (hidden) buttons; the "⋯" menu presses them. */}
+      <button id="rename-btn" type="button" class="hidden" aria-hidden="true" tabindex="-1"></button>
       <div class="relative shrink-0">
+        <button
+          type="button"
+          id="list-menu-btn"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          aria-label={t("menu.more")}
+          title={t("menu.more")}
+          class="grid h-9 w-9 place-items-center rounded-full bg-white text-ink shadow-soft transition hover:text-accent-700 aria-expanded:bg-ink aria-expanded:text-white"
+        >
+          <Icon name="dots-three" weight="bold" class="h-5 w-5" />
+        </button>
+        <div id="list-menu" role="menu" hidden class="absolute left-0 top-11 z-30 w-60 rounded-2xl border border-line bg-white p-1.5 text-sm shadow-lift">
+          <button type="button" role="menuitem" data-list-act="rename" class="item-menu-row">
+            <Icon name="pencil-simple" class="h-[18px] w-[18px] text-accent-500" />{t("renameList")}
+          </button>
+          <button type="button" role="menuitem" data-list-act="settings" class="item-menu-row">
+            <Icon name="gear" class="h-[18px] w-[18px] text-accent-500" />{t("listSettings")}
+          </button>
+          <button type="button" role="menuitem" data-list-act="qr" class="item-menu-row">
+            <Icon name="qr-code" class="h-[18px] w-[18px] text-accent-500" />{t("share.btn")}
+          </button>
+          <a role="menuitem" href={`/w/${list.slug}`} target="_blank" rel="noopener" class="item-menu-row">
+            <Icon name="eye" class="h-[18px] w-[18px] text-accent-500" />{t("viewPublic")}
+          </a>
+        </div>
         <button
           type="button"
           id="settings-btn"
@@ -125,10 +145,9 @@ const shareInfo = {
           aria-controls="settings-panel"
           aria-label={t("listSettings")}
           title={t("listSettings")}
-          class="grid h-9 w-9 place-items-center rounded-full bg-white text-ink-soft shadow-soft transition hover:text-accent-700 aria-expanded:bg-accent-500 aria-expanded:text-white"
-        >
-          <Icon name="gear" class="h-[18px] w-[18px]" />
-        </button>
+          class="hidden"
+          tabindex="-1"
+        ></button>
         <div id="settings-panel" role="dialog" aria-label={t("listSettings")} hidden class="absolute left-0 top-11 z-30 w-[22rem] max-w-[calc(100vw-1.5rem)] rounded-3xl border border-line bg-white p-1.5 text-left shadow-lift">
           <!-- Surprise mode -->
           <div class="flex items-center gap-3 rounded-2xl p-2.5">
@@ -221,48 +240,34 @@ const shareInfo = {
       <button type="button" id="rename-cancel" class="btn btn-ghost shrink-0 !px-4 !py-2.5 text-sm">{t("cancel")}</button>
     </form>
 
-    <p class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-soft">
-      <span class="inline-flex items-center gap-1"><Icon name="gift" class="h-4 w-4" />{plural(tDash, lang, "gifts", items.length)}</span>
+    <p class="mt-2.5 flex flex-wrap items-center gap-1.5">
+      <span class="chip bg-white text-ink shadow-soft"><Icon name="gift" class="h-3.5 w-3.5 text-accent-500" />{plural(tDash, lang, "gifts", items.length)}</span>
       {!surprise && reservedCount > 0 && (
-        <span class="inline-flex items-center gap-1 text-mint-ink"><Icon name="check-circle" class="h-4 w-4" />{tDash("reservedN", { n: reservedCount })}</span>
+        <span class="chip bg-mint text-mint-ink"><Icon name="check-circle" class="h-3.5 w-3.5" />{tDash("reservedN", { n: reservedCount })}</span>
       )}
-      <span class="inline-flex items-center gap-1">
-        <Icon name={list.visibility === "public" ? "globe" : list.visibility === "followers" ? "users" : "link"} class="h-4 w-4" />
+      <span class="chip bg-white text-ink-soft shadow-soft">
+        <Icon name={list.visibility === "public" ? "globe" : list.visibility === "followers" ? "users" : "link"} class="h-3.5 w-3.5" />
         {t(`vis.${list.visibility}`)}
       </span>
       {eventLabel && (
-        <span class="inline-flex items-center gap-1 font-semibold text-accent-700"><Icon name="calendar-blank" class="h-4 w-4" />{eventLabel}</span>
+        <span class="chip bg-sun text-sun-ink"><Icon name="calendar-blank" class="h-3.5 w-3.5" />{eventLabel}</span>
       )}
     </p>
     </div>
 
-    <!-- Share row: send (the phone's share sheet: WhatsApp, Telegram…) · copy · story & QR · open.
-         On wider screens it sits on the right of the title, with the address under it. -->
-    <div class="mt-4 shrink-0 sm:mt-0">
-    <div class="flex items-center gap-2">
-      <button type="button" id="send-list" class="btn btn-primary !px-4 !py-2.5 text-sm" data-text={t("sendText", { list: list.name })} data-title={list.name}>
-        <Icon name="share-network" weight="bold" class="h-4 w-4" />
+    <!-- Share row: Send (the phone's share sheet: WhatsApp, Telegram…) and Copy. Story & QR and the public view are in "⋯".
+         On wider screens it sits on the right of the title. -->
+    <div class="mt-4 flex shrink-0 items-center gap-2 sm:mt-0">
+      <button type="button" id="send-list" class="btn btn-primary flex-1 !py-3 text-sm sm:flex-none sm:!px-6" data-text={t("sendText", { list: list.name })} data-title={list.name}>
+        <Icon name="paper-plane-tilt" weight="bold" class="h-4 w-4" />
         {t("sendList")}
       </button>
-      <button type="button" id="copy-share" class="btn btn-soft !px-4 !py-2.5 text-sm" data-url={shareUrl}>
-        <Icon name="copy" class="h-4 w-4" />
-        <span data-label>{t("copyShort")}</span>
+      <button type="button" id="copy-share" class="copy-btn btn btn-soft h-12 w-12 shrink-0 !p-0" data-url={shareUrl} aria-label={t("copyLink")} title={t("copyLink")}>
+        <Icon name="copy" class="when-idle h-5 w-5" />
+        <Icon name="check" weight="bold" class="when-copied h-5 w-5" />
+        <span data-label class="sr-only">{t("copyShort")}</span>
       </button>
-      <button type="button" id="open-share" class="btn btn-ghost h-10 w-10 shrink-0 !p-0" aria-label={t("share.btn")} title={t("share.btn")}>
-        <Icon name="qr-code" class="h-[18px] w-[18px]" />
-      </button>
-      <a
-        href={`/w/${list.slug}`}
-        target="_blank"
-        rel="noopener"
-        aria-label={t("viewPublic")}
-        title={t("viewPublic")}
-        class="btn btn-ghost h-10 w-10 shrink-0 !p-0"
-      >
-        <Icon name="arrow-square-out" class="h-[18px] w-[18px]" />
-      </a>
-    </div>
-    <p class="mt-1.5 truncate pl-1 text-xs text-ink-soft sm:text-right">{shareUrl.replace(/^https?:\/\//, "")}</p>
+      <button type="button" id="open-share" class="hidden" tabindex="-1" aria-hidden="true"></button>
     </div>
   </div>
 
@@ -816,6 +821,39 @@ const shareInfo = {
         if (e.key === "Escape" && !settingsPanel.hidden) setOpen(false);
       });
       if (location.hash === "#list-settings") setOpen(true);
+
+      // The "⋯" menu by the title: rename, settings, story & QR, public view.
+      const listMenuBtn = document.getElementById("list-menu-btn")!;
+      const listMenu = document.getElementById("list-menu")!;
+      const setMenu = (open: boolean) => {
+        listMenu.hidden = !open;
+        listMenuBtn.setAttribute("aria-expanded", String(open));
+        listMenu.style.left = "0px";
+        if (!open) return;
+        const r = listMenu.getBoundingClientRect();
+        const vw = document.documentElement.clientWidth;
+        if (r.right > vw - 12) listMenu.style.left = `${vw - 12 - r.right}px`;
+      };
+      listMenuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        setOpen(false);
+        setMenu(listMenu.hidden);
+      });
+      listMenu.addEventListener("click", (e) => {
+        const act = (e.target as HTMLElement).closest<HTMLElement>("[data-list-act]")?.dataset.listAct;
+        setMenu(false);
+        if (!act) return;
+        e.stopPropagation(); // or the click closes the panel it just opened
+        if (act === "rename") document.getElementById("rename-btn")!.click();
+        if (act === "settings") setOpen(true);
+        if (act === "qr") document.getElementById("open-share")!.click();
+      });
+      document.addEventListener("click", (e) => {
+        if (!listMenu.hidden && !listMenu.contains(e.target as Node)) setMenu(false);
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") setMenu(false);
+      });
     </script>
 
   <!-- Share modal: story image + QR card -->
@@ -965,7 +1003,11 @@ const shareInfo = {
       }
       const label = copyLabel.textContent;
       copyLabel.textContent = M.copied;
-      setTimeout(() => (copyLabel.textContent = label), 1500);
+      copyBtn.classList.add("is-copied");
+      setTimeout(() => {
+        copyLabel.textContent = label;
+        copyBtn.classList.remove("is-copied");
+      }, 1500);
     };
     copyBtn.addEventListener("click", copyLink);
 

@@ -3,6 +3,7 @@ import type { Bundle } from "@/lib/i18n";
 /** /dashboard/<id> — the list editor. */
 export default {
   ro: {
+    renameList: "Redenumește lista",
     "menu.more": "Mai multe",
     "menu.open": "Deschide produsul",
     "menu.received": "L-am primit",
@@ -87,6 +88,7 @@ export default {
     listSettingsText: "Cine vede lista, modul surpriză și data evenimentului.",
   },
   en: {
+    renameList: "Rename the list",
     "menu.more": "More",
     "menu.open": "Open the product",
     "menu.received": "I got it",
@@ -171,6 +173,7 @@ export default {
     listSettingsText: "Who sees the list, surprise mode and the event date.",
   },
   de: {
+    renameList: "Liste umbenennen",
     "menu.more": "Mehr",
     "menu.open": "Produkt öffnen",
     "menu.received": "Hab ich bekommen",
@@ -255,6 +258,7 @@ export default {
     listSettingsText: "Wer die Liste sieht, Überraschungsmodus und das Datum des Anlasses.",
   },
   ru: {
+    renameList: "Переименовать список",
     "menu.more": "Ещё",
     "menu.open": "Открыть товар",
     "menu.received": "Я получил(а)",
