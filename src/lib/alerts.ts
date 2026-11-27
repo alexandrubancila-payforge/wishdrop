@@ -4,7 +4,7 @@
  * the SESSION KV), so a broken page doesn't flood the inbox.
  */
 import { env, waitUntil } from "cloudflare:workers";
-import { sendEmail } from "./email";
+import { sendOwnerEmail } from "./email";
 
 const QUIET_SECONDS = 30 * 60;
 
@@ -14,10 +14,18 @@ export function alertOwner(where: string, problem: string, detail = "") {
     const key = `alert:${where.replace(/[0-9a-f-]{8,}/gi, ":id")}:${problem.slice(0, 80)}`;
     if (await env.SESSION.get(key)) return;
     await env.SESSION.put(key, "1", { expirationTtl: QUIET_SECONDS });
-    await sendEmail({
-      to: env.OWNER_EMAIL,
+    await sendOwnerEmail({
       subject: `WishDrop — eroare: ${problem.slice(0, 80)}`,
-      text: `Pagina: ${where}\nEroare: ${problem}\nOra: ${new Date().toISOString()}\n\n${detail.slice(0, 4000)}\n\n(Următorul email pentru aceeași eroare vine după cel puțin 30 de minute. Detalii: Cloudflare → Workers → wishdrop → Logs.)`,
+      emoji: "⚠️",
+      title: "Eroare pe site",
+      facts: [
+        ["Pagina", where],
+        ["Eroare", problem],
+        ["Ora", new Date().toLocaleString("ro-RO", { timeZone: "Europe/Bucharest" })],
+      ],
+      detail: detail.slice(0, 4000) || null,
+      button: { label: "Deschide logurile", url: "https://dash.cloudflare.com/?to=/:account/workers/services/view/wishdrop/production/observability/logs" },
+      note: "Următorul email pentru aceeași eroare vine după cel puțin 30 de minute.",
     });
   })().catch((e) => console.error("alert failed", e));
   try {

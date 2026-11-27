@@ -5,7 +5,7 @@
  */
 import { env } from "cloudflare:workers";
 import type { Lang } from "./i18n";
-import { renderEmail } from "./email-template";
+import { renderEmail, type Block } from "./email-template";
 
 interface Message {
   to: string;
@@ -30,7 +30,7 @@ export async function sendEmail(msg: Message): Promise<boolean> {
         to: msg.to,
         subject: msg.subject,
         text: msg.text,
-        html: msg.html ?? textToHtml(msg.text),
+        html: msg.html ?? plainHtml(msg.subject, msg.text),
         ...(msg.replyTo ? { reply_to: msg.replyTo } : {}),
       }),
     },
@@ -39,15 +39,65 @@ export async function sendEmail(msg: Message): Promise<boolean> {
   return res.ok;
 }
 
-const escape = (s: string) =>
-  s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+/** A message sent without its own design still gets the WishDrop look: one paragraph per block of text. */
+function plainHtml(subject: string, text: string) {
+  return renderEmail({
+    lang: "ro",
+    preheader: text.slice(0, 90),
+    emoji: "✉️",
+    title: subject.replace(/^WishDrop\s*—\s*/, ""),
+    blocks: text.split(/\n{2,}/).map((p) => ({ type: "p" as const, text: p })),
+    footer: OWNER_FOOTER,
+  });
+}
 
-/** Plain emails (to the owner: contact form, reports, alerts) get a simple readable layout. */
-function textToHtml(text: string) {
-  const body = escape(text)
-    .replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#e3574f">$1</a>')
-    .replace(/\n/g, "<br>");
-  return `<div style="font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:15px;line-height:1.6;color:#2b2433;max-width:560px">${body}</div>`;
+/* ---------- emails to the site owner (contact form, reports, photos to check, errors), in Romanian ---------- */
+
+const OWNER_FOOTER = "Primești acest email pentru că administrezi WishDrop.";
+
+export interface OwnerEmail {
+  subject: string;
+  emoji: string;
+  title: string;
+  /** Who / what / where, as label · value lines. */
+  facts?: [string, string | null | undefined | false][];
+  /** What someone wrote. */
+  message?: string | null;
+  /** Technical detail (stack trace, browser). */
+  detail?: string | null;
+  button?: { label: string; url: string };
+  note?: string;
+  replyTo?: string;
+}
+
+/** Sends an email to OWNER_EMAIL in the same design as the emails people get. */
+export function sendOwnerEmail(o: OwnerEmail) {
+  if (!env.OWNER_EMAIL) return Promise.resolve(false);
+  const facts = (o.facts ?? []).filter((f): f is [string, string] => !!f[1]);
+  const blocks: Block[] = [
+    ...(facts.length ? [{ type: "facts" as const, items: facts }] : []),
+    ...(o.message ? [{ type: "quote" as const, text: o.message }] : []),
+    ...(o.detail ? [{ type: "code" as const, text: o.detail }] : []),
+    ...(o.button ? [{ type: "button" as const, ...o.button }] : []),
+    ...(o.note ? [{ type: "note" as const, text: o.note }] : []),
+  ];
+  const text = [
+    o.title,
+    ...facts.map(([k, v]) => `${k}: ${v}`),
+    o.message && `\n${o.message}`,
+    o.detail && `\n${o.detail}`,
+    o.button && `\n${o.button.label}: ${o.button.url}`,
+    o.note && `\n${o.note}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  return sendEmail({
+    to: env.OWNER_EMAIL,
+    subject: o.subject,
+    replyTo: o.replyTo,
+    text,
+    html: renderEmail({ lang: "ro", preheader: o.message?.slice(0, 90) || o.title, emoji: o.emoji, title: o.title, blocks, footer: OWNER_FOOTER }),
+  });
 }
 
 /* ---------- account emails, in the user's language ---------- */

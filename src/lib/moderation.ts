@@ -13,7 +13,7 @@
  */
 import { env, waitUntil } from "cloudflare:workers";
 import { db, newId, now } from "./db";
-import { sendEmail } from "./email";
+import { sendOwnerEmail } from "./email";
 
 const MODEL = "@cf/meta/llama-3.2-11b-vision-instruct";
 /** Bigger photos aren't sent to the model (the image goes over as a byte array). */
@@ -77,10 +77,12 @@ export async function flagPhoto(userId: string, imageKey: string, origin: string
     .run();
   if (env.OWNER_EMAIL) {
     waitUntil(
-      sendEmail({
-        to: env.OWNER_EMAIL,
+      sendOwnerEmail({
         subject: "WishDrop — poză de verificat",
-        text: `Verificarea automată a găsit o poză la limită.\n\nVezi și decide: ${origin}/admin#reports`,
+        emoji: "🖼️",
+        title: "O poză de verificat",
+        facts: [["Ce", "Verificarea automată a găsit o poză la limită. A fost publicată, dar merită o privire."]],
+        button: { label: "Vezi și decide", url: `${origin}/admin#reports` },
       }).catch(() => false),
     );
   }

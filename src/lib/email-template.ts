@@ -14,6 +14,12 @@ export type Block =
   | { type: "chips"; items: string[] }
   /** One line per thing (reminders): emoji, title, subtitle and a link. */
   | { type: "rows"; items: { emoji: string; title: string; sub: string; url: string; cta: string }[] }
+  /** Label · value lines in a soft box (who wrote, which page…). */
+  | { type: "facts"; items: [label: string, value: string][] }
+  /** Someone's own words, in a box with a coral edge. */
+  | { type: "quote"; text: string }
+  /** Technical detail in small monospace (error alerts). */
+  | { type: "code"; text: string }
   | { type: "note"; text: string };
 
 export interface EmailContent {
@@ -45,6 +51,9 @@ const SITE = "https://wishdrop.site";
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
+/** Escaped text with its web addresses turned into links. */
+const linkify = (s: string) => esc(s).replace(/(https?:\/\/[^\s<]+)/g, `<a href="$1" style="color:${C.coral};text-decoration:none">$1</a>`);
+
 function button(label: string, url: string) {
   return `<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin:28px auto 4px">
   <tr><td align="center" bgcolor="${C.coral}" style="border-radius:999px;mso-padding-alt:16px 34px">
@@ -56,6 +65,21 @@ function block(b: Block) {
   switch (b.type) {
     case "p":
       return `<p style="margin:0 0 14px;font-family:${FONT};font-size:16px;line-height:1.6;color:${C.ink}">${esc(b.text)}</p>`;
+    case "facts":
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin:4px 0 14px;background:${C.paper};border-radius:18px">
+${b.items
+  .map(
+    ([label, value], i) => `  <tr>
+    <td valign="top" style="padding:${i ? 8 : 14}px 0 ${i === b.items.length - 1 ? 14 : 0}px 18px;width:92px;font-family:${FONT};font-size:13px;font-weight:700;color:${C.soft}">${esc(label)}</td>
+    <td valign="top" style="padding:${i ? 8 : 14}px 18px ${i === b.items.length - 1 ? 14 : 0}px 8px;font-family:${FONT};font-size:15px;font-weight:700;color:${C.ink};word-break:break-word">${linkify(value)}</td>
+  </tr>`,
+  )
+  .join("\n")}
+</table>`;
+    case "quote":
+      return `<div style="margin:6px 0 14px;padding:14px 18px;border-left:4px solid ${C.coral};border-radius:14px;background:${C.coralSoft};font-family:${FONT};font-size:16px;line-height:1.6;color:${C.ink};white-space:pre-line">${esc(b.text)}</div>`;
+    case "code":
+      return `<div style="margin:6px 0 14px;padding:12px 14px;border-radius:12px;background:${C.paper};border:1px solid ${C.line};font-family:Menlo,Consolas,monospace;font-size:12px;line-height:1.5;color:${C.ink};white-space:pre-wrap;word-break:break-word">${esc(b.text)}</div>`;
     case "note":
       return `<p style="margin:18px 0 0;font-family:${FONT};font-size:13px;line-height:1.55;color:${C.soft}">${esc(b.text)}</p>`;
     case "button":

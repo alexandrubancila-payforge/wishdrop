@@ -1,8 +1,7 @@
 import type { APIRoute } from "astro";
-import { env } from "cloudflare:workers";
 import { EMAIL_RE } from "@/lib/auth";
 import { apiT, fail, json, readJson } from "@/lib/http";
-import { sendEmail } from "@/lib/email";
+import { sendOwnerEmail } from "@/lib/email";
 
 export const POST: APIRoute = async (ctx) => {
   const t = apiT(ctx);
@@ -12,11 +11,18 @@ export const POST: APIRoute = async (ctx) => {
   const email = String(b.email ?? "").trim().slice(0, 254);
   const message = String(b.message ?? "").trim().slice(0, 5000);
   if (!name || !EMAIL_RE.test(email) || message.length < 10) return fail(t("error"));
-  const ok = await sendEmail({
-    to: env.OWNER_EMAIL,
+  const ok = await sendOwnerEmail({
     replyTo: email,
     subject: `WishDrop — mesaj de la ${name}`,
-    text: `${name} <${email}>\n\n${message}`,
+    emoji: "💌",
+    title: `Mesaj nou de la ${name}`,
+    facts: [
+      ["Nume", name],
+      ["Email", email],
+    ],
+    message,
+    button: { label: "Răspunde", url: `mailto:${email}` },
+    note: "Poți răspunde direct la acest email: ajunge la persoana care a scris.",
   });
   return ok ? json({ ok: true }) : fail(t("sendFail"), 502);
 };

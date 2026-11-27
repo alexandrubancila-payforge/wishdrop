@@ -3,7 +3,7 @@ import { env } from "cloudflare:workers";
 import { db, getUserById, getWishlist, newId, now } from "@/lib/db";
 import { EMAIL_RE } from "@/lib/auth";
 import { apiT, fail, json } from "@/lib/http";
-import { sendEmail } from "@/lib/email";
+import { sendOwnerEmail } from "@/lib/email";
 import { isImageType, putImage } from "@/lib/storage";
 
 const REPORT_KINDS = ["bug", "user", "list"] as const;
@@ -74,21 +74,22 @@ export const POST: APIRoute = async (ctx) => {
 
   if (env.OWNER_EMAIL) {
     const who = user ? `${user.name || user.username || ""} <${user.email}>` : email || "anonim";
-    await sendEmail({
-      to: env.OWNER_EMAIL,
+    const REASONS: Record<string, string> = { spam: "Spam sau reclame", inappropriate: "Conținut nepotrivit", fake: "Cont fals sau se dă drept altcineva", other: "Altceva" };
+    await sendOwnerEmail({
       replyTo: email || undefined,
       subject: kind === "bug" ? "WishDrop — problemă raportată" : `WishDrop — raport: ${target}`.slice(0, 150),
-      text: [
-        kind === "bug" ? "Problemă raportată" : `Raport despre ${target}\nMotiv: ${reason}`,
-        message && `\n${message}`,
-        `\nDe la: ${who}`,
-        pageUrl && `Pagina: ${pageUrl}`,
-        `Browser: ${ua}`,
-        imageKey && "Are o captură de ecran.",
-        `\nVezi și rezolvă: ${ctx.url.origin}/admin#reports`,
-      ]
-        .filter(Boolean)
-        .join("\n"),
+      emoji: kind === "bug" ? "🐞" : "🚩",
+      title: kind === "bug" ? "Cineva a raportat o problemă" : kind === "list" ? "Listă raportată" : "Profil raportat",
+      facts: [
+        ["Despre", kind !== "bug" && target],
+        ["Motiv", reason && (REASONS[reason] ?? reason)],
+        ["De la", who],
+        ["Pagina", pageUrl],
+        ["Captură", imageKey && "Da, o vezi în admin"],
+      ],
+      message,
+      detail: kind === "bug" ? ua : null,
+      button: { label: "Vezi în admin", url: `${ctx.url.origin}/admin#reports` },
     }).catch(() => false);
   }
   return json({ ok: true });
