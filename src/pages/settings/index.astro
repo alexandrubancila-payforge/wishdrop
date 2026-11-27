@@ -1,13 +1,11 @@
 ---
-/** Settings → Profile: photo, name, birthday, account stats and seasonal themes. */
+/** Settings → Profile: how friends see you (cover, photo), about you, privacy; one sticky Save. */
 import Layout from "@/layouts/Layout.astro";
 import SettingsTabs from "@/components/dashboard/SettingsTabs.astro";
 import { makeT, localePath } from "@/lib/i18n";
 import common from "@/i18n/common";
 import strings from "@/i18n/settings";
 import social from "@/i18n/social";
-import { db } from "@/lib/db";
-import { plural } from "@/components/dashboard/plural";
 import Icon from "@/components/Icon.astro";
 import CoverPhoto from "@/components/social/CoverPhoto.astro";
 
@@ -15,19 +13,8 @@ const { lang } = Astro.locals;
 const user = Astro.locals.user!;
 const t = makeT(lang, common, strings, social);
 
-const stats = (await db()
-  .prepare(
-    `SELECT (SELECT COUNT(*) FROM wishlists WHERE user_id = ?1) AS lists,
-            (SELECT COUNT(*) FROM items i JOIN wishlists w ON w.id = i.wishlist_id WHERE w.user_id = ?1) AS gifts,
-            (SELECT COUNT(*) FROM items i JOIN wishlists w ON w.id = i.wishlist_id
-              WHERE w.user_id = ?1 AND i.reserved_at IS NOT NULL) AS reserved`,
-  )
-  .bind(user.id)
-  .first<{ lists: number; gifts: number; reserved: number }>()) ?? { lists: 0, gifts: 0, reserved: 0 };
-
 const displayName = user.name || user.email.split("@")[0];
 const initial = displayName.trim().charAt(0).toUpperCase() || "?";
-const memberSince = new Date(user.created_at).getFullYear();
 const seasonsEnabled = !user.disable_seasons;
 
 const M = {
@@ -47,202 +34,141 @@ const P = {
 };
 ---
 
-<Layout title={t("titleProfile")} noindex mainClass="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+<Layout title={t("titleProfile")} noindex mainClass="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-10">
   <div class="mx-auto max-w-xl">
     <SettingsTabs active="profile" />
   </div>
 
-  <!-- Profile hero -->
-  <section class="card mt-8 overflow-hidden">
+  {/* How friends see you: cover, photo, name, link to the public profile. */}
+  <p class="settings-label">{t("sec.preview")}</p>
+  <section class="card overflow-hidden">
     <div class="relative h-28 sm:h-36">
-      <CoverPhoto url={user.cover_url} editable />
+      <CoverPhoto url={user.cover_url} editable labeled />
       {
         !user.cover_url && (
           <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-            <Icon name="gift" class="absolute -right-3 -top-4 h-24 w-24 rotate-12 text-accent-200" />
-            <Icon name="sparkle" class="absolute right-28 top-4 h-7 w-7 text-accent-300" />
-            <Icon name="heart" class="absolute bottom-3 right-20 h-5 w-5 text-accent-300" />
+            <Icon name="gift" class="absolute -left-3 -top-4 h-24 w-24 -rotate-12 text-accent-200" />
+            <Icon name="sparkle" class="absolute left-28 top-4 h-7 w-7 text-accent-300" />
+            <Icon name="heart" class="absolute bottom-3 left-20 h-5 w-5 text-accent-300" />
           </div>
         )
       }
     </div>
-    <div class="px-5 pb-5 sm:px-6 sm:pb-6">
-      <div class="-mt-10 flex items-end gap-4">
-        <div class="relative shrink-0">
-          <img
-            id="avatar-preview"
-            src={user.avatar_url || undefined}
-            alt=""
-            referrerpolicy="no-referrer"
-            class:list={["h-24 w-24 rounded-full object-cover ring-4 ring-white", !user.avatar_url && "hidden"]}
-          />
-          <span
-            id="avatar-initial"
-            class:list={[
-              "grid h-24 w-24 place-items-center rounded-full gift-gradient text-3xl font-extrabold text-white ring-4 ring-white",
-              user.avatar_url && "hidden",
-            ]}
-          >
-            {initial}
-          </span>
-          <label
-            for="avatar-input"
-            aria-label={t("changePhoto")}
-            title={t("changePhoto")}
-            class="absolute -bottom-0.5 -right-0.5 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-line bg-white text-accent-600 shadow-soft transition hover:bg-accent-50 hover:text-accent-700"
-          >
-            <Icon name="camera" class="h-[18px] w-[18px]" />
-          </label>
-          <input id="avatar-input" type="file" accept="image/*" class="hidden" />
-        </div>
-        <div class="min-w-0 pb-1">
-          <p class="truncate text-xl font-extrabold tracking-tight">{displayName}</p>
-          <p class="truncate text-sm text-ink-soft">{user.email}</p>
-        </div>
+    <div class="relative -mt-12 px-5 pb-5 text-center">
+      <div class="relative mx-auto w-fit">
+        <img
+          id="avatar-preview"
+          src={user.avatar_url || undefined}
+          alt=""
+          referrerpolicy="no-referrer"
+          class:list={["h-24 w-24 rounded-full object-cover ring-4 ring-white", !user.avatar_url && "hidden"]}
+        />
+        <span
+          id="avatar-initial"
+          class:list={[
+            "grid h-24 w-24 place-items-center rounded-full gift-gradient text-3xl font-extrabold text-white ring-4 ring-white",
+            user.avatar_url && "hidden",
+          ]}
+        >
+          {initial}
+        </span>
+        <label
+          for="avatar-input"
+          aria-label={t("changePhoto")}
+          title={t("changePhoto")}
+          class="absolute -bottom-0.5 -right-0.5 grid h-9 w-9 cursor-pointer place-items-center rounded-full border border-line bg-white text-accent-600 shadow-soft transition hover:bg-accent-50 hover:text-accent-700"
+        >
+          <Icon name="camera" class="h-[18px] w-[18px]" />
+        </label>
+        <input id="avatar-input" type="file" accept="image/*" class="hidden" />
       </div>
-      <p class="chip mt-4 bg-sun text-sun-ink">
-        <Icon name="calendar-blank" class="h-3.5 w-3.5" />
-        {t("memberSince", { year: memberSince })}
-      </p>
+      <p class="mt-3 truncate text-xl font-extrabold tracking-tight">{displayName}</p>
+      <p class="truncate text-sm text-ink-soft">{user.username ? `@${user.username}` : user.email}</p>
+      {
+        user.username && (
+          <a href={localePath(lang, `/@${user.username}`)} class="mt-2 inline-flex items-center gap-1 text-sm font-bold text-accent-700 hover:underline">
+            {t("set.viewPublic")}
+            <Icon name="arrow-right" weight="bold" class="h-3.5 w-3.5" />
+          </a>
+        )
+      }
     </div>
   </section>
 
-  <!-- Dashboard grid: form (main) + sidebar (stats + seasonal) -->
-  <div class="mt-6 grid gap-6 lg:grid-cols-3">
-    <!-- Main column: edit fields -->
-    <form id="settings-form" class="lg:col-span-2">
-      <section class="card space-y-5 p-5 sm:p-6">
-        <h2 class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
-          <Icon name="user" class="h-5 w-5 text-accent-500" />
-          {t("profile")}
-        </h2>
-        <div>
-          <label for="set-name" class="block text-sm font-semibold text-ink">{t("name")}</label>
+  <form id="settings-form">
+    <!-- About you: name, username, birthday, bio -->
+    <p class="settings-label">{t("sec.about")}</p>
+    <section id="public-profile" class="card scroll-mt-24 space-y-4 p-5 sm:p-6">
+      <div>
+        <label for="set-name" class="block text-sm font-semibold text-ink">{t("name")}</label>
+        <input id="set-name" name="name" type="text" maxlength="100" value={user.name ?? ""} placeholder={t("namePlaceholder")} class="field mt-1" />
+      </div>
+      <div>
+        <label for="set-username" class="block text-sm font-semibold text-ink">{t("set.username")}</label>
+        <div class="relative mt-1">
+          <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center font-bold text-accent-500">@</span>
           <input
-            id="set-name"
-            name="name"
+            id="set-username"
+            name="username"
+            placeholder={t("ph.username")}
             type="text"
-            maxlength="100"
-            value={user.name ?? ""}
-            placeholder={t("namePlaceholder")}
-            class="field mt-1"
+            maxlength="24"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+            value={user.username ?? ""}
+            class="field !pl-9"
           />
         </div>
-        <div>
-          <label for="set-birthday" class="block text-sm font-semibold text-ink">
-            {t("birthday")} <span class="font-normal text-ink-soft">{t("optional")}</span>
-          </label>
-          <input id="set-birthday" name="birthday" type="date" value={user.birthday ?? ""} class="field mt-1" />
-        </div>
-      </section>
-
-      <!-- Public profile: username, bio, private -->
-      <section id="public-profile" class="card mt-6 scroll-mt-24 space-y-5 p-5 sm:p-6">
-        <div class="flex items-start justify-between gap-4">
-          <div>
-            <h2 class="flex items-center gap-2 text-lg font-extrabold tracking-tight">
-              <Icon name="users" class="h-5 w-5 text-accent-500" />
-              {t("set.publicProfile")}
-            </h2>
-            <p class="mt-0.5 text-sm text-ink-soft">{t("set.publicProfileText")}</p>
-          </div>
-          {
-            user.username && (
-              <a href={localePath(lang, `/@${user.username}`)} class="btn btn-ghost shrink-0 !px-3.5 !py-2 text-xs">
-                {t("set.viewProfile")}
-              </a>
-            )
-          }
-        </div>
-        <div>
-          <label for="set-username" class="block text-sm font-semibold text-ink">{t("set.username")}</label>
-          <div class="relative mt-1">
-            <span class="pointer-events-none absolute inset-y-0 left-4 flex items-center font-bold text-accent-500">@</span>
-            <input
-              id="set-username"
-              name="username" placeholder={t("ph.username")}
-              type="text"
-              maxlength="24"
-              autocomplete="off"
-              autocapitalize="none"
-              spellcheck="false"
-              value={user.username ?? ""}
-              class="field !pl-9"
-            />
-          </div>
-          <p id="username-help" class="mt-1 text-xs text-ink-soft" data-origin={origin}>
-            {user.username ? t("set.usernameHint", { url: `${origin.replace(/^https?:\/\//, "")}/@${user.username}` }) : t("set.usernameEmpty")}
-          </p>
-        </div>
-        <div>
-          <label for="set-bio" class="block text-sm font-semibold text-ink">
-            {t("set.bio")} <span class="font-normal text-ink-soft">{t("optional")}</span>
-          </label>
-          <textarea id="set-bio" name="bio" rows="2" maxlength="160" placeholder={t("set.bioPlaceholder")} class="field mt-1 resize-none">{user.bio ?? ""}</textarea>
-        </div>
-        <label class="flex cursor-pointer items-center justify-between gap-4 rounded-2xl bg-lav p-4">
-          <span class="flex min-w-0 items-start gap-3">
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-white text-lav-ink shadow-soft">
-              <Icon name="lock" class="h-5 w-5" />
-            </span>
-            <span class="min-w-0">
-              <span class="block font-bold text-lav-ink">{t("set.private")}</span>
-              <span class="mt-0.5 block text-sm text-lav-ink/80">{t("set.privateText")}</span>
-            </span>
-          </span>
-          <input id="set-private" type="checkbox" checked={!!user.is_private} class="peer sr-only" />
-          <span
-            class="relative h-6 w-11 shrink-0 rounded-full bg-ink-soft/30 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-soft after:transition peer-checked:bg-accent-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20"
-            aria-hidden="true"
-          ></span>
-        </label>
-        <div class="flex items-center justify-end gap-3 border-t border-line pt-5">
-          <p id="settings-status" class="hidden text-sm font-medium"></p>
-          <button type="submit" id="settings-save" class="btn btn-primary !py-3">
-            <span data-save-label>{t("save")}</span>
-          </button>
-        </div>
-      </section>
-    </form>
-
-    <!-- Sidebar: stats + seasonal toggle -->
-    <div class="space-y-6 lg:col-span-1">
-      <div class="grid grid-cols-3 gap-3 lg:grid-cols-1">
-        <div class="flex flex-col gap-1 rounded-[1.375rem] bg-accent-100 p-4 text-accent-700 lg:flex-row lg:items-center lg:gap-3">
-          <Icon name="list-heart" class="h-5 w-5 lg:h-6 lg:w-6" />
-          <p class="text-2xl font-extrabold tracking-tight text-ink lg:text-3xl">{stats.lists}</p>
-          <p class="text-xs font-semibold">{plural(t, lang, "stat.lists", stats.lists)}</p>
-        </div>
-        <div class="flex flex-col gap-1 rounded-[1.375rem] bg-sun p-4 text-sun-ink lg:flex-row lg:items-center lg:gap-3">
-          <Icon name="gift" class="h-5 w-5 lg:h-6 lg:w-6" />
-          <p class="text-2xl font-extrabold tracking-tight text-ink lg:text-3xl">{stats.gifts}</p>
-          <p class="text-xs font-semibold">{plural(t, lang, "stat.gifts", stats.gifts)}</p>
-        </div>
-        <div class="flex flex-col gap-1 rounded-[1.375rem] bg-mint p-4 text-mint-ink lg:flex-row lg:items-center lg:gap-3">
-          <Icon name="check-circle" class="h-5 w-5 lg:h-6 lg:w-6" />
-          <p class="text-2xl font-extrabold tracking-tight text-ink lg:text-3xl">{stats.reserved}</p>
-          <p class="text-xs font-semibold">{plural(t, lang, "stat.reserved", stats.reserved)}</p>
-        </div>
+        <p id="username-help" class="mt-1 text-xs text-ink-soft" data-origin={origin}>
+          {user.username ? t("set.usernameHint", { url: `${origin.replace(/^https?:\/\//, "")}/@${user.username}` }) : t("set.usernameEmpty")}
+        </p>
       </div>
+      <div>
+        <label for="set-birthday" class="block text-sm font-semibold text-ink">
+          {t("birthday")} <span class="font-normal text-ink-soft">{t("optional")}</span>
+        </label>
+        <input id="set-birthday" name="birthday" type="date" value={user.birthday ?? ""} class="field mt-1" />
+      </div>
+      <div>
+        <label for="set-bio" class="block text-sm font-semibold text-ink">
+          {t("set.bio")} <span class="font-normal text-ink-soft">{t("optional")}</span>
+        </label>
+        <textarea id="set-bio" name="bio" rows="2" maxlength="160" placeholder={t("set.bioPlaceholder")} class="field mt-1 resize-none">{user.bio ?? ""}</textarea>
+      </div>
+    </section>
 
-      <!-- Seasonal themes toggle -->
-      <section class="card p-5 sm:p-6">
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex min-w-0 items-start gap-3">
-            <span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-lav text-lav-ink">
-              <Icon name="snowflake" class="h-5 w-5" />
-            </span>
-            <div class="min-w-0">
-              <p class="font-bold text-ink">{t("seasons")}</p>
-              <p class="mt-0.5 text-sm text-ink-soft">{t("seasonsText")}</p>
-            </div>
-          </div>
+    <!-- Privacy: private profile (saved with the form), seasonal themes (saved on tap) -->
+    <p class="settings-label">{t("sec.privacy")}</p>
+    <section class="card divide-y divide-line">
+      <label class="flex cursor-pointer items-center gap-3 p-4 sm:px-6">
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-lav text-lav-ink">
+          <Icon name="lock" class="h-5 w-5" />
+        </span>
+        <span class="min-w-0 flex-1">
+          <span class="block font-bold text-ink">{t("set.private")}</span>
+          <span class="mt-0.5 block text-xs leading-snug text-ink-soft">{t("set.privateText")}</span>
+        </span>
+        <input id="set-private" type="checkbox" checked={!!user.is_private} class="peer sr-only" />
+        <span
+          class="relative h-6 w-11 shrink-0 rounded-full bg-ink-soft/30 transition after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow-soft after:transition peer-checked:bg-accent-600 peer-checked:after:translate-x-5 peer-focus-visible:ring-4 peer-focus-visible:ring-accent-500/20"
+          aria-hidden="true"
+        ></span>
+      </label>
+      <div class="flex items-center gap-3 p-4 sm:px-6">
+        <span class="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-sun text-sun-ink">
+          <Icon name="snowflake" class="h-5 w-5" />
+        </span>
+        <span class="min-w-0 flex-1">
+          <span class="block font-bold text-ink">{t("seasons")}</span>
+          <span class="mt-0.5 block text-xs leading-snug text-ink-soft">{t("seasonsText")}</span>
+        </span>
           <button
             id="seasons-toggle"
             type="button"
             data-enabled={seasonsEnabled ? "true" : "false"}
             class:list={[
-              "relative mt-1 inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
+              "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200",
               seasonsEnabled ? "bg-accent-500" : "bg-ink-soft/30",
             ]}
             aria-checked={seasonsEnabled ? "true" : "false"}
@@ -256,10 +182,17 @@ const P = {
               ]}
             ></span>
           </button>
-        </div>
-      </section>
+      </div>
+    </section>
+
+    {/* Save stays at the bottom of the screen (above the phone tab bar) while you edit. */}
+    <div class="settings-savebar">
+      <p id="settings-status" class="hidden min-w-0 flex-1 truncate text-sm font-medium"></p>
+      <button type="submit" id="settings-save" class="btn btn-primary ml-auto !px-6 !py-3">
+        <span data-save-label>{t("save")}</span>
+      </button>
     </div>
-  </div>
+  </form>
 
   <script is:inline define:vars={{ M, initialAvatar, P }}>
     const form = document.getElementById("settings-form");

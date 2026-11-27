@@ -3,6 +3,10 @@ import type { Bundle } from "@/lib/i18n";
 /** /settings, /settings/password, /settings/account. */
 export default {
   ro: {
+    "sec.preview": "Cum te văd prietenii",
+    "sec.about": "Despre tine",
+    "sec.privacy": "Confidențialitate",
+    "set.viewPublic": "Vezi profilul public",
     titleProfile: "Profil — WishDrop",
     titlePassword: "Parolă — WishDrop",
     titleAccount: "Cont — WishDrop",
@@ -68,6 +72,10 @@ export default {
     popularText: "Cadourile din listele tale publice pot apărea pe pagina Populare, fără numele tău și fără rezervări.",
   },
   en: {
+    "sec.preview": "How friends see you",
+    "sec.about": "About you",
+    "sec.privacy": "Privacy",
+    "set.viewPublic": "View public profile",
     titleProfile: "Profile — WishDrop",
     titlePassword: "Password — WishDrop",
     titleAccount: "Account — WishDrop",
@@ -130,6 +138,10 @@ export default {
     popularText: "Gifts from your public lists may appear on the Popular page, without your name and without reservations.",
   },
   de: {
+    "sec.preview": "So sehen dich Freunde",
+    "sec.about": "Über dich",
+    "sec.privacy": "Privatsphäre",
+    "set.viewPublic": "Öffentliches Profil ansehen",
     titleProfile: "Profil — WishDrop",
     titlePassword: "Passwort — WishDrop",
     titleAccount: "Konto — WishDrop",
@@ -192,6 +204,10 @@ export default {
     popularText: "Geschenke aus deinen öffentlichen Listen können auf der Seite „Beliebt“ erscheinen, ohne deinen Namen und ohne Reservierungen.",
   },
   ru: {
+    "sec.preview": "Как вас видят друзья",
+    "sec.about": "О вас",
+    "sec.privacy": "Конфиденциальность",
+    "set.viewPublic": "Открыть публичный профиль",
     titleProfile: "Профиль — WishDrop",
     titlePassword: "Пароль — WishDrop",
     titleAccount: "Аккаунт — WishDrop",

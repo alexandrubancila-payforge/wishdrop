@@ -12,9 +12,11 @@ import common from "@/i18n/common";
 interface Props {
   url: string | null | undefined;
   editable?: boolean;
+  /** Spell out "Change cover photo" on the button (Settings) instead of only the camera. */
+  labeled?: boolean;
   class?: string;
 }
-const { url, editable = false, class: cls } = Astro.props;
+const { url, editable = false, labeled = false, class: cls } = Astro.props;
 const t = makeT(Astro.locals.lang, common);
 ---
 
@@ -22,14 +24,15 @@ const t = makeT(Astro.locals.lang, common);
   {url && <img src={url} alt="" class="h-full w-full object-cover" />}
   {
     editable && (
-      <div class="cover-actions absolute bottom-2 right-2 flex gap-1.5">
+      <div class:list={["absolute right-2 flex gap-1.5", labeled ? "top-2" : "bottom-2 cover-actions"]}>
         {url && (
           <button type="button" data-cover-remove class="grid h-8 w-8 place-items-center rounded-full bg-white/90 text-ink-soft shadow-soft transition hover:text-rose-600" aria-label={t("cover.remove")} title={t("cover.remove")}>
             <Icon name="trash" class="h-4 w-4" />
           </button>
         )}
-        <label class="grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-white/90 text-accent-600 shadow-soft transition hover:text-accent-700" aria-label={t("cover.change")} title={t("cover.change")}>
-          <Icon name="camera" class="h-4 w-4" />
+        <label class:list={["flex h-8 cursor-pointer items-center justify-center gap-1.5 rounded-full bg-white/90 text-accent-600 shadow-soft transition hover:text-accent-700", labeled ? "px-3 text-xs font-bold" : "w-8"]} aria-label={t("cover.change")} title={t("cover.change")}>
+          <Icon name={labeled ? "image" : "camera"} class="h-4 w-4" />
+          {labeled && <span>{t("cover.change")}</span>}
           <input type="file" accept="image/*" class="hidden" data-cover-input data-fail={t("cover.fail")} />
         </label>
       </div>
