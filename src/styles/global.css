@@ -789,8 +789,8 @@ html {
   pointer-events: none;
   position: absolute;
   inset: 0 0 auto 0;
-  height: 4.5rem;
-  background: linear-gradient(to bottom, rgb(43 36 51 / 0.28), rgb(43 36 51 / 0));
+  height: 3.75rem; /* down to just under the buttons */
+  background: linear-gradient(to bottom, rgb(43 36 51 / 0.5), rgb(43 36 51 / 0.22) 55%, rgb(43 36 51 / 0));
 }
 .react-btn.is-overlay.react-heart {
   color: var(--color-accent-600);
