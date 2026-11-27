@@ -252,6 +252,14 @@ body {
     stroke: currentColor;
   }
 
+  /* List settings panel (list editor): a check on the chosen "where it appears" option. */
+  .settings-check {
+    opacity: 0;
+  }
+  input:checked + .settings-option .settings-check {
+    opacity: 1;
+  }
+
   /* Rows in a gift's "⋯" menu (list editor). */
   .item-menu-row {
     display: flex;
