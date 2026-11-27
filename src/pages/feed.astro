@@ -80,7 +80,6 @@ const santaT = makeT(lang, santaStrings);
 const profileHref = user.username ? href(`/@${user.username}`) : href("/settings") + "#public-profile";
 const displayName = user.name || (user.username ? `@${user.username}` : user.email.split("@")[0]);
 
-const firstName = (user.name || user.username || user.email.split("@")[0]).trim().split(/\s+/)[0];
 const day = new Intl.DateTimeFormat(lang, { day: "2-digit", timeZone: "UTC" });
 const month = new Intl.DateTimeFormat(lang, { month: "short", timeZone: "UTC" });
 const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav text-lav-ink", "bg-sun text-sun-ink"];
@@ -149,8 +148,9 @@ const DATE_TINTS = ["bg-accent-500 text-white", "bg-mint text-mint-ink", "bg-lav
     <!-- Center: the feed -->
     <div class="min-w-0">
       <header>
-        <h1 class="text-3xl font-extrabold tracking-tight sm:text-4xl">{t("hi", { name: firstName })}</h1>
-        <div class="stories-wrap relative mt-3">
+        {/* The bubbles open the page; the heading stays for screen readers. */}
+        <h1 class="sr-only">{makeT(lang, common)("nav.feed")}</h1>
+        <div class="stories-wrap relative">
         <button type="button" data-stories-prev class="stories-arrow left-0" aria-label={t("story.prev")} hidden>
           <Icon name="caret-left" weight="bold" class="h-4 w-4" />
         </button>
