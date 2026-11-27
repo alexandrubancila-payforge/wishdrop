@@ -778,6 +778,23 @@ main img[data-loaded] {
  */
 html {
   touch-action: manipulation;
+  /* No rubber-band bounce at the top or bottom of the page (it moved the side
+     columns too, which looked like everything was sliding). */
+  overscroll-behavior-y: none;
+}
+/* The feed's side columns stay put while the feed scrolls; one taller than the
+   screen scrolls on its own, so its bottom (Create a list) is always reachable. */
+.feed-side {
+  max-height: calc(100vh - 7rem);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  /* Room for the cards' shadows, which the scroll box would otherwise cut. */
+  margin: -0.5rem -0.75rem 0;
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+.feed-side::-webkit-scrollbar {
+  display: none;
 }
 @media (max-width: 1023px) {
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
