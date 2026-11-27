@@ -28,12 +28,11 @@ const day = new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", timeZ
   </header>
 
   {/*
-    Phones: your groups first (what you came back for), then "New group", then how it works.
-    Without groups the empty box is left out, so the form comes right after the title.
+    Phones: how it works, then "New group", then your groups (the empty box is left out).
     Wide screens: how it works on top, groups and the form side by side.
   */}
   <div class="mt-6 flex flex-col gap-6 lg:grid lg:grid-cols-[1fr_360px] lg:gap-x-6 lg:gap-y-8">
-    <div class="order-3 lg:order-none lg:col-span-2">
+    <div class="order-1 lg:order-none lg:col-span-2">
       <p class="mb-2 text-sm font-extrabold lg:hidden">{t("how.title")}</p>
       <ol class="grid gap-2 sm:grid-cols-3">
         {
@@ -47,7 +46,7 @@ const day = new Intl.DateTimeFormat(lang, { day: "numeric", month: "long", timeZ
       </ol>
     </div>
 
-    <section class:list={["order-1 lg:order-none", groups.length === 0 && "hidden lg:block"]}>
+    <section class:list={["order-3 lg:order-none", groups.length === 0 && "hidden lg:block"]}>
       <h2 class="text-lg font-extrabold tracking-tight">{t("groups")}</h2>
       {
         groups.length === 0 ? (
